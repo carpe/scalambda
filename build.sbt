@@ -31,10 +31,15 @@ lazy val scalambda = project
 
 lazy val plugin = project
   .settings(name := "sbt-scalambda")
-  .enablePlugins(SbtPlugin)
+  .enablePlugins(SbtPlugin, BuildInfoPlugin)
   .enablePlugins(CarpeCorePlugin)
   .settings(description := "Dependencies shared by both delegates and handlers. Includes things like Models and generic Lambda helpers.")
   .settings(
+    // this allows the plugin see what the current version of scalambda is at runtime in order to
+    // automatically include the library as a dependency.
+    buildInfoKeys := Seq[BuildInfoKey](version),
+    buildInfoPackage := "io.carpe.scalambda",
+
     libraryDependencies ++= {
       // get sbt and scala version used in build to resolve plugins with
       val sbtVersion     = (sbtBinaryVersion in pluginCrossBuild).value
@@ -42,7 +47,6 @@ lazy val plugin = project
 
       // the plugins we want to include
       Seq(
-
         // Plugin for building fat-jars
         "com.eed3si9n" % "sbt-assembly" % "0.14.9",
 

@@ -9,7 +9,8 @@ import sbtassembly._
 
 object ScalambdaPlugin extends AutoPlugin {
 
-  val currentScalambdaVersion: String = "0.2.1-SNAPSHOT"
+  // get the current version of scalambda via the "sbt-buildinfo" plugin
+  val currentScalambdaVersion: String = BuildInfo.version
 
   lazy val scalambdaLibs = Seq(
     // Scalambda is a lightweight library for building Lambda functions in Scala
@@ -18,12 +19,17 @@ object ScalambdaPlugin extends AutoPlugin {
 
   object autoImport {
 
+    val functionNamePrefix = settingKey[Option[String]]("Prefix to prepend onto the names of any AWS Functions defined and deployed via Scalambda.")
 
-    def lambdaFunction(functionName: String, functionHandler: String, functionRoleArn: String, env: Seq[(String, String)] = Seq()): Seq[Def.Setting[_]] = {
+    private def parseFunctionName(functionClasspath: String): String = {
+      functionClasspath.split('.').last
+    }
+
+    def lambdaFunction(functionClasspath: String, functionRoleArn: String, env: Seq[(String, String)] = Seq()): Seq[Def.Setting[_]] = {
       val awsLambdaPluginConfig = Seq(
         // lambda settings
-        lambdaName := Some(functionName),
-        handlerName := Some(functionHandler),
+        lambdaName := Some(functionNamePrefix.value.getOrElse("") + parseFunctionName(functionClasspath)),
+        handlerName := Some(functionClasspath + "::handler"),
         region := Some("us-west-2"),
         s3Bucket := Some("carpe-lambdas"),
         // you might be asking why this amount of memory. AWS scales how much CPU your Lambdas are executed based on how much
@@ -42,11 +48,11 @@ object ScalambdaPlugin extends AutoPlugin {
       awsLambdaPluginConfig ++ scalambdaLibs
     }
 
-    def apiGatewayProxyLambda(functionName: String, functionHandler: String, functionRoleArn: String, env: Seq[(String, String)] = Seq()): Seq[Def.Setting[_]] = {
+    def apiGatewayProxyLambda(functionClasspath: String, functionRoleArn: String, env: Seq[(String, String)] = Seq()): Seq[Def.Setting[_]] = {
       val awsLambdaProxyPluginConfig = Seq(
         // lambda settings
-        lambdaName := Some(functionName),
-        handlerName := Some(functionHandler),
+        lambdaName := Some(functionNamePrefix.value.getOrElse("") + parseFunctionName(functionClasspath)),
+        handlerName := Some(functionClasspath + "::handler"),
         region := Some("us-west-2"),
         s3Bucket := Some("carpe-lambdas"),
         // you might be asking why this amount of memory. AWS scales how much CPU your Lambdas are executed based on how much
@@ -65,12 +71,15 @@ object ScalambdaPlugin extends AutoPlugin {
     }
   }
 
+  import autoImport._
+
   override def requires: Plugins = AwsLambdaPlugin && AssemblyPlugin
 
   override def projectSettings: Seq[Def.Setting[_]] = LambdaLoggingSettings.loggingSettings
 
-  override def buildSettings: Seq[Def.Setting[_]] = super.buildSettings
-
-  override def globalSettings: Seq[Def.Setting[_]] = super.globalSettings
+  override def globalSettings: Seq[Def.Setting[_]] = Seq(
+    // set defualt value for function name prefix
+    functionNamePrefix := None
+  )
 
 }

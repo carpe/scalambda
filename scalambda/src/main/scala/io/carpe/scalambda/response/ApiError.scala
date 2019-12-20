@@ -1,4 +1,4 @@
-package io.carpe.scalambda
+package io.carpe.scalambda.response
 
 import io.circe.{Encoder, Json}
 
@@ -6,7 +6,7 @@ import io.circe.{Encoder, Json}
  * This is an optional Error class you can use as your Error return type if you wish. You can then extend it with your
  * own error types that implement / override the members. This makes it simple to return error types from your handler
  */
-abstract class Errors {
+abstract class ApiError {
 
   /**
    * The HTTP status code of the error
@@ -16,7 +16,7 @@ abstract class Errors {
   /**
    * The headers you want to go with the error.
    */
-  val headers: Option[Map[String, String]] = None
+  val headers: Map[String, String] = Map.empty
 
   /**
    * Use errorCode for when you might have many 400 HTTP error types and you need your callers to be able to
@@ -37,23 +37,33 @@ abstract class Errors {
    */
   val message: String
 
-  def toResponse = APIGatewayProxyResponse(httpStatus, headers, Some(this))
+  def toResponse: APIGatewayProxyResponse[Nothing] = APIGatewayProxyResponse(httpStatus, headers, Some(Left(this)))
 }
 
-object Errors {
-  implicit val encoder: Encoder[Errors] = Encoder[Errors](a => {
+object ApiError {
+  implicit val encoder: Encoder[ApiError] = Encoder[ApiError](a => {
     val requiredJson = Json.obj(("errorCode", a.errorCode.map(x => Json.fromInt(x)).getOrElse(Json.Null)),
       ("message", Json.fromString(a.message)))
     a.data.fold(requiredJson)(d => requiredJson.deepMerge(Json.obj("data" -> d)))
   })
 
   /**
-   * A super basic InputError type. This is used with the TypedError proxies for when a basic HTTP 400 with no error code
-   * is sufficient for the error.
+   * An Error that is uninformative by design. Use this error when the true cause of the error must be hidden from users
+   * due to security reasons.
    *
-   * @param msg
+   * Note: Please don't overuse this error! Meaningful error messages can be helpful for users.
    */
-  case class InputError(msg: String) extends Errors {
+  case object InternalError extends ApiError {
+    override val httpStatus: Int = 500
+    override val message: String = "Internal Server Error"
+  }
+
+  /**
+   * A super basic InputError type.
+   *
+   * @param msg explanation for the user
+   */
+  case class InputError(msg: String) extends ApiError {
     override val message: String = msg
   }
 }
