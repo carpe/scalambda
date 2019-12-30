@@ -29,7 +29,7 @@ object APIGatewayProxyRequest {
         headers <- c.downField("headers").as[Option[Map[String, String]]].map(_.getOrElse(Map()))
         queryStringParameters <- c.downField("queryStringParameters").as[Option[Map[String, String]]].map(_.getOrElse(Map()))
         pathParameters <- c.downField("pathParameters").as[Option[Map[String, String]]].map(_.getOrElse(Map()))
-        stageVariables <- c.downField("stageVariables").as[Map[String, String]]
+        stageVariables <- c.downField("stageVariables").as[Option[Map[String, String]]].map(_.getOrElse(Map()))
         requestContext <- c.downField("requestContext").as[RequestContext]
         body <- c.downField("body").as[String].flatMap { stringlyJson =>
           parse(stringlyJson).fold(
