@@ -41,11 +41,14 @@ abstract class Scalambda[I, O](implicit val dec: Decoder[I], val enc: Encoder[O]
       // attempt to parse input
       decode[I](inputString).fold(
         // if unsuccessful, render an error as the body
-        error => encode[ApiError](invalidInput(error)),
+        error =>
+          {
+            logger.error("Failed to decode input:", error)
+            encode[ApiError](invalidInput(error))
+          },
         // if successful, run the defined handler function
         req => {
           val resp = handleRequest(req, context)
-
           encode[O](resp)
         }
       )
