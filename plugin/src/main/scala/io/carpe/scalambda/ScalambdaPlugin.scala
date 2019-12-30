@@ -14,7 +14,7 @@ object ScalambdaPlugin extends AutoPlugin {
 
   lazy val scalambdaLibs = Seq(
     // Scalambda is a lightweight library for building Lambda functions in Scala
-    libraryDependencies += "io.carpe" %% "scalambda" % currentScalambdaVersion
+    libraryDependencies += "io.carpe" %% "scalambda-core" % currentScalambdaVersion
   )
 
   object autoImport {

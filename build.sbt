@@ -7,9 +7,13 @@ ThisBuild / organization := "io.carpe"
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 
+lazy val root = project
+  .in(file("."))
+  .settings(name := "scalambda")
+  .aggregate(scalambda, plugin)
 
 lazy val scalambda = project
-  .settings(name := "scalambda")
+  .settings(name := "scalambda-core")
   .enablePlugins(CarpeCorePlugin)
   .settings(description := "Dependencies shared by both delegates and handlers. Includes things like Models and generic Lambda helpers.")
   .settings(
