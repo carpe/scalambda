@@ -1,16 +1,19 @@
 import sbt._
 import sbt.Keys.libraryDependencies
 
+import scala.tools.nsc.Properties
 
 ThisBuild / scalaVersion := "2.12.8"
 ThisBuild / organization := "io.carpe"
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
+ThisBuild / credentials += Credentials(new File(Properties.envOrElse("JENKINS_HOME", Properties.envOrElse("HOME", "")) + "/.sbt/.credentials"))
 
-//lazy val root = project
-//  .in(file("."))
-//  .settings(name := "scalambda")
-//  .aggregate(core, plugin)
+lazy val root = project
+  .in(file("."))
+  .settings(name := "scalambda")
+  .aggregate(core, testing, plugin)
+  .settings(publishArtifact := false)
 
 lazy val core = project
   .settings(name := "scalambda-core")
@@ -39,7 +42,6 @@ lazy val testing = project
   .settings(description := "Utilities for testing Lambda Functions created with Scalambda.")
   .settings(
     // Testing
-//    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % Runtime,
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % Test
   ).dependsOn(core)
 
