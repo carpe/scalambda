@@ -36,8 +36,6 @@ abstract class ApiError {
    * to respond to the error in a specific way.
    */
   val message: String
-
-  def toResponse: APIGatewayProxyResponse[Nothing] = APIGatewayProxyResponse(httpStatus, headers, Some(Left(this)))
 }
 
 object ApiError {
