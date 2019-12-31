@@ -42,7 +42,9 @@ lazy val testing = project
   .settings(description := "Utilities for testing Lambda Functions created with Scalambda.")
   .settings(
     // Testing
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % Test
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % Test,
+
+    publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(true)
   ).dependsOn(core)
 
 lazy val plugin = project

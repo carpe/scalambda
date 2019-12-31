@@ -2,9 +2,11 @@ package io.carpe.scalambda
 
 import com.gilt.aws.lambda.AwsLambdaPlugin
 import com.gilt.aws.lambda.AwsLambdaPlugin.autoImport._
-import sbt.Keys.libraryDependencies
+import sbt.Keys.{credentials, libraryDependencies, resolvers}
 import sbt._
 import sbtassembly._
+
+import scala.tools.nsc.Properties
 
 
 object ScalambdaPlugin extends AutoPlugin {
@@ -82,7 +84,10 @@ object ScalambdaPlugin extends AutoPlugin {
 
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
     // set defualt value for function name prefix
-    functionNamePrefix := None
+    functionNamePrefix := None,
+    credentials += Credentials(new File(Properties.envOrElse("JENKINS_HOME", Properties.envOrElse("HOME", "")) + "/.sbt/.credentials")),
+    resolvers += "Carpe Artifactory Realm" at "https://bin.carpe.io/artifactory/sbt-release",
+    resolvers += "Carpe Artifactory Realm Snapshots" at "https://bin.carpe.io/artifactory/sbt-dev"
   )
 
 }
