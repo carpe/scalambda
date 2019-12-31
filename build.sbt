@@ -7,12 +7,12 @@ ThisBuild / organization := "io.carpe"
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 
-lazy val root = project
-  .in(file("."))
-  .settings(name := "scalambda")
-  .aggregate(scalambda, plugin)
+//lazy val root = project
+//  .in(file("."))
+//  .settings(name := "scalambda")
+//  .aggregate(core, plugin)
 
-lazy val scalambda = project
+lazy val core = project
   .settings(name := "scalambda-core")
   .enablePlugins(CarpeCorePlugin)
   .settings(description := "Dependencies shared by both delegates and handlers. Includes things like Models and generic Lambda helpers.")
@@ -32,6 +32,16 @@ lazy val scalambda = project
     // Testing
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % Test
   )
+
+lazy val testing = project
+  .settings(name := "scalambda-testing")
+  .enablePlugins(CarpeCorePlugin)
+  .settings(description := "Utilities for testing Lambda Functions created with Scalambda.")
+  .settings(
+    // Testing
+//    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % Runtime,
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % Test
+  ).dependsOn(core)
 
 lazy val plugin = project
   .settings(name := "sbt-scalambda")
