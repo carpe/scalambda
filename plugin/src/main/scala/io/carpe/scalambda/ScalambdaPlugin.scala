@@ -24,17 +24,18 @@ object ScalambdaPlugin extends AutoPlugin {
 
   object autoImport {
 
+    val scalambdaRoleArn = settingKey[String]("ARN for AWS Role to use for lambda functions.")
     val functionNamePrefix = settingKey[Option[String]]("Prefix to prepend onto the names of any AWS Functions defined and deployed via Scalambda.")
 
-    private def parseFunctionName(functionClasspath: String): String = {
-      functionClasspath.split('.').last
+    private def inferLambdaName(functionPrefix: Option[String], functionClasspath: String) = {
+      functionPrefix.getOrElse("") + functionClasspath.split('.').last
     }
 
-    def lambdaFunction(functionClasspath: String, functionRoleArn: String, env: Seq[(String, String)] = Seq()): Seq[Def.Setting[_]] = {
+    def lambdaFunction(functionClasspath: String): Seq[Def.Setting[_]] = {
+
       val awsLambdaPluginConfig = Seq(
-        // lambda settings
-        lambdaName := Some(functionNamePrefix.value.getOrElse("") + parseFunctionName(functionClasspath)),
-        handlerName := Some(functionClasspath + "::handler"),
+        // add this lambda to the list of existing lambda definitions for this function
+        lambdaHandlers += (inferLambdaName(functionNamePrefix.value, functionClasspath) -> (functionClasspath + "::handler")),
         region := Some("us-west-2"),
         s3Bucket := Some("carpe-lambdas"),
         // you might be asking why this amount of memory. AWS scales how much CPU your Lambdas are executed based on how much
@@ -45,19 +46,18 @@ object ScalambdaPlugin extends AutoPlugin {
         awsLambdaMemory := Some(1536),
         // set default timeout to 15 minutes
         awsLambdaTimeout := Some(15 * 60),
-        roleArn := Some(functionRoleArn),
-        environment := env
+        roleArn := Some(scalambdaRoleArn.value)
       )
 
       // return a project
       awsLambdaPluginConfig ++ scalambdaLibs
     }
 
-    def apiGatewayProxyLambda(functionClasspath: String, functionRoleArn: String, env: Seq[(String, String)] = Seq()): Seq[Def.Setting[_]] = {
+    def apiGatewayProxyLambda(functionClasspath: String): Seq[Def.Setting[_]] = {
+
       val awsLambdaProxyPluginConfig = Seq(
-        // lambda settings
-        lambdaName := Some(functionNamePrefix.value.getOrElse("") + parseFunctionName(functionClasspath)),
-        handlerName := Some(functionClasspath + "::handler"),
+        // add this lambda to the list of existing lambda definitions for this function
+        lambdaHandlers += (inferLambdaName(functionNamePrefix.value, functionClasspath) -> (functionClasspath + "::handler")),
         region := Some("us-west-2"),
         s3Bucket := Some("carpe-lambdas"),
         // you might be asking why this amount of memory. AWS scales how much CPU your Lambdas are executed based on how much
@@ -67,8 +67,7 @@ object ScalambdaPlugin extends AutoPlugin {
         // TL;DR Even though the Function only uses ~256MB of memory, keep this number high to provide a better UX.
         awsLambdaMemory := Some(1536),
         awsLambdaTimeout := Some(30),
-        roleArn := Some(functionRoleArn),
-        environment := env
+        roleArn := Some(scalambdaRoleArn.value)
       )
 
       // return a project

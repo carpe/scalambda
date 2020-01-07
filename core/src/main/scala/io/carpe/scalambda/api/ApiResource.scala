@@ -2,7 +2,7 @@ package io.carpe.scalambda.api
 
 import cats.effect.IO
 import com.amazonaws.services.lambda.runtime.Context
-import io.carpe.scalambda.{ApiScalambda, Scalambda}
+import io.carpe.scalambda.Scalambda
 import io.carpe.scalambda.api.index.{IndexRequest, IndexResponse}
 import io.carpe.scalambda.api.show.ShowRequest
 import io.carpe.scalambda.request.APIGatewayProxyRequest
@@ -16,12 +16,17 @@ import io.circe.{Decoder, Encoder}
  * requests without having to worry about side-effects.
  *
  * @param outputEncoder encoder for output
+ * @tparam I input type, which is set on a per request type basis
  * @tparam O output type, which is set on a per request type basis
  */
-sealed abstract class ApiResource[O](implicit val outputEncoder: Encoder[O])
-  extends Scalambda[APIGatewayProxyRequest.WithoutBody, APIGatewayProxyResponse[O]]
+sealed abstract class ApiResource[+I, R <: APIGatewayProxyRequest[I], O](implicit val inputDecoder: Decoder[R], val outputEncoder: Encoder[O])
+  extends Scalambda[R, APIGatewayProxyResponse[O]]
 
 object ApiResource {
+
+  // type aliases used to simplify lambda definitions
+  type WithoutBody[O] = ApiResource[Nothing, APIGatewayProxyRequest.WithoutBody, O]
+  type WithBody[O] = ApiResource[O, APIGatewayProxyRequest.WithBody[O], O]
 
   /**
    * Default response headers.
@@ -32,12 +37,12 @@ object ApiResource {
 
 
   /**
-   * An [[ApiResource]] used to handle GET requests for a single record by ID. Example: "/cars/42"
+   * An [[ApiResource]] used to handle GET requests for a single record by ID. Example: "/cars/42:GET"
    *
    * @param encoder for the record
    * @tparam R type of record
    */
-  abstract class Show[R](implicit val encoder: Encoder[R]) extends ApiResource[R] {
+  abstract class Show[R](implicit val encoder: Encoder[R]) extends ApiResource.WithoutBody[R] {
     override def handleRequest(input: APIGatewayProxyRequest.WithoutBody, context: Context): APIGatewayProxyResponse[R] = {
       ShowRequest.fromProxyRequest(input) match {
         case Left(err) =>
@@ -77,12 +82,12 @@ object ApiResource {
   }
 
   /**
-   * An [[ApiResource]] used to handle GET requests for multiple records. Example: "/cars"
+   * An [[ApiResource]] used to handle GET requests for multiple records. Example: "/cars:GET"
    *
    * @param encoder for records
    * @tparam R type of record
    */
-  abstract class Index[R](implicit val encoder: Encoder[R]) extends ApiResource[IndexResponse[R]] {
+  abstract class Index[R](implicit val encoder: Encoder[R]) extends ApiResource.WithoutBody[IndexResponse[R]] {
     override def handleRequest(input: APIGatewayProxyRequest.WithoutBody, context: Context): APIGatewayProxyResponse[IndexResponse[R]] = {
       val records = index(IndexRequest.fromProxyRequest(input))
 
@@ -112,5 +117,52 @@ object ApiResource {
      * @return an IO Monad that wraps logic for attempting to retrieving the records
      */
     def index(input: IndexRequest): IO[List[R]]
+  }
+
+  /**
+   * An [[ApiResource]] used to handle POST requests for creating records. Example: "/cars:POST"
+   *
+   * @param decoder for record
+   * @param encoder for record
+   * @tparam R type of record
+   */
+  abstract class Create[R](implicit val decoder: Decoder[R], val encoder: Encoder[R]) extends ApiResource.WithBody[R] {
+    override def handleRequest(input: APIGatewayProxyRequest.WithBody[R], context: Context): APIGatewayProxyResponse[R] = {
+      // try to parse a record from the input and then process it using the supplied implementation
+      val result = for {
+        requestBody <- input.body match {
+          case Some(value) =>
+            Right(value)
+          case None =>
+            Left(ApiError.InternalError)
+        }
+        createRecord <- create(requestBody).attempt.unsafeRunSync()
+      } yield {
+        createRecord
+      }
+
+      // return a response based on the result of the record creation
+      result match {
+        case Left(err) =>
+          err match {
+            case apiError: ApiError =>
+              APIGatewayProxyResponse.WithError(defaultResponseHeaders, apiError)
+            case _ =>
+              logger.error("Request could not be handled due to an unexpected exception being thrown.", err)
+              APIGatewayProxyResponse.WithError(defaultResponseHeaders, ApiError.InternalError)
+          }
+
+        case Right(success) =>
+          APIGatewayProxyResponse.WithBody(200, defaultResponseHeaders, success)
+      }
+    }
+
+    /**
+     * Get multiple records.
+     *
+     * @param input for request
+     * @return an IO Monad that wraps logic for attempting to retrieving the records
+     */
+    def create(input: R): IO[R]
   }
 }
