@@ -2,7 +2,7 @@ package io.carpe.scalambda.api
 
 import cats.effect.IO
 import com.amazonaws.services.lambda.runtime.Context
-import io.carpe.scalambda.ApiScalambda
+import io.carpe.scalambda.{ApiScalambda, Scalambda}
 import io.carpe.scalambda.api.index.{IndexRequest, IndexResponse}
 import io.carpe.scalambda.api.show.ShowRequest
 import io.carpe.scalambda.request.APIGatewayProxyRequest
@@ -15,12 +15,11 @@ import io.circe.{Decoder, Encoder}
  * This removes much of the boilerplate for handling specific requests, as well as allow you to write logic for handling
  * requests without having to worry about side-effects.
  *
- * @param inputDecoder decoder for input
  * @param outputEncoder encoder for output
- * @tparam I input type, which is set on a per request type basis
  * @tparam O output type, which is set on a per request type basis
  */
-sealed abstract class ApiResource[I, O](implicit val inputDecoder: Decoder[I], val outputEncoder: Encoder[O]) extends ApiScalambda[I, O]
+sealed abstract class ApiResource[O](implicit val outputEncoder: Encoder[O])
+  extends Scalambda[APIGatewayProxyRequest.WithoutBody, APIGatewayProxyResponse[O]]
 
 object ApiResource {
 
@@ -38,8 +37,8 @@ object ApiResource {
    * @param encoder for the record
    * @tparam R type of record
    */
-  abstract class Show[R](implicit val encoder: Encoder[R]) extends ApiResource[None.type, R] {
-    override def handleRequest(input: APIGatewayProxyRequest[None.type], context: Context): APIGatewayProxyResponse[R] = {
+  abstract class Show[R](implicit val encoder: Encoder[R]) extends ApiResource[R] {
+    override def handleRequest(input: APIGatewayProxyRequest.WithoutBody, context: Context): APIGatewayProxyResponse[R] = {
       ShowRequest.fromProxyRequest(input) match {
         case Left(err) =>
           APIGatewayProxyResponse.WithError(defaultResponseHeaders, err)
@@ -59,8 +58,8 @@ object ApiResource {
 
             case Right(success) =>
               success match {
-                case Some(value) =>
-                  APIGatewayProxyResponse.WithBody(200, defaultResponseHeaders, value)
+                case Some(record) =>
+                  APIGatewayProxyResponse.WithBody(200, defaultResponseHeaders, record)
                 case None =>
                   APIGatewayProxyResponse.WithError(defaultResponseHeaders, ApiError.NotFoundError(s"Could not find record with id: ${showInput.id}."))
               }
@@ -83,8 +82,8 @@ object ApiResource {
    * @param encoder for records
    * @tparam R type of record
    */
-  abstract class Index[R](implicit val encoder: Encoder[R]) extends ApiResource[None.type, IndexResponse[R]] {
-    override def handleRequest(input: APIGatewayProxyRequest[None.type], context: Context): APIGatewayProxyResponse[IndexResponse[R]] = {
+  abstract class Index[R](implicit val encoder: Encoder[R]) extends ApiResource[IndexResponse[R]] {
+    override def handleRequest(input: APIGatewayProxyRequest.WithoutBody, context: Context): APIGatewayProxyResponse[IndexResponse[R]] = {
       val records = index(IndexRequest.fromProxyRequest(input))
 
       records.attempt.unsafeRunSync() match {

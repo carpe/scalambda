@@ -16,7 +16,7 @@ trait ApiScalambdaFixtures[I, O] {
 
   protected implicit val requestContextEncoder: Encoder[RequestContext] = deriveEncoder[RequestContext]
 
-  protected def proxyRequestEncoder(implicit bodyEncoder: Encoder[I]): Encoder.AsObject[APIGatewayProxyRequest[I]] = Encoder.forProduct10(
+  protected def proxyRequestEncoder(implicit bodyEncoder: Encoder[I]): Encoder.AsObject[APIGatewayProxyRequest.WithBody[I]] = Encoder.forProduct10(
     "resource",
     "path",
     "httpMethod",
@@ -76,7 +76,7 @@ trait ApiScalambdaFixtures[I, O] {
 
     val output        = new ByteArrayOutputStream()
 
-    val apiGatewayReq = APIGatewayProxyRequest(
+    val apiGatewayReq = APIGatewayProxyRequest.WithBody(
       "/resource",
       "/unit-test",
       "POST",
