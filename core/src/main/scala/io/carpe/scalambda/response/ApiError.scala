@@ -6,7 +6,7 @@ import io.circe.{Encoder, Json}
  * This is an optional Error class you can use as your Error return type if you wish. You can then extend it with your
  * own error types that implement / override the members. This makes it simple to return error types from your handler
  */
-abstract class ApiError {
+abstract class ApiError extends Throwable {
 
   /**
    * The HTTP status code of the error
@@ -57,11 +57,20 @@ object ApiError {
   }
 
   /**
-   * A super basic InputError type.
+   * A super basic InputError.
    *
    * @param msg explanation for the user
    */
   case class InputError(msg: String) extends ApiError {
+    override val message: String = msg
+  }
+
+  /**
+   * A basic NotFound error.
+   *
+   * @param msg explanation for the user
+   */
+  case class NotFoundError(msg: String) extends ApiError {
     override val message: String = msg
   }
 }

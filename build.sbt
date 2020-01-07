@@ -26,6 +26,9 @@ lazy val core = project
     // Cats, which provides extensions to allow for safer, faster functional programming code.
     libraryDependencies ++= carpeDeps.minimalCats,
 
+    // Cats Effect, used to control side effects and make managing resources (such as database connections) easier
+    libraryDependencies += "org.typelevel" %% "cats-effect" % "1.3.0",
+
     // Minimal set of interfaces for AWS Lambda creation
     libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
 

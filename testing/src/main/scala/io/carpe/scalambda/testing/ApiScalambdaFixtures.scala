@@ -109,14 +109,14 @@ trait ApiScalambdaFixtures[I, O] {
   def makeResponse(body: O, responseCode: Int)(implicit encoder: Encoder[O]): Json = {
     val responseBody = encoder(body).noSpaces.stripMargin
 
-    val response = APIGatewayProxyResponse[String](
+    val response: APIGatewayProxyResponse[String] = APIGatewayProxyResponse.WithBody[String](
       statusCode = responseCode,
       headers = Map("Access-Control-Allow-Origin" -> "*"),
-      body = Some(responseBody),
+      body = responseBody,
       isBase64Encoded = false
     )
 
-    response.asJson(APIGatewayProxyResponse.encode[String])
+    response.asJson(APIGatewayProxyResponse.encoder[String])
   }
 
 }
