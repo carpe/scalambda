@@ -8,9 +8,14 @@ Scalambda is composed of two separate libraries. One is an SBT plugin that shoul
 Add the plugin to your project in the `project/plugins.sbt` file:
 
 ```scala
-// project/plugins.sbt
+// Carpe's own Artifactory
 resolvers += "Artifactory Realm" at "https://bin.carpe.io/artifactory/sbt-release"
-addSbtPlugin("io.carpe" % "sbt-scalambda" % scalambdaVersion)
+resolvers += "Artifactory Realm Snapshots" at "https://bin.carpe.io/artifactory/sbt-dev"
+import scala.tools.nsc.Properties
+credentials += Credentials(new File(Properties.envOrElse("JENKINS_HOME", Properties.envOrElse("HOME", "")) + "/.sbt/.credentials"))
+
+// CarpeData's own sbt plugin for jumpstarting Lambda Function development
+addSbtPlugin("io.carpe" % "sbt-scalambda" % "0.6.0")
 ```
 
 After adding the plugin to your project, add each Lambda Function as a subproject in your project's `build.sbt` file. There are two possible function types. 
