@@ -25,13 +25,16 @@ Here is an example of how to add each of them:
 ```scala
 // build.sbt
 
+// this is the ARN for the IAM role that your Lambda function will assume
+scalambdaRoleArn := "arn:aws:iam::120864075170:role/MyLambdaFunctionRole"
+
+
 // a basic lambda function
 lazy val example = project
   .enablePlugins(CarpeCorePlugin, ScalambdaPlugin)
   .settings(
     lambdaFunction(
-      functionClasspath = ???, // example: "io.carpe.example.ExampleFunction"
-      functionRoleArn = ??? // example: "arn:aws:iam::120864075170:role/MyLambdaFunctionRole"
+      functionClasspath = ??? // example: "io.carpe.example.ExampleFunction"
     )
   )
 
@@ -40,8 +43,7 @@ lazy val apiExample = project
   .enablePlugins(CarpeCorePlugin, ScalambdaPlugin)
   .settings(
     apiGatewayProxyLambda(
-      functionClasspath = ???, // example: "io.carpe.example.ExampleFunction"
-      functionRoleArn = ??? // example: "arn:aws:iam::120864075170:role/MyLambdaFunctionRole"
+      functionClasspath = ??? // example: "io.carpe.example.ExampleFunction"
     )
   )
 
@@ -50,14 +52,17 @@ lazy val apiExample = project
 Both of these configurations will set default arguments for the [sbt-aws-lambda](https://github.com/saksdirect/sbt-aws-lambda) plugin. You can override any of the attributes this plugin exposes. A good example of when you might want to do this is if you want to deploy your Lambda Function into an AWS VPC, in which case. Here is an example:
 
 ```scala
+// build.sbt
+
+// this is the ARN for the IAM role that your Lambda function will assume
+scalambdaRoleArn := "arn:aws:iam::120864075170:role/MyLambdaFunctionRole"
 
 // a lambda function to be used through API Gateway
 lazy val apiExample = project
   .enablePlugins(CarpeCorePlugin, ScalambdaPlugin)
   .settings(
     apiGatewayProxyLambda(
-      functionClasspath = ???, // example: "io.carpe.example.ExampleFunction"
-      functionRoleArn = ??? // example: "arn:aws:iam::120864075170:role/MyLambdaFunctionRole"
+      functionClasspath = ??? // example: "io.carpe.example.ExampleFunction"
     )
   ).settings(
     // these settings will place this lambda within the private subnet of our own ngvpc
@@ -75,7 +80,7 @@ This plugin also allows you to set a prefix that will be prepended to the name o
 
 ```scala
 // build.sbt
-
+ThisBuild / scalambdaRoleArn := "arn:aws:iam::120864075170:role/MyLambdaFunctionRole"
 ThisBuild / functionNamePrefix := Some("MyExampleApi")
 
 // a basic lambda function
@@ -83,8 +88,7 @@ lazy val example = project
   .enablePlugins(CarpeCorePlugin, ScalambdaPlugin)
   .settings(
     lambdaFunction(
-      functionClasspath = ???, // example: "io.carpe.example.ExampleFunction"
-      functionRoleArn = ??? // example: "arn:aws:iam::120864075170:role/MyLambdaFunctionRole"
+      functionClasspath = ??? // example: "io.carpe.example.ExampleFunction"
     )
   )
 
@@ -96,7 +100,19 @@ This would change the name of the function that is deployed from `ExampleFunctio
 
 Assuming you enabled the `ScalambdaPlugin` in your project, the `scalambda` library will automatically be injected into your project as a dependency.  
 
-To use this library, make the class that your `functionClasspath` property points to extend either `Scalambda` or `ApiScalambda`.
+To use this library, make the class that your `functionClasspath` property points to extend either `Scalambda` or `ApiScalambda`. Here is an example:
+
+```scala
+import com.amazonaws.services.lambda.runtime.Context
+import io.carpe.scalambda.Scalambda
+
+class HelloWorld extends Scalambda[String, String] {
+
+  override def handleRequest(input: String, context: Context): String = {
+    "Hello, ${input}!";
+  }
+}
+```
  
 More documentation is coming in the future. In the meantime, review the java docs or reach out to one of the maintainers of this library if you have questions. 
 
