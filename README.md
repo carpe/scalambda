@@ -31,7 +31,7 @@ scalambdaRoleArn := "arn:aws:iam::120864075170:role/MyLambdaFunctionRole"
 
 // a basic lambda function
 lazy val example = project
-  .enablePlugins(CarpeCorePlugin, ScalambdaPlugin)
+  .enablePlugins(ScalambdaPlugin)
   .settings(
     lambdaFunction(
       functionClasspath = ??? // example: "io.carpe.example.ExampleFunction"
@@ -40,7 +40,7 @@ lazy val example = project
 
 // a lambda function to be used through API Gateway
 lazy val apiExample = project
-  .enablePlugins(CarpeCorePlugin, ScalambdaPlugin)
+  .enablePlugins(ScalambdaPlugin)
   .settings(
     apiGatewayProxyLambda(
       functionClasspath = ??? // example: "io.carpe.example.ExampleFunction"
@@ -59,7 +59,7 @@ scalambdaRoleArn := "arn:aws:iam::120864075170:role/MyLambdaFunctionRole"
 
 // a lambda function to be used through API Gateway
 lazy val apiExample = project
-  .enablePlugins(CarpeCorePlugin, ScalambdaPlugin)
+  .enablePlugins(ScalambdaPlugin)
   .settings(
     apiGatewayProxyLambda(
       functionClasspath = ??? // example: "io.carpe.example.ExampleFunction"
@@ -85,7 +85,7 @@ ThisBuild / functionNamePrefix := Some("MyExampleApi")
 
 // a basic lambda function
 lazy val example = project
-  .enablePlugins(CarpeCorePlugin, ScalambdaPlugin)
+  .enablePlugins(ScalambdaPlugin)
   .settings(
     lambdaFunction(
       functionClasspath = ??? // example: "io.carpe.example.ExampleFunction"
