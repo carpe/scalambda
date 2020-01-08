@@ -3,10 +3,10 @@ package io.carpe.scalambda.api.index
 import io.carpe.scalambda.api.ApiResourceInput
 import io.carpe.scalambda.request.APIGatewayProxyRequest
 
-case class IndexRequest(queryParams: Map[String, String])(val original: APIGatewayProxyRequest[None.type]) extends ApiResourceInput[None.type]
+case class IndexRequest(queryParams: Map[String, String])(val original: APIGatewayProxyRequest.WithoutBody) extends ApiResourceInput[Nothing]
 
 object IndexRequest {
-  def fromProxyRequest(proxyRequest: APIGatewayProxyRequest[None.type]): IndexRequest = {
+  def fromProxyRequest(proxyRequest: APIGatewayProxyRequest.WithoutBody): IndexRequest = {
     IndexRequest(proxyRequest.queryStringParameters)(proxyRequest)
   }
 }

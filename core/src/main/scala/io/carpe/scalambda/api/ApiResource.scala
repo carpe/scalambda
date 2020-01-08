@@ -3,6 +3,7 @@ package io.carpe.scalambda.api
 import cats.effect.IO
 import com.amazonaws.services.lambda.runtime.Context
 import io.carpe.scalambda.Scalambda
+import io.carpe.scalambda.api.delete.DeleteRequest
 import io.carpe.scalambda.api.index.{IndexRequest, IndexResponse}
 import io.carpe.scalambda.api.show.ShowRequest
 import io.carpe.scalambda.request.APIGatewayProxyRequest
@@ -27,6 +28,7 @@ object ApiResource {
   // type aliases used to simplify lambda definitions
   type WithoutBody[O] = ApiResource[Nothing, APIGatewayProxyRequest.WithoutBody, O]
   type WithBody[O] = ApiResource[O, APIGatewayProxyRequest.WithBody[O], O]
+  type WithoutBodyOrResponse = ApiResource[Nothing, APIGatewayProxyRequest.WithoutBody, None.type]
 
   /**
    * Default response headers.
@@ -153,16 +155,55 @@ object ApiResource {
           }
 
         case Right(success) =>
-          APIGatewayProxyResponse.WithBody(200, defaultResponseHeaders, success)
+          APIGatewayProxyResponse.WithBody(201, defaultResponseHeaders, success)
       }
     }
 
     /**
-     * Get multiple records.
+     * Create a record
      *
      * @param input for request
-     * @return an IO Monad that wraps logic for attempting to retrieving the records
+     * @return an IO Monad that wraps logic for attempting to create the record
      */
     def create(input: R): IO[R]
   }
+
+  /**
+   * An [[ApiResource]] used to handle DELETE requests for deleting records. Example: "/cars/2:DELETE"
+   */
+  abstract class Delete extends ApiResource.WithoutBodyOrResponse {
+    override def handleRequest(input: APIGatewayProxyRequest.WithoutBody, context: Context): APIGatewayProxyResponse[None.type] = {
+      // try to parse a record from the input and then process it using the supplied implementation
+      val result = for {
+        requestBody <- DeleteRequest.fromProxyRequest(input)
+        createRecord <- delete(requestBody).attempt.unsafeRunSync()
+      } yield {
+        createRecord
+      }
+
+      // return a response based on the result of the record creation
+      result match {
+        case Left(err) =>
+          err match {
+            case apiError: ApiError =>
+              APIGatewayProxyResponse.WithError(defaultResponseHeaders, apiError)
+            case _ =>
+              logger.error("Request could not be handled due to an unexpected exception being thrown.", err)
+              APIGatewayProxyResponse.WithError(defaultResponseHeaders, ApiError.InternalError)
+          }
+
+        case Right(_) =>
+          APIGatewayProxyResponse.WithBody(204, defaultResponseHeaders, None)
+      }
+    }
+
+    /**
+     * Delete a record
+     *
+     * @return an IO Monad that wraps logic for attempting to delete the record
+     */
+    def delete(input: DeleteRequest): IO[Unit]
+  }
+
+
 }

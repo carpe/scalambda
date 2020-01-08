@@ -10,10 +10,9 @@ ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 ThisBuild / credentials += Credentials(new File(Properties.envOrElse("JENKINS_HOME", Properties.envOrElse("HOME", "")) + "/.sbt/.credentials"))
 
 lazy val root = project
-  .in(file("."))
   .settings(name := "scalambda")
   .aggregate(core, testing, plugin)
-  .settings(publishArtifact := false)
+  .settings(publishArtifact := false, artifacts := Seq.empty)
 
 lazy val core = project
   .settings(name := "scalambda-core")
