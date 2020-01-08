@@ -109,7 +109,7 @@ import io.carpe.scalambda.Scalambda
 class HelloWorld extends Scalambda[String, String] {
 
   override def handleRequest(input: String, context: Context): String = {
-    "Hello, ${input}!";
+    "Hello, ${input}!"
   }
 }
 ```
