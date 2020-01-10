@@ -20,7 +20,7 @@ abstract class Scalambda[I, O](implicit val dec: Decoder[I], val enc: Encoder[O]
 
   def encode[T](obj: T)(implicit encoder: Encoder[T]): String = {
     import io.circe.syntax._
-    obj.asJson.noSpaces
+    obj.asJson.dropNullValues.noSpaces
   }
 
   /**
