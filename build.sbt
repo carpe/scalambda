@@ -35,7 +35,9 @@ lazy val core = project
     libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
 
     // Testing
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % Test
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.0" % Test,
+    libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test,
+    Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")
   )
 
 lazy val testing = project
@@ -44,9 +46,9 @@ lazy val testing = project
   .settings(description := "Utilities for testing Lambda Functions created with Scalambda.")
   .settings(
     // Testing
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % Test,
-
-    publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(true)
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.0",
+    libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10",
+    Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")
   ).dependsOn(core)
 
 lazy val plugin = project
@@ -73,5 +75,7 @@ lazy val plugin = project
         // Plugin for deploying fat-jars as AWS Lambda Functions
         "com.gilt.sbt" % "sbt-aws-lambda" % "0.7.0"
       ).map(Defaults.sbtPluginExtra(_, sbtVersion, scalaVersion))
-    }
+    },
+
+    publishConfiguration := publishConfiguration.value.withOverwrite(true)
   )
