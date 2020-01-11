@@ -75,7 +75,5 @@ lazy val plugin = project
         // Plugin for deploying fat-jars as AWS Lambda Functions
         "com.gilt.sbt" % "sbt-aws-lambda" % "0.7.0"
       ).map(Defaults.sbtPluginExtra(_, sbtVersion, scalaVersion))
-    },
-
-    publishConfiguration := publishConfiguration.value.withOverwrite(true)
+    }
   )
