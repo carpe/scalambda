@@ -98,24 +98,22 @@ This would change the name of the function that is deployed from `ExampleFunctio
 
 #### Full Settings List
 
-| sbt setting   | Environment variable      |  Description |
-|:----------|:----------|:---------------|
-| scalambdaAlias | SCALAMBDA_ALIAS | Function Alias to attach to newly deployed Lambda Function versions |
-| scalambdaRoleArn | - | ARN for AWS Role to use for lambda functions |
-| functionNamePrefix | - | Prefix to prepend onto the names of any AWS Functions defined and deployed via Scalambda |
-| s3Bucket |  AWS_LAMBDA_BUCKET_ID | The name of an S3 bucket where the lambda code will be stored |
-| s3KeyPrefix | AWS_LAMBDA_S3_KEY_PREFIX | The prefix to the S3 key where the jar will be uploaded |
-| lambdaName |    AWS_LAMBDA_NAME   |   The name to use for this AWS Lambda function. Defaults to the project name |
-| handlerName | AWS_LAMBDA_HANDLER_NAME |    Java class name and method to be executed, e.g. `com.gilt.example.Lambda::myMethod` |
-| region |  AWS_REGION | The name of the AWS region to connect to. Defaults to `us-east-1` |
-| awsLambdaTimeout | AWS_LAMBDA_TIMEOUT | The Lambda timeout in seconds (1-900). Defaults to AWS default. |
-| awsLambdaMemory | AWS_LAMBDA_MEMORY | The amount of memory in MB for the Lambda function (128-1536, multiple of 64). Defaults to AWS default. |
+| sbt setting   | Environment variable      |  Description | Default |
+|:----------|:----------|:---------------|:----------|
+| scalambdaAlias | SCALAMBDA_ALIAS | Function Alias to attach to newly deployed Lambda Function versions | - |
+| scalambdaRoleArn | - | ARN for AWS Role to use for lambda functions | - |
+| functionNamePrefix | - | Prefix to prepend onto the names of any AWS Functions defined and deployed via Scalambda | - |
+| s3Bucket |  AWS_LAMBDA_BUCKET_ID | The name of an S3 bucket where the lambda code will be stored | carpe-lambdas |
+| s3KeyPrefix | AWS_LAMBDA_S3_KEY_PREFIX | The prefix to the S3 key where the jar will be uploaded | |
+| region |  AWS_REGION | The name of the AWS region to connect to. | `us-west-2` |
+| awsLambdaTimeout | AWS_LAMBDA_TIMEOUT | The Lambda timeout in seconds (1-900). | 30 seconds for API Gateway, AWS Default for others. |
+| awsLambdaMemory | AWS_LAMBDA_MEMORY | The amount of memory in MB for the Lambda function (128-1536, multiple of 64). | 1536MB |
 | lambdaHandlers |              | Sequence of Lambda names to handler functions (for multiple lambda methods per project). Overrides `lambdaName` and `handlerName` if present. | 
-| deployMethod | AWS_LAMBDA_DEPLOY_METHOD | The preferred method for uploading the jar, either `S3` for uploading to AWS S3 or `DIRECT` for direct upload to AWS Lambda |
-| deadLetterArn | AWS_LAMBDA_DEAD_LETTER_ARN | The [ARN](http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html "AWS ARN documentation") of the Lambda function's dead letter SQS queue or SNS topic, to receive unprocessed messages |
-| vpcConfigSubnetIds | AWS_LAMBDA_VPC_CONFIG_SUBNET_IDS | Comma separated list of subnet IDs for the VPC |
-| vpcConfigSecurityGroupIds | AWS_LAMBDA_VPC_CONFIG_SECURITY_GROUP_IDS | Comma separated list of security group IDs for the VPC |
-| environment  |                | Seq[(String, String)] of environment variables to set in the lambda function |
+| deployMethod | AWS_LAMBDA_DEPLOY_METHOD | The preferred method for uploading the jar, either `S3` for uploading to AWS S3 or `DIRECT` for direct upload to AWS Lambda | `S3` |
+| deadLetterArn | AWS_LAMBDA_DEAD_LETTER_ARN | The [ARN](http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html "AWS ARN documentation") of the Lambda function's dead letter SQS queue or SNS topic, to receive unprocessed messages | - |
+| vpcConfigSubnetIds | AWS_LAMBDA_VPC_CONFIG_SUBNET_IDS | Comma separated list of subnet IDs for the VPC | - |
+| vpcConfigSecurityGroupIds | AWS_LAMBDA_VPC_CONFIG_SECURITY_GROUP_IDS | Comma separated list of security group IDs for the VPC | - |
+| environment  |                | Seq[(String, String)] of environment variables to set in the lambda function | - |
 
 ## Lib Usage
 
