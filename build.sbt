@@ -9,10 +9,9 @@ ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 ThisBuild / credentials += Credentials(new File(Properties.envOrElse("JENKINS_HOME", Properties.envOrElse("HOME", "")) + "/.sbt/.credentials"))
 
-lazy val root = project
-  .settings(name := "scalambda")
-  .aggregate(core, testing, plugin)
-  .settings(publishArtifact := false, artifacts := Seq.empty)
+lazy val root = (project in file("."))
+  .aggregate(plugin, core, testing)
+  .settings(skip in publish := true, skip in publishLocal := true)
 
 lazy val core = project
   .settings(name := "scalambda-core")
@@ -62,6 +61,16 @@ lazy val plugin = project
     buildInfoKeys := Seq[BuildInfoKey](version),
     buildInfoPackage := "io.carpe.scalambda",
 
+    // Cats, used mainly to make managing all the AWS requests Scalambda makes a little easier
+    libraryDependencies ++= carpeDeps.minimalCats,
+
+    // Used for reading configuration values
+    libraryDependencies += "com.typesafe" % "config" % "1.2.1",
+
+      // Logging
+    libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
+
+    // Pre-loaded SBT Plugins
     libraryDependencies ++= {
       // get sbt and scala version used in build to resolve plugins with
       val sbtVersion     = (sbtBinaryVersion in pluginCrossBuild).value
@@ -73,7 +82,10 @@ lazy val plugin = project
         "com.eed3si9n" % "sbt-assembly" % "0.14.9",
 
         // Plugin for deploying fat-jars as AWS Lambda Functions
-        "com.gilt.sbt" % "sbt-aws-lambda" % "0.7.0"
+        "com.gilt.sbt" % "sbt-aws-lambda" % "0.7.0",
+
+        // Plugin for accessing git info, used to version lambda functions
+        "com.typesafe.sbt" % "sbt-git" % "1.0.0"
       ).map(Defaults.sbtPluginExtra(_, sbtVersion, scalaVersion))
     }
   )
