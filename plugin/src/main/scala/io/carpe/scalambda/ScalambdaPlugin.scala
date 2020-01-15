@@ -1,7 +1,10 @@
 package io.carpe.scalambda
 
+import _root_.io.carpe.scalambda.conf.QualifiedLambdaArn
 import com.gilt.aws.lambda.AwsLambdaPlugin
 import com.gilt.aws.lambda.AwsLambdaPlugin.autoImport._
+import com.typesafe.sbt.GitVersioning
+import com.typesafe.sbt.SbtGit.GitKeys.{formattedDateVersion, gitHeadCommit}
 import sbt.Keys.{credentials, libraryDependencies, resolvers}
 import sbt._
 import sbtassembly._
@@ -24,8 +27,10 @@ object ScalambdaPlugin extends AutoPlugin {
 
   object autoImport {
 
-    val scalambdaRoleArn = settingKey[String]("ARN for AWS Role to use for lambda functions.")
-    val functionNamePrefix = settingKey[Option[String]]("Prefix to prepend onto the names of any AWS Functions defined and deployed via Scalambda.")
+    lazy val scalambdaAlias = settingKey[Option[String]]("Optional Function Alias to attach to newly deployed Lambda Function versions.")
+    lazy val scalambdaRoleArn = settingKey[String]("ARN for AWS Role to use for lambda functions.")
+    lazy val functionNamePrefix = settingKey[Option[String]]("Prefix to prepend onto the names of any AWS Functions defined and deployed via Scalambda.")
+    lazy val scalambdaPublish = taskKey[List[QualifiedLambdaArn]]("Packages and deploys the current project to an existing AWS Lambda alias")
 
     private def inferLambdaName(functionPrefix: Option[String], functionClasspath: String) = {
       functionPrefix.getOrElse("") + functionClasspath.split('.').last
@@ -77,9 +82,22 @@ object ScalambdaPlugin extends AutoPlugin {
 
   import autoImport._
 
-  override def requires: Plugins = AwsLambdaPlugin && AssemblyPlugin
+  override def requires: Plugins = AwsLambdaPlugin && AssemblyPlugin && GitVersioning
 
-  override def projectSettings: Seq[Def.Setting[_]] = LambdaLoggingSettings.loggingSettings
+  override def projectSettings: Seq[Def.Setting[_]] = Seq(
+    scalambdaPublish := LambdaTasks.publishLambda(
+      deployMethod = deployMethod.value.getOrElse("S3"),
+      region = region.value.getOrElse("us-west-2"),
+      jar = packageLambda.value,
+      s3Bucket = s3Bucket.value.getOrElse("carpe-lambdas"),
+      s3KeyPrefix = s3KeyPrefix.?.value.getOrElse(""),
+      lambdaName = lambdaName.value,
+      handlerName = handlerName.value,
+      lambdaHandlers = lambdaHandlers.value,
+      versionDescription = gitHeadCommit.value.getOrElse({ formattedDateVersion.value }),
+      maybeAlias = scalambdaAlias.value.orElse(sys.env.get("SCALAMBDA_ALIAS"))
+    )
+  ) ++ LambdaLoggingSettings.loggingSettings
 
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
     // set defualt value for function name prefix
