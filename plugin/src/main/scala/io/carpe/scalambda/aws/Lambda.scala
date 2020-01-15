@@ -10,7 +10,7 @@ import com.gilt.aws.lambda._
 import com.typesafe.scalalogging.LazyLogging
 import io.carpe.scalambda.conf.QualifiedLambdaArn
 
-import scala.util.{Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 trait Lambda extends LazyLogging {
   protected def createFunction(req: CreateFunctionRequest): Try[CreateFunctionResult]
@@ -33,14 +33,14 @@ trait Lambda extends LazyLogging {
     publishVersion(request)
   }
 
-  def updateLambdaWithFunctionCodeRequest(updateFunctionCodeRequest: UpdateFunctionCodeRequest, version: String): Try[UpdateFunctionCodeResult] = {
+  def updateLambdaWithFunctionCodeRequest(updateFunctionCodeRequest: UpdateFunctionCodeRequest, version: String): Try[PublishVersionResult] = {
     println(s"Updating lambda code ${updateFunctionCodeRequest.getFunctionName}")
     for {
       updateResult <- updateFunctionCode(updateFunctionCodeRequest)
       _ = println(s"Updated lambda code ${updateResult.getFunctionArn}")
-      _ <- publishVersion(name = updateResult.getFunctionName, revisionId = updateResult.getRevisionId, version = version)
+      publishResult <- publishVersion(name = updateResult.getFunctionName, revisionId = updateResult.getRevisionId, version = version)
     } yield {
-      updateResult
+      publishResult
     }
   }
 
@@ -132,22 +132,24 @@ trait Lambda extends LazyLogging {
   }
 
   def migrateAlias(alias: String, qualifiedArn: QualifiedLambdaArn): Try[QualifiedLambdaArn] = {
-    try {
-      createAlias(
-        new CreateAliasRequest()
-          .withName(alias)
-          .withFunctionName(qualifiedArn.arn)
-          .withFunctionVersion(qualifiedArn.qualifier)
-          .withDescription({
-            alias match {
-              case "production" => "Production ready version of this Lambda Function. This alias is managed by Scalambda's release process."
-              case _ => "This alias is managed by Scalambda."
-            }})
+    val createResult = createAlias(
+      new CreateAliasRequest()
+        .withName(alias)
+        .withFunctionName(qualifiedArn.arn)
+        .withFunctionVersion(qualifiedArn.qualifier)
+        .withDescription({
+          alias match {
+            case "production" => "Production ready version of this Lambda Function. This alias is managed by Scalambda's release process."
+            case _ => "This alias is managed by Scalambda."
+          }})
+    )
 
-      // switch the qualified lambda arn's qualifier to the alias instead of the version
-      ).map(_ => qualifiedArn.copy(qualifier = alias))
-    } catch {
-      case aliasAlreadyExists: ResourceConflictException =>
+    createResult match {
+      case Success(_) =>
+        // switch the qualified lambda arn's qualifier to the alias instead of the version
+        createResult.map(_ => qualifiedArn.copy(qualifier = alias))
+
+      case Failure(_: ResourceConflictException) =>
         logger.info(s"Function alias already existed. Migrating the existing alias to the newly deployed ${qualifiedArn.arn}")
         updateAlias(
           new UpdateAliasRequest()
@@ -159,11 +161,10 @@ trait Lambda extends LazyLogging {
                 case "production" => "Production ready version of this Lambda Function. This alias is managed by Scalambda's release process."
                 case _ => "This alias is managed by Scalambda."
               }})
-
         // switch the qualified lambda arn's qualifier to the alias instead of the version
         ).map(_ => qualifiedArn.copy(qualifier = alias))
-      case e: Exception =>
-        // handle failed
+
+      case Failure(e: Throwable) =>
         logger.error(s"Failed to create alias for ${qualifiedArn.arn}.", e)
         Failure(e)
     }

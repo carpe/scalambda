@@ -42,10 +42,10 @@ object LambdaTasks extends LazyLogging {
 
     def updateFunctionCode(resolvedLambdaName: LambdaName, updateFunctionCodeRequest: UpdateFunctionCodeRequest): (String, QualifiedLambdaArn) = {
       lambdaClient.updateLambdaWithFunctionCodeRequest(updateFunctionCodeRequest, versionDescription) match {
-        case Success(updateFunctionCodeResult) =>
-          val newVersionNumber = updateFunctionCodeResult.getVersion
-          lambdaClient.tagLambda(updateFunctionCodeResult.getFunctionArn, newVersionNumber)
-          resolvedLambdaName.value -> QualifiedLambdaArn(updateFunctionCodeResult.getFunctionArn, newVersionNumber)
+        case Success(updateResult) =>
+          val revisionId = updateResult.getVersion
+          lambdaClient.tagLambda(resolvedLambdaName.value, revisionId)
+          resolvedLambdaName.value -> QualifiedLambdaArn(resolvedLambdaName.value, revisionId)
         case Failure(exception) =>
           sys.error(s"Error updating lambda: ${formatException(exception)}")
       }
