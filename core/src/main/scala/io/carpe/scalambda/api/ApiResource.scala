@@ -6,6 +6,7 @@ import io.carpe.scalambda.Scalambda
 import io.carpe.scalambda.api.delete.DeleteRequest
 import io.carpe.scalambda.api.index.{IndexRequest, IndexResponse}
 import io.carpe.scalambda.api.show.ShowRequest
+import io.carpe.scalambda.api.update.UpdateRequest
 import io.carpe.scalambda.request.APIGatewayProxyRequest
 import io.carpe.scalambda.response.{APIGatewayProxyResponse, ApiError}
 import io.circe.{Decoder, Encoder}
@@ -178,13 +179,8 @@ object ApiResource {
     override def handleRequest(input: APIGatewayProxyRequest.WithBody[R], context: Context): APIGatewayProxyResponse[R] = {
       // try to parse a record from the input and then process it using the supplied implementation
       val result = for {
-        requestBody <- input.body match {
-          case Some(value) =>
-            Right(value)
-          case None =>
-            Left(ApiError.InternalError)
-        }
-        updateRecord <- update(requestBody).attempt.unsafeRunSync()
+        updateRequest <- UpdateRequest.fromProxyRequest(input)
+        updateRecord <- update(updateRequest).attempt.unsafeRunSync()
       } yield {
         updateRecord
       }
@@ -211,7 +207,7 @@ object ApiResource {
      * @param input for request
      * @return an IO Monad that wraps logic for attempting to update the record
      */
-    def update(input: R): IO[R]
+    def update(input: UpdateRequest[R]): IO[R]
   }
 
   /**

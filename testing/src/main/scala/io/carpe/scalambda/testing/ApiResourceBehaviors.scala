@@ -60,7 +60,7 @@ trait ApiResourceBehaviors extends ScalambdaFixtures { this: AnyFlatSpec =>
 
     cases.foreach(test => {
       it should createTestDescription(test) in {
-        makeTestRequestWithBody[R, R](handler, test.input) match {
+        makeTestRequestWithBody[R, R](handler, test.input, pathParameters = Map("id" -> "1337")) match {
           case APIGatewayProxyResponse.WithError(headers, err, isBase64Encoded) =>
             test match {
               case UpdateTestCase.Success(input, expectedOutput, caseDescription) =>

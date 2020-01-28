@@ -1,6 +1,7 @@
 package io.carpe.scalambda.testing
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
+import java.security.cert.CertPathParameters
 
 import com.amazonaws.services.lambda.runtime.Context
 import com.typesafe.scalalogging.LazyLogging
@@ -104,14 +105,14 @@ trait ScalambdaFixtures extends LazyLogging { this: TestSuite =>
     testApiRequest(handler, serializedRequest)
   }
 
-  def makeTestRequestWithBody[I, O](handler: Scalambda[APIGatewayProxyRequest.WithBody[I], APIGatewayProxyResponse[O]], body: I)(implicit inputEncoder: Encoder[I], decoder: Decoder[O], encoder: Encoder[O], requestContext: Context): APIGatewayProxyResponse[O] = {
+  def makeTestRequestWithBody[I, O](handler: Scalambda[APIGatewayProxyRequest.WithBody[I], APIGatewayProxyResponse[O]], body: I, pathParameters: Map[String, String] = Map.empty)(implicit inputEncoder: Encoder[I], decoder: Decoder[O], encoder: Encoder[O], requestContext: Context): APIGatewayProxyResponse[O] = {
     val apiGatewayReq = APIGatewayProxyRequest.WithBody(
       "/resource",
       "/unit-test",
       "POST",
       Map.empty,
       Map.empty,
-      Map.empty,
+      pathParameters,
       Map.empty,
       RequestContext.Unauthenticated(None,
         None,

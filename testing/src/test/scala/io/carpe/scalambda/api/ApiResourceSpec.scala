@@ -21,7 +21,7 @@ class ApiResourceSpec extends AnyFlatSpec with ApiResourceBehaviors {
   implicit val updateHandlerInstance: TestUpdate = TestUpdate()
 
   "TestUpdate" should behave like handlerForUpdate(
-    UpdateTestCase.Success(validCar, validCar),
+    UpdateTestCase.Success(validCar, validCar.copy(hp = 1337)),
     UpdateTestCase.Fail(lowHorsepowerCar, expectedMessage = Some("Not enough horsepower"), expectedStatus = Some(422), caseDescription = Some("validate records before updating them"))
   )
 }
