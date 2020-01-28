@@ -82,7 +82,6 @@ object APIGatewayProxyRequest {
   }
 
   implicit def decodeWithoutBody: Decoder[APIGatewayProxyRequest.WithoutBody] = {
-
     Decoder.instance[APIGatewayProxyRequest.WithoutBody] { c: HCursor =>
       for {
         resource <- c.downField("resource").as[String]

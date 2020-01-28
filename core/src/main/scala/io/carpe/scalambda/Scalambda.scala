@@ -4,7 +4,7 @@ import java.io.{InputStream, OutputStream}
 
 import com.amazonaws.services.lambda.runtime.Context
 import com.typesafe.scalalogging.LazyLogging
-import io.carpe.scalambda.response.ApiError
+import io.carpe.scalambda.response.{APIGatewayProxyResponse, ApiError}
 import io.carpe.scalambda.response.ApiError.InputError
 import io.circe
 import io.circe.parser.decode

@@ -1,15 +1,8 @@
-package io.carpe.scalambda.helpers
+package io.carpe.scalambda.testing
 
 import com.amazonaws.services.lambda.runtime.{ClientContext, CognitoIdentity, Context, LambdaLogger}
-import com.typesafe.scalalogging.LazyLogging
-import org.scalatest.flatspec.AnyFlatSpec
 
-trait LambdaTestFixtures { this: AnyFlatSpec =>
-  object UnitTestLogger extends LambdaLogger with LazyLogging {
-    override def log(message: String): Unit      = logger.info(message)
-    override def log(message: Array[Byte]): Unit = logger.info(new String(message))
-  }
-
+object MockContext {
   def makeContext(functionName: String = "unit-test-function",
                   timeRemaining: Int = 5000,
                   lambdaLogger: LambdaLogger = UnitTestLogger,
@@ -34,4 +27,6 @@ trait LambdaTestFixtures { this: AnyFlatSpec =>
       override def getLogGroupName: String = logGroupName
       override def getAwsRequestId: String = awsReqId
     }
+
+  lazy val default: Context = makeContext()
 }

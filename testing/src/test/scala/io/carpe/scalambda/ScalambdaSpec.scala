@@ -3,17 +3,14 @@ package io.carpe.scalambda
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 
 import com.amazonaws.services.lambda.runtime.Context
-import io.carpe.scalambda.ScalambdaSpec.{Car, CarValidator, Wheel}
-import io.carpe.scalambda.helpers.LambdaTestFixtures
-import io.circe.{Decoder, Encoder}
+import io.carpe.scalambda.ScalambdaSpec.CarValidator
+import io.carpe.scalambda.fixtures.TestModels._
+import io.carpe.scalambda.testing.{MockContext, ScalambdaFixtures}
+import io.circe.Encoder
 import org.scalatest.flatspec.AnyFlatSpec
 
-class ScalambdaSpec extends AnyFlatSpec with LambdaTestFixtures {
+class ScalambdaSpec extends AnyFlatSpec with ScalambdaFixtures {
   "Scalambda" should "take in a request and provide a response" in {
-    val validCar = Car(
-      wheels = Seq(Wheel(Some("Pirelli"), 20, 40), Wheel(Some("Pirelli"), 20, 40), Wheel(Some("Pirelli"), 20, 40), Wheel(Some("Pirelli"), 20, 40)),
-      hp = 1337
-    )
 
     val response = sendTestRequest(validCar)
 
@@ -28,17 +25,12 @@ class ScalambdaSpec extends AnyFlatSpec with LambdaTestFixtures {
         | "hp":1337
         |}
         |""".stripMargin
-          // remove all whitespace from the expected result
-          .replaceAll("\\s", ""))
+        // remove all whitespace from the expected result
+        .replaceAll("\\s", ""))
   }
 
   it should "produce a response without null values" in {
-    val validCar = Car(
-      wheels = Seq(Wheel(None, 20, 40), Wheel(None, 20, 40), Wheel(None, 20, 40), Wheel(None, 20, 40)),
-      hp = 1337
-    )
-
-    val response = sendTestRequest(validCar)
+    val response = sendTestRequest(validCarWithNulls)
 
     assert(response ===
       """{
@@ -71,7 +63,7 @@ class ScalambdaSpec extends AnyFlatSpec with LambdaTestFixtures {
     val streamFromString: String => InputStream = x => new ByteArrayInputStream(x.getBytes)
 
     // invoke the lambda which will write to the output buffer
-    new CarValidator().handler(streamFromString(serializedRequest), output, makeContext())
+    new CarValidator().handler(streamFromString(serializedRequest), output, MockContext.default)
 
     // return output as string
     output.toString
@@ -79,18 +71,6 @@ class ScalambdaSpec extends AnyFlatSpec with LambdaTestFixtures {
 }
 
 object ScalambdaSpec {
-
-  import io.circe.generic.semiauto._
-
-  case class Car(wheels: Seq[Wheel], hp: Int)
-
-  implicit val carEncoder: Encoder[Car] = deriveEncoder[Car]
-  implicit val carDecoder: Decoder[Car] = deriveDecoder[Car]
-
-  case class Wheel(brandName: Option[String], width: Int, diameter: Int)
-
-  implicit val wheelEncoder: Encoder[Wheel] = deriveEncoder[Wheel]
-  implicit val wheelDecoder: Decoder[Wheel] = deriveDecoder[Wheel]
 
   class CarValidator extends Scalambda[Car, Option[Car]] {
 

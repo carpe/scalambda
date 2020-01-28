@@ -37,6 +37,52 @@ object ApiResource {
    */
   lazy val defaultResponseHeaders = Map("Access-Control-Allow-Origin" -> "*")
 
+  /**
+   * An [[ApiResource]] used to handle POST requests for creating records. Example: "/cars:POST"
+   *
+   * @param decoder for record
+   * @param encoder for record
+   * @tparam R type of record
+   */
+  abstract class Create[R](implicit val decoder: Decoder[R], val encoder: Encoder[R]) extends ApiResource.WithBody[R] {
+    override def handleRequest(input: APIGatewayProxyRequest.WithBody[R], context: Context): APIGatewayProxyResponse[R] = {
+      // try to parse a record from the input and then process it using the supplied implementation
+      val result = for {
+        requestBody <- input.body match {
+          case Some(value) =>
+            Right(value)
+          case None =>
+            Left(ApiError.InternalError)
+        }
+        createRecord <- create(requestBody).attempt.unsafeRunSync()
+      } yield {
+        createRecord
+      }
+
+      // return a response based on the result of the record creation
+      result match {
+        case Left(err) =>
+          err match {
+            case apiError: ApiError =>
+              APIGatewayProxyResponse.WithError(defaultResponseHeaders, apiError)
+            case _ =>
+              logger.error("Request could not be handled due to an unexpected exception being thrown.", err)
+              APIGatewayProxyResponse.WithError(defaultResponseHeaders, ApiError.InternalError)
+          }
+
+        case Right(success) =>
+          APIGatewayProxyResponse.WithBody(201, defaultResponseHeaders, success)
+      }
+    }
+
+    /**
+     * Create a record
+     *
+     * @param input for request
+     * @return an IO Monad that wraps logic for attempting to create the record
+     */
+    def create(input: R): IO[R]
+  }
 
   /**
    * An [[ApiResource]] used to handle GET requests for a single record by ID. Example: "/cars/42:GET"
@@ -122,13 +168,13 @@ object ApiResource {
   }
 
   /**
-   * An [[ApiResource]] used to handle POST requests for creating records. Example: "/cars:POST"
+   * An [[ApiResource]] used to handle PUT requests for updating records. Example: "/cars:PUT"
    *
    * @param decoder for record
    * @param encoder for record
    * @tparam R type of record
    */
-  abstract class Create[R](implicit val decoder: Decoder[R], val encoder: Encoder[R]) extends ApiResource.WithBody[R] {
+  abstract class Update[R](implicit val decoder: Decoder[R], val encoder: Encoder[R]) extends ApiResource.WithBody[R] {
     override def handleRequest(input: APIGatewayProxyRequest.WithBody[R], context: Context): APIGatewayProxyResponse[R] = {
       // try to parse a record from the input and then process it using the supplied implementation
       val result = for {
@@ -138,9 +184,9 @@ object ApiResource {
           case None =>
             Left(ApiError.InternalError)
         }
-        createRecord <- create(requestBody).attempt.unsafeRunSync()
+        updateRecord <- update(requestBody).attempt.unsafeRunSync()
       } yield {
-        createRecord
+        updateRecord
       }
 
       // return a response based on the result of the record creation
@@ -160,12 +206,12 @@ object ApiResource {
     }
 
     /**
-     * Create a record
+     * Update a record
      *
      * @param input for request
-     * @return an IO Monad that wraps logic for attempting to create the record
+     * @return an IO Monad that wraps logic for attempting to update the record
      */
-    def create(input: R): IO[R]
+    def update(input: R): IO[R]
   }
 
   /**

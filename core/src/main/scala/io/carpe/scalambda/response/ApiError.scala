@@ -40,8 +40,11 @@ abstract class ApiError extends Throwable {
 
 object ApiError {
   implicit val encoder: Encoder[ApiError] = Encoder[ApiError](a => {
-    val requiredJson = Json.obj(("errorCode", a.errorCode.map(x => Json.fromInt(x)).getOrElse(Json.Null)),
-      ("message", Json.fromString(a.message)))
+    val requiredJson = Json.obj(
+      ("errorCode", a.errorCode.map(x => Json.fromInt(x)).getOrElse(Json.Null)),
+      ("message", Json.fromString(a.message))
+    )
+
     a.data.fold(requiredJson)(d => requiredJson.deepMerge(Json.obj("data" -> d)))
   })
 
