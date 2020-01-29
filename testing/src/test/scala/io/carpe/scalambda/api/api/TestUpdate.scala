@@ -2,6 +2,7 @@ package io.carpe.scalambda.api.api
 
 import cats.effect.IO
 import io.carpe.scalambda.api.ApiResource
+import io.carpe.scalambda.api.conf.ApiContext
 import io.carpe.scalambda.api.update.UpdateRequest
 import io.carpe.scalambda.fixtures.TestModels.Car
 import io.carpe.scalambda.response.ApiError
@@ -14,7 +15,7 @@ case class TestUpdate() extends ApiResource.Update[Car] {
    * @param input for request
    * @return an IO Monad that wraps logic for attempting to update the record
    */
-  override def update(input: UpdateRequest[Car]): IO[Car] = IO {
+  override def update(input: UpdateRequest[Car])(implicit context: ApiContext): IO[Car] = IO {
     if (input.body.hp < 42) {
       throw new ApiError {
         override val httpStatus: Int = 422

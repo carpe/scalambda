@@ -3,6 +3,8 @@ package io.carpe.scalambda.api
 import cats.effect.IO
 import com.amazonaws.services.lambda.runtime.Context
 import io.carpe.scalambda.Scalambda
+import io.carpe.scalambda.api.ApiResource.ApiConfiguration
+import io.carpe.scalambda.api.conf.ApiContext
 import io.carpe.scalambda.api.delete.DeleteRequest
 import io.carpe.scalambda.api.index.{IndexRequest, IndexResponse}
 import io.carpe.scalambda.api.show.ShowRequest
@@ -21,7 +23,7 @@ import io.circe.{Decoder, Encoder}
  * @tparam I input type, which is set on a per request type basis
  * @tparam O output type, which is set on a per request type basis
  */
-sealed abstract class ApiResource[+I, R <: APIGatewayProxyRequest[I], O](implicit val inputDecoder: Decoder[R], val outputEncoder: Encoder[O])
+sealed abstract class ApiResource[+I, R <: APIGatewayProxyRequest[I], O](implicit val inputDecoder: Decoder[R], val outputEncoder: Encoder[O], val configuration: ApiConfiguration)
   extends Scalambda[R, APIGatewayProxyResponse[O]]
 
 object ApiResource {
@@ -30,6 +32,9 @@ object ApiResource {
   type WithoutBody[O] = ApiResource[Nothing, APIGatewayProxyRequest.WithoutBody, O]
   type WithBody[O] = ApiResource[O, APIGatewayProxyRequest.WithBody[O], O]
   type WithoutBodyOrResponse = ApiResource[Nothing, APIGatewayProxyRequest.WithoutBody, None.type]
+
+  type ApiConfiguration = Context => ApiContext
+  lazy val defaultApiConfiguration: ApiConfiguration = ApiContext
 
   /**
    * Default response headers.
@@ -45,7 +50,7 @@ object ApiResource {
    * @param encoder for record
    * @tparam R type of record
    */
-  abstract class Create[R](implicit val decoder: Decoder[R], val encoder: Encoder[R]) extends ApiResource.WithBody[R] {
+  abstract class Create[R](implicit val decoder: Decoder[R], val encoder: Encoder[R], val conf: ApiConfiguration = defaultApiConfiguration) extends ApiResource.WithBody[R] {
     override def handleRequest(input: APIGatewayProxyRequest.WithBody[R], context: Context): APIGatewayProxyResponse[R] = {
       // try to parse a record from the input and then process it using the supplied implementation
       val result = for {
@@ -55,7 +60,7 @@ object ApiResource {
           case None =>
             Left(ApiError.InternalError)
         }
-        createRecord <- create(requestBody).attempt.unsafeRunSync()
+        createRecord <- create(requestBody)(conf(context)).attempt.unsafeRunSync()
       } yield {
         createRecord
       }
@@ -82,7 +87,7 @@ object ApiResource {
      * @param input for request
      * @return an IO Monad that wraps logic for attempting to create the record
      */
-    def create(input: R): IO[R]
+    def create(input: R)(implicit context: ApiContext): IO[R]
   }
 
   /**
@@ -91,14 +96,14 @@ object ApiResource {
    * @param encoder for the record
    * @tparam R type of record
    */
-  abstract class Show[R](implicit val encoder: Encoder[R]) extends ApiResource.WithoutBody[R] {
+  abstract class Show[R](implicit val encoder: Encoder[R], val conf: ApiConfiguration = defaultApiConfiguration) extends ApiResource.WithoutBody[R] {
     override def handleRequest(input: APIGatewayProxyRequest.WithoutBody, context: Context): APIGatewayProxyResponse[R] = {
       ShowRequest.fromProxyRequest(input) match {
         case Left(err) =>
           APIGatewayProxyResponse.WithError(defaultResponseHeaders, err)
 
         case Right(showInput) =>
-          val records = show(showInput)
+          val records = show(showInput)(conf(context))
 
           records.attempt.unsafeRunSync() match {
             case Left(err) =>
@@ -127,7 +132,7 @@ object ApiResource {
      * @param input for request
      * @return an IOMonad that wraps the logic for attempting to retrieve the single record, if it exists
      */
-    def show(input: ShowRequest): IO[Option[R]]
+    def show(input: ShowRequest)(implicit context: ApiContext): IO[Option[R]]
   }
 
   /**
@@ -136,9 +141,9 @@ object ApiResource {
    * @param encoder for records
    * @tparam R type of record
    */
-  abstract class Index[R](implicit val encoder: Encoder[R]) extends ApiResource.WithoutBody[IndexResponse[R]] {
+  abstract class Index[R](implicit val encoder: Encoder[R], val conf: ApiConfiguration = defaultApiConfiguration) extends ApiResource.WithoutBody[IndexResponse[R]] {
     override def handleRequest(input: APIGatewayProxyRequest.WithoutBody, context: Context): APIGatewayProxyResponse[IndexResponse[R]] = {
-      val records = index(IndexRequest.fromProxyRequest(input))
+      val records = index(IndexRequest.fromProxyRequest(input))(conf(context))
 
       records.attempt.unsafeRunSync() match {
         case Left(err) =>
@@ -165,7 +170,7 @@ object ApiResource {
      * @param input for request
      * @return an IO Monad that wraps logic for attempting to retrieving the records
      */
-    def index(input: IndexRequest): IO[List[R]]
+    def index(input: IndexRequest)(implicit context: ApiContext): IO[List[R]]
   }
 
   /**
@@ -175,12 +180,12 @@ object ApiResource {
    * @param encoder for record
    * @tparam R type of record
    */
-  abstract class Update[R](implicit val decoder: Decoder[R], val encoder: Encoder[R]) extends ApiResource.WithBody[R] {
+  abstract class Update[R](implicit val decoder: Decoder[R], val encoder: Encoder[R], val conf: ApiConfiguration = defaultApiConfiguration) extends ApiResource.WithBody[R] {
     override def handleRequest(input: APIGatewayProxyRequest.WithBody[R], context: Context): APIGatewayProxyResponse[R] = {
       // try to parse a record from the input and then process it using the supplied implementation
       val result = for {
         updateRequest <- UpdateRequest.fromProxyRequest(input)
-        updateRecord <- update(updateRequest).attempt.unsafeRunSync()
+        updateRecord <- update(updateRequest)(conf(context)).attempt.unsafeRunSync()
       } yield {
         updateRecord
       }
@@ -207,18 +212,18 @@ object ApiResource {
      * @param input for request
      * @return an IO Monad that wraps logic for attempting to update the record
      */
-    def update(input: UpdateRequest[R]): IO[R]
+    def update(input: UpdateRequest[R])(implicit context: ApiContext): IO[R]
   }
 
   /**
    * An [[ApiResource]] used to handle DELETE requests for deleting records. Example: "/cars/2:DELETE"
    */
-  abstract class Delete extends ApiResource.WithoutBodyOrResponse {
+  abstract class Delete(implicit val conf: ApiConfiguration = defaultApiConfiguration) extends ApiResource.WithoutBodyOrResponse {
     override def handleRequest(input: APIGatewayProxyRequest.WithoutBody, context: Context): APIGatewayProxyResponse[None.type] = {
       // try to parse a record from the input and then process it using the supplied implementation
       val result = for {
         requestBody <- DeleteRequest.fromProxyRequest(input)
-        createRecord <- delete(requestBody).attempt.unsafeRunSync()
+        createRecord <- delete(requestBody)(conf(context)).attempt.unsafeRunSync()
       } yield {
         createRecord
       }
@@ -244,7 +249,7 @@ object ApiResource {
      *
      * @return an IO Monad that wraps logic for attempting to delete the record
      */
-    def delete(input: DeleteRequest): IO[Unit]
+    def delete(input: DeleteRequest)(implicit context: ApiContext): IO[Unit]
   }
 
 
