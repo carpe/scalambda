@@ -2,11 +2,10 @@ package io.carpe.scalambda.api.api
 
 import cats.effect.IO
 import io.carpe.scalambda.api.ApiResource
-import io.carpe.scalambda.api.conf.ApiContext
 import io.carpe.scalambda.fixtures.TestModels.Car
 import io.carpe.scalambda.response.ApiError
 
-case class TestCreate() extends ApiResource.Create[Car] {
+class TestCreate extends ApiResource.Create[TestApi, Car] {
 
   /**
    * Create a record
@@ -14,7 +13,7 @@ case class TestCreate() extends ApiResource.Create[Car] {
    * @param input for request
    * @return an IO Monad that wraps logic for attempting to create the record
    */
-  override def create(input: Car)(implicit apiContext: ApiContext): IO[Car] = IO {
+  override def create(input: Car)(implicit api: TestApi): IO[Car] = IO {
     if (input.hp < 42) {
       throw new ApiError {
         override val httpStatus: Int = 422

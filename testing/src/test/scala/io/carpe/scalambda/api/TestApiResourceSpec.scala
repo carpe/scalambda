@@ -1,16 +1,16 @@
 package io.carpe.scalambda.api
 
-import io.carpe.scalambda.api.api.{TestCreate, TestUpdate}
-import io.carpe.scalambda.testing.ApiResourceBehaviors
+import io.carpe.scalambda.api.api.{TestApi, TestCreate, TestUpdate}
 import io.carpe.scalambda.testing.ApiResourceBehaviors.{CreateTestCase, UpdateTestCase}
+import io.carpe.scalambda.testing.api.ApiResourceSpec
 import org.scalatest.flatspec.AnyFlatSpec
 
-class ApiResourceSpec extends AnyFlatSpec with ApiResourceBehaviors {
+class TestApiResourceSpec extends AnyFlatSpec with ApiResourceSpec[TestApi] {
 
   import io.carpe.scalambda.fixtures.TestModels._
 
   // instance of TestCreate handler
-  implicit val createHandlerInstance: TestCreate = TestCreate()
+  implicit val createHandlerInstance: TestCreate = new TestCreate()
 
   "TestCreate" should behave like handlerForCreate(
     CreateTestCase.Success(validCar, validCar),
@@ -18,7 +18,7 @@ class ApiResourceSpec extends AnyFlatSpec with ApiResourceBehaviors {
   )
 
   // instance of TestUpdate handler
-  implicit val updateHandlerInstance: TestUpdate = TestUpdate()
+  implicit val updateHandlerInstance: TestUpdate = new TestUpdate()
 
   "TestUpdate" should behave like handlerForUpdate(
     UpdateTestCase.Success(validCar, validCar.copy(hp = 1337)),

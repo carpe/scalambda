@@ -31,7 +31,14 @@ lazy val core = project
     // Minimal set of interfaces for AWS Lambda creation
     libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
 
-    // Logging
+    // Purely Compile-time DI (hence this being added as a "Provided" dependency).
+    // This allows for Dependency Injection design patterns while still keeping jar sizes down.
+    libraryDependencies += "com.softwaremill.macwire" %% "macros" % "2.3.3" % Provided,
+
+    // Required for d
+    libraryDependencies += "com.softwaremill.macwire" %% "util" % "2.3.0",
+
+      // Logging
     libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
 
     // Testing
@@ -68,7 +75,7 @@ lazy val plugin = project
     // Used for reading configuration values
     libraryDependencies += "com.typesafe" % "config" % "1.2.1",
 
-      // Logging
+    // Logging
     libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
 
     // Pre-loaded SBT Plugins
