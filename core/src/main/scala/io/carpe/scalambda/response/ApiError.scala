@@ -75,6 +75,7 @@ object ApiError {
    */
   case class NotFoundError(msg: String) extends ApiError {
     override val message: String = msg
+    override val httpStatus: Int = 404
   }
 }
 

@@ -7,12 +7,11 @@ import com.amazonaws.regions.Regions
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder
 import com.amazonaws.services.lambda.model._
 import com.gilt.aws.lambda._
-import com.typesafe.scalalogging.LazyLogging
 import io.carpe.scalambda.conf.QualifiedLambdaArn
 
 import scala.util.{Failure, Success, Try}
 
-trait Lambda extends LazyLogging {
+trait Lambda {
   protected def createFunction(req: CreateFunctionRequest): Try[CreateFunctionResult]
   protected def updateFunctionCode(req: UpdateFunctionCodeRequest): Try[UpdateFunctionCodeResult]
   protected def getFunctionConfiguration(req: GetFunctionConfigurationRequest): Try[GetFunctionConfigurationResult]
@@ -150,7 +149,7 @@ trait Lambda extends LazyLogging {
         createResult.map(_ => qualifiedArn.copy(qualifier = alias))
 
       case Failure(_: ResourceConflictException) =>
-        logger.info(s"Function alias already existed. Migrating the existing alias to the newly deployed ${qualifiedArn.arn}")
+        println(s"Function alias already existed. Migrating the existing alias to the newly deployed ${qualifiedArn.arn}")
         updateAlias(
           new UpdateAliasRequest()
             .withName(alias)
@@ -165,7 +164,7 @@ trait Lambda extends LazyLogging {
         ).map(_ => qualifiedArn.copy(qualifier = alias))
 
       case Failure(e: Throwable) =>
-        logger.error(s"Failed to create alias for ${qualifiedArn.arn}.", e)
+        println(s"Failed to create alias for ${qualifiedArn.arn}.")
         Failure(e)
     }
   }

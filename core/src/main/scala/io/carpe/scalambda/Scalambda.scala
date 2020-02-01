@@ -29,7 +29,7 @@ abstract class Scalambda[I, O](implicit val dec: Decoder[I], val enc: Encoder[O]
     // read the input
     val inputString = Source.fromInputStream(is).mkString
 
-    logger.debug(s"Function invoked with: ${inputString}")
+    logger.trace(s"Function invoked with: ${inputString}")
 
     // check if the request is a warmer (aka no-op) request
     val outputString = Scalambda.checkForWarmer(inputString).fold({
@@ -56,7 +56,7 @@ abstract class Scalambda[I, O](implicit val dec: Decoder[I], val enc: Encoder[O]
     os.write(outputString.getBytes)
     os.close()
 
-    logger.debug(s"Output was: ${outputString}")
+    logger.trace(s"Output was: ${outputString}")
   }
 
   def handleRequest(input: I, context: Context): O

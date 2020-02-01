@@ -11,7 +11,7 @@ import io.carpe.scalambda.api.show.ShowRequest
 import io.carpe.scalambda.api.update.UpdateRequest
 import io.carpe.scalambda.request.APIGatewayProxyRequest
 import io.carpe.scalambda.response.{APIGatewayProxyResponse, ApiError}
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, Encoder, Json}
 
 // Used to implicitly invoke the application bootstrapper to convert each Lambda function context into request context
 import scala.language.implicitConversions
@@ -57,7 +57,7 @@ object ApiResource {
   // type aliases used to simplify lambda definitions
   type WithoutBody[C <: ScalambdaApi, O] = ApiResource[C, Nothing, APIGatewayProxyRequest.WithoutBody, O]
   type WithBody[C <: ScalambdaApi, O] = ApiResource[C, O, APIGatewayProxyRequest.WithBody[O], O]
-  type WithoutBodyOrResponse[C <: ScalambdaApi] = ApiResource[C, Nothing, APIGatewayProxyRequest.WithoutBody, None.type]
+  type WithoutBodyOrResponse[C <: ScalambdaApi] = ApiResource[C, Nothing, APIGatewayProxyRequest.WithoutBody, Nothing]
 
   /**
    * Default response headers.
@@ -65,6 +65,10 @@ object ApiResource {
    * TODO: Move this setting to a central configuration object so it can be modified on a per-application basis.
    */
   lazy val defaultResponseHeaders = Map("Access-Control-Allow-Origin" -> "*")
+
+  implicit val nothingEncoder: Encoder[Nothing] = new Encoder[Nothing] {
+    override def apply(a: Nothing): Json = Json.Null
+  }
 
   /**
    * An [[ApiResource]] used to handle POST requests for creating records. Example: "/cars:POST"
@@ -213,7 +217,7 @@ object ApiResource {
    */
   abstract class Delete[C <: ScalambdaApi](implicit val applicationBootstrap: ApiBootstrap[C]) extends ApiResource.WithoutBodyOrResponse[C] {
 
-    override def handleApiRequest(input: APIGatewayProxyRequest.WithoutBody)(implicit context: C): APIGatewayProxyResponse[None.type] = {
+    override def handleApiRequest(input: APIGatewayProxyRequest.WithoutBody)(implicit context: C): APIGatewayProxyResponse[Nothing] = {
       // try to parse a record from the input and then process it using the supplied implementation
       val result = for {
         requestBody <- DeleteRequest.fromProxyRequest(input)

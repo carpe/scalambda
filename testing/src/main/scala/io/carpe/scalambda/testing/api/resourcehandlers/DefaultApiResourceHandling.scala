@@ -70,20 +70,31 @@ trait DefaultApiResourceHandling[C <: ScalambdaApi] extends ApiResourceHandling[
     deriveDecoder[IntermediaryProxyResponse].map(intermediary => {
       import io.circe.parser._
 
+      val errorOrSuccessDecoder: Decoder[Either[IntermediaryApiError, T]] = decoder.map(Right(_)) or apiErrorDecoder.map(Left(_))
+
       intermediary.body match {
         case Some(body) =>
+          // parse the response
           val parsed: Json = parse(body).fold(e => throw e, c => c)
-          parsed.as[T].fold(err => {
-            logger.debug("Could not parse body, attempting to parse as error...", err)
-            parsed.as[IntermediaryApiError].fold(errErr => {
-              logger.error("Could not parse body, attempting to parse as error...", errErr)
-              fail("Could not serialize response to a record OR error. See logs for details.")
-            }, intermediaryError => {
-              APIGatewayProxyResponse.WithError(intermediary.headers, intermediaryError, intermediary.isBase64Encoded)
-            })
-          }, success => {
-            APIGatewayProxyResponse.WithBody(intermediary.statusCode, intermediary.headers, success, intermediary.isBase64Encoded)
-          })
+
+          // decode the response into either an ApiError or api response
+          errorOrSuccessDecoder.decodeJson(parsed).fold(
+            decodeFailure =>
+              fail("Could not serialize response to a record OR error. ", decodeFailure),
+            {
+              case Left(responseErr) =>
+                // build proper response from parsed error
+                APIGatewayProxyResponse.WithError(intermediary.headers, new ApiError {
+                  override val httpStatus: Int = intermediary.statusCode
+                  override val headers: Map[String, String] = intermediary.headers
+                  override val message: String = responseErr.message
+                  override val errorCode: Option[Int] = responseErr.errorCode
+                  override val data: Option[Json] = responseErr.data
+                }, intermediary.isBase64Encoded)
+              case Right(responseBody) =>
+                APIGatewayProxyResponse.WithBody(intermediary.statusCode, intermediary.headers, responseBody, intermediary.isBase64Encoded)
+            }
+          )
 
         case None =>
           APIGatewayProxyResponse.Empty(intermediary.statusCode, intermediary.headers, intermediary.isBase64Encoded)
@@ -93,11 +104,10 @@ trait DefaultApiResourceHandling[C <: ScalambdaApi] extends ApiResourceHandling[
   }
 
   override def handleApiResource[I, R <: APIGatewayProxyRequest[I], O]
-  (handler: ApiResource[C, I, R, O], apiGatewayReq: R)
-  (implicit encoderI: Encoder[I], encoderO: Encoder[O], decoder: Decoder[O], requestContext: Context): APIGatewayProxyResponse[O] = {
+  (handler: ApiResource[C, I, R, O], apiGatewayReq: R, encoderI: Encoder[I], encoderO: Encoder[O], decoder: Decoder[O], requestContext: Context): APIGatewayProxyResponse[O] = {
     val encoded = apiGatewayReq match {
       case withBody: APIGatewayProxyRequest.WithBody[I] =>
-        proxyRequestWithBodyEncoder[I].apply(withBody)
+        proxyRequestWithBodyEncoder[I](encoderI).apply(withBody)
       case withoutBody: APIGatewayProxyRequest.WithoutBody =>
         proxyRequestWithoutBodyEncoder(withoutBody)
     }
@@ -105,6 +115,6 @@ trait DefaultApiResourceHandling[C <: ScalambdaApi] extends ApiResourceHandling[
     // create stream for handler input
     val serializedRequest = encoded.noSpaces.stripMargin
 
-    testRequest(handler, serializedRequest)
+    testRequest(handler, serializedRequest)(responseDecoder(decoder, encoderO), requestContext)
   }
 }

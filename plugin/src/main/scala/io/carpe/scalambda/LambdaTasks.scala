@@ -5,13 +5,12 @@ import java.io.File
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.lambda.model.UpdateFunctionCodeRequest
 import com.gilt.aws.lambda.{FileOps, HandlerName, LambdaName, S3BucketId}
-import com.typesafe.scalalogging.LazyLogging
 import io.carpe.scalambda.aws.{Lambda, S3}
 import io.carpe.scalambda.conf.QualifiedLambdaArn
 
 import scala.util.{Failure, Success, Try}
 
-object LambdaTasks extends LazyLogging {
+object LambdaTasks {
 
   import cats.implicits._
 
@@ -94,7 +93,7 @@ object LambdaTasks extends LazyLogging {
       // create/migrate the supplied Lambda Alias, pointing at each newly deployed version of the lambdas
       updatedLambdas.map({ case (lambdaName, lambdaArn) => lambdaClient.migrateAlias(alias, lambdaArn) }).sequence
     }).getOrElse({
-      logger.info("Lambda alias management step was skipped since no `scalambdaAlias` was set.")
+      println("Lambda alias management step was skipped since no `scalambdaAlias` was set.")
       Try(updatedLambdas.map(_._2))
     })
 

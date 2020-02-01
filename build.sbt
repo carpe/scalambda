@@ -3,7 +3,8 @@ import sbt.Keys.libraryDependencies
 
 import scala.tools.nsc.Properties
 
-ThisBuild / scalaVersion := "2.12.8"
+//ThisBuild / crossScalaVersions := Seq("2.11.12", "2.12.10")
+ThisBuild / scalaVersion := "2.12.10"
 ThisBuild / organization := "io.carpe"
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
@@ -31,14 +32,7 @@ lazy val core = project
     // Minimal set of interfaces for AWS Lambda creation
     libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
 
-    // Purely Compile-time DI (hence this being added as a "Provided" dependency).
-    // This allows for Dependency Injection design patterns while still keeping jar sizes down.
-    libraryDependencies += "com.softwaremill.macwire" %% "macros" % "2.3.3" % Provided,
-
-    // Required for d
-    libraryDependencies += "com.softwaremill.macwire" %% "util" % "2.3.0",
-
-      // Logging
+    // Logging
     libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
 
     // Testing
@@ -54,7 +48,14 @@ lazy val testing = project
   .settings(
     // Testing
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.0",
+    libraryDependencies += "org.scalamock" %% "scalamock" % "4.4.0",
     libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10",
+
+    // Logging
+    libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.11.2",
+    libraryDependencies += "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.11.2",
+    libraryDependencies += "org.apache.logging.log4j" % "log4j-api" % "2.11.2",
+
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")
   ).dependsOn(core)
 
@@ -74,9 +75,6 @@ lazy val plugin = project
 
     // Used for reading configuration values
     libraryDependencies += "com.typesafe" % "config" % "1.2.1",
-
-    // Logging
-    libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
 
     // Pre-loaded SBT Plugins
     libraryDependencies ++= {

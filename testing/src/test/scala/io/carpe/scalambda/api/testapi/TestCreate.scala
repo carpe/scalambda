@@ -1,21 +1,20 @@
-package io.carpe.scalambda.api.api
+package io.carpe.scalambda.api.testapi
 
 import cats.effect.IO
 import io.carpe.scalambda.api.ApiResource
-import io.carpe.scalambda.api.update.UpdateRequest
 import io.carpe.scalambda.fixtures.TestModels.Car
 import io.carpe.scalambda.response.ApiError
 
-class TestUpdate extends ApiResource.Update[TestApi, Car] {
+class TestCreate extends ApiResource.Create[TestApi, Car] {
 
   /**
-   * Update a record
+   * Create a record
    *
    * @param input for request
-   * @return an IO Monad that wraps logic for attempting to update the record
+   * @return an IO Monad that wraps logic for attempting to create the record
    */
-  override def update(input: UpdateRequest[Car])(implicit api: TestApi): IO[Car] = IO {
-    if (input.body.hp < 42) {
+  override def create(input: Car)(implicit api: TestApi): IO[Car] = IO {
+    if (input.hp < 42) {
       throw new ApiError {
         override val httpStatus: Int = 422
 
@@ -27,8 +26,6 @@ class TestUpdate extends ApiResource.Update[TestApi, Car] {
       }
     }
 
-    // return the original input
-    input.body.copy(hp = input.id)
+    input
   }
 }
-

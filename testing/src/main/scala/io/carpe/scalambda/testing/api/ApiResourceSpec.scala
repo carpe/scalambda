@@ -1,7 +1,7 @@
 package io.carpe.scalambda.testing.api
 
 import io.carpe.scalambda.api.conf.ScalambdaApi
-import io.carpe.scalambda.testing.ApiResourceBehaviors
+import io.carpe.scalambda.testing.api.behaviors.ApiResourceBehaviors
 import io.carpe.scalambda.testing.api.resourcehandlers.DefaultApiResourceHandling
 import org.scalatest.flatspec.AnyFlatSpec
 

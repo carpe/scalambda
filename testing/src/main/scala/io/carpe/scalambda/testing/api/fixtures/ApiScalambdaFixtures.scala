@@ -1,26 +1,41 @@
-package io.carpe.scalambda.testing
+package io.carpe.scalambda.testing.api.fixtures
 
 import com.amazonaws.services.lambda.runtime.Context
 import io.carpe.scalambda.api.ApiResource
 import io.carpe.scalambda.api.conf.ScalambdaApi
+import io.carpe.scalambda.api.index.IndexResponse
 import io.carpe.scalambda.request.{APIGatewayProxyRequest, RequestContext, RequestContextIdentity}
 import io.carpe.scalambda.response.APIGatewayProxyResponse
+import io.carpe.scalambda.testing.ScalambdaFixtures
 import io.carpe.scalambda.testing.api.resourcehandlers.ApiResourceHandling
-import io.circe.{Decoder, Encoder}
+import io.circe.Decoder.Result
+import io.circe.{Decoder, Encoder, HCursor, Json}
 
 trait ApiScalambdaFixtures[C <: ScalambdaApi] extends ScalambdaFixtures {
   this: ApiResourceHandling[C] =>
 
-  def makeTestRequestWithoutBody[I, R <: APIGatewayProxyRequest.WithoutBody, O]
-  (handler: ApiResource[C, I, R, O])
-  (implicit  encoderI: Encoder[I], encoderO: Encoder[O], decoder: Decoder[O], requestContext: Context): APIGatewayProxyResponse[O] = {
+  import io.circe.generic.semiauto._
+
+  implicit val nothingEncoder: Encoder[Nothing] = new Encoder[Nothing] {
+    override def apply(a: Nothing): Json = Json.Null
+  }
+
+  implicit val nothingDecoder: Decoder[Nothing] = new Decoder[Nothing] {
+    override def apply(c: HCursor): Result[Nothing] = ???
+  }
+
+  implicit protected def indexResponseDecoder[O](implicit inner: Decoder[O]): Decoder[IndexResponse[O]] = deriveDecoder[IndexResponse[O]]
+
+  def makeTestRequestWithoutBody[O]
+  (handler: ApiResource[C, Nothing, APIGatewayProxyRequest.WithoutBody, O], queryParameters: Map[String, String] = Map.empty, pathParameters: Map[String, String] = Map.empty)
+  (implicit encoderO: Encoder[O], decoderO: Decoder[O], requestContext: Context): APIGatewayProxyResponse[O] = {
     val apiGatewayReq = APIGatewayProxyRequest.WithoutBody(
       "/resource",
       "/unit-test",
       "POST",
       Map.empty,
-      Map.empty,
-      Map.empty,
+      queryParameters,
+      pathParameters,
       Map.empty,
       RequestContext.Unauthenticated(None,
         None,
@@ -33,9 +48,9 @@ trait ApiScalambdaFixtures[C <: ScalambdaApi] extends ScalambdaFixtures {
         None
       ),
       None
-    ).asInstanceOf[R]
+    )
 
-    handleApiResource(handler, apiGatewayReq)
+    handleApiResource(handler, apiGatewayReq, nothingEncoder, encoderO, decoderO, requestContext)
   }
 
   def makeTestRequestWithBody[I, R <: APIGatewayProxyRequest.WithBody[I], O]
@@ -63,7 +78,7 @@ trait ApiScalambdaFixtures[C <: ScalambdaApi] extends ScalambdaFixtures {
       None
     ).asInstanceOf[R]
 
-    handleApiResource(handler, apiGatewayReq)
+    handleApiResource(handler, apiGatewayReq, encoderI = inputEncoder, encoderO = encoder, decoder = decoder, requestContext = requestContext)
   }
 
 
