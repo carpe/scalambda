@@ -53,7 +53,6 @@ lazy val testing = project
 
     // Logging
     libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.11.2",
-    libraryDependencies += "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.11.2",
     libraryDependencies += "org.apache.logging.log4j" % "log4j-api" % "2.11.2",
 
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")

@@ -3,8 +3,10 @@ package io.carpe.scalambda.api.conf
 import com.amazonaws.services.lambda.runtime.Context
 import com.typesafe.scalalogging.LazyLogging
 
-abstract class ScalambdaApi(lambdaContext: Context) extends LazyLogging
+trait ScalambdaApi extends LazyLogging {
+  def lambdaContext: Context
+}
 
 object ScalambdaApi {
-  case class Default(lambdaContext: Context) extends ScalambdaApi(lambdaContext)
+  case class Default(lambdaContext: Context) extends ScalambdaApi
 }
