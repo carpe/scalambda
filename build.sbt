@@ -52,8 +52,8 @@ lazy val testing = project
     libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10",
 
     // Logging
-    libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.11.2",
-    libraryDependencies += "org.apache.logging.log4j" % "log4j-api" % "2.11.2",
+    libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.8.2",
+    libraryDependencies += "org.apache.logging.log4j" % "log4j-api" % "2.8.2",
 
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")
   ).dependsOn(core)
