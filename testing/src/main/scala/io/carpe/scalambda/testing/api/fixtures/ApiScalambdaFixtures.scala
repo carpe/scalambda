@@ -3,7 +3,6 @@ package io.carpe.scalambda.testing.api.fixtures
 import com.amazonaws.services.lambda.runtime.Context
 import io.carpe.scalambda.api.ApiResource
 import io.carpe.scalambda.api.conf.ScalambdaApi
-import io.carpe.scalambda.api.index.IndexResponse
 import io.carpe.scalambda.request.{APIGatewayProxyRequest, RequestContext, RequestContextIdentity}
 import io.carpe.scalambda.response.APIGatewayProxyResponse
 import io.carpe.scalambda.testing.ScalambdaFixtures
@@ -14,17 +13,10 @@ import io.circe.{Decoder, Encoder, HCursor, Json}
 trait ApiScalambdaFixtures[C <: ScalambdaApi] extends ScalambdaFixtures {
   this: ApiResourceHandling[C] =>
 
-  import io.circe.generic.semiauto._
+  implicit val nothingEncoder: Encoder[Nothing] = (a: Nothing) => Json.Null
 
-  implicit val nothingEncoder: Encoder[Nothing] = new Encoder[Nothing] {
-    override def apply(a: Nothing): Json = Json.Null
-  }
+  implicit val nothingDecoder: Decoder[Nothing] = (c: HCursor) => ???
 
-  implicit val nothingDecoder: Decoder[Nothing] = new Decoder[Nothing] {
-    override def apply(c: HCursor): Result[Nothing] = ???
-  }
-
-  implicit protected def indexResponseDecoder[O](implicit inner: Decoder[O]): Decoder[IndexResponse[O]] = deriveDecoder[IndexResponse[O]]
 
   def makeTestRequestWithoutBody[O]
   (handler: ApiResource[C, Nothing, APIGatewayProxyRequest.WithoutBody, O], queryParameters: Map[String, String] = Map.empty, pathParameters: Map[String, String] = Map.empty)
