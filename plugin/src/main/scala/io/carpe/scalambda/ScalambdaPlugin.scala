@@ -1,6 +1,7 @@
 package io.carpe.scalambda
 
 import _root_.io.carpe.scalambda.conf.QualifiedLambdaArn
+import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
 import com.gilt.aws.lambda.AwsLambdaPlugin
 import com.gilt.aws.lambda.AwsLambdaPlugin.autoImport._
 import com.typesafe.sbt.GitVersioning
@@ -30,7 +31,12 @@ object ScalambdaPlugin extends AutoPlugin {
     lazy val scalambdaAlias = settingKey[Option[String]]("Optional Function Alias to attach to newly deployed Lambda Function versions.")
     lazy val scalambdaRoleArn = settingKey[String]("ARN for AWS Role to use for lambda functions.")
     lazy val functionNamePrefix = settingKey[Option[String]]("Prefix to prepend onto the names of any AWS Functions defined and deployed via Scalambda.")
+
+    lazy val scalambdaFunctions = settingKey[Seq[ScalambdaFunction]]("List of Scalambda Functions")
+
     lazy val scalambdaPublish = taskKey[List[QualifiedLambdaArn]]("Packages and deploys the current project to an existing AWS Lambda alias")
+    lazy val scalambdaTerraformPath = settingKey[Option[String]]("Path to where terraform should be written to.")
+    lazy val scalambdaTerraform = taskKey[Unit]("Produces a terraform module from the project's scalambda configuration.")
 
     private def inferLambdaName(functionPrefix: Option[String], functionClasspath: String) = {
       functionPrefix.getOrElse("") + functionClasspath.split('.').last
@@ -78,6 +84,27 @@ object ScalambdaPlugin extends AutoPlugin {
       // return a project
       awsLambdaProxyPluginConfig ++ scalambdaLibs
     }
+
+    def scalambda(functionClasspath: String, route: Option[String]): Seq[Def.Setting[_]] = {
+
+      val awsLambdaProxyPluginConfig = Seq(
+        // add this lambda to the list of existing lambda definitions for this function
+        scalambdaFunctions += ScalambdaFunction(inferLambdaName(functionNamePrefix.value, functionClasspath), handlerPath = functionClasspath + "::handler", route = route),
+        region := Some("us-west-2"),
+        s3Bucket := Some("carpe-lambdas"),
+        // you might be asking why this amount of memory. AWS scales how much CPU your Lambdas are executed based on how much
+        // memory you give them. As on 6/14/19, at 1792MB a Lambda will run with a full vCPU which ends up saving us money in
+        // the long run as it cuts the total runtime of the Lambdas by 80% from 512MB of memory.
+        // Furthermore, an increase to 2048MB will reduce coldstart times by up to 300ms!
+        // TL;DR Even though the Function only uses ~256MB of memory, keep this number high to provide a better UX.
+        awsLambdaMemory := Some(1536),
+        awsLambdaTimeout := Some(30),
+        roleArn := Some(scalambdaRoleArn.value)
+      )
+
+      // return a project
+      awsLambdaProxyPluginConfig ++ scalambdaLibs
+    }
   }
 
   import autoImport._
@@ -96,6 +123,11 @@ object ScalambdaPlugin extends AutoPlugin {
       lambdaHandlers = lambdaHandlers.value,
       versionDescription = gitHeadCommit.value.getOrElse({ formattedDateVersion.value }),
       maybeAlias = scalambdaAlias.value.orElse(sys.env.get("SCALAMBDA_ALIAS"))
+    ),
+
+    scalambdaTerraform := ScalambdaTerraform.writeTerraform(
+      rootTerraformPath = scalambdaTerraformPath.value.getOrElse("./terraform"),
+      scalambdaFunctions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty)
     )
   ) ++ LambdaLoggingSettings.loggingSettings
 
