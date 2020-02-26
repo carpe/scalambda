@@ -3,29 +3,29 @@ package io.carpe.scalambda.response
 import io.carpe.scalambda.Scalambda
 import io.circe.{Encoder, Json}
 
-sealed trait APIGatewayProxyResponse
+sealed trait APIGatewayProxyResponse[+T]
 
 object APIGatewayProxyResponse {
 
   case class Empty( statusCode: Int,
                     headers: Map[String, String] = Map.empty,
                     isBase64Encoded: Boolean = false
-                  ) extends APIGatewayProxyResponse
+                  ) extends APIGatewayProxyResponse[Nothing]
 
   case class WithError( headers: Map[String, String] = Map.empty,
                         err: ApiError,
                         isBase64Encoded: Boolean = false
-                      ) extends APIGatewayProxyResponse
+                      ) extends APIGatewayProxyResponse[Nothing]
 
   case class WithBody[T]( statusCode: Int,
                           headers: Map[String, String] = Map.empty,
                           body: T,
                           isBase64Encoded: Boolean = false
-                        )(implicit val bodyEncoder: Encoder[T]) extends APIGatewayProxyResponse {
+                        )(implicit val bodyEncoder: Encoder[T]) extends APIGatewayProxyResponse[T] {
     protected[response] def bodyAsString: String = Scalambda.encode(body)(bodyEncoder)
   }
 
-  implicit def encoder[T]: Encoder[APIGatewayProxyResponse] = {
+  implicit def encoder[T]: Encoder[APIGatewayProxyResponse[T]] = {
     case Empty(statusCode, headers, isBase64Encoded) =>
       Json.obj(
         ("statusCode", Json.fromInt(statusCode)),
