@@ -21,7 +21,7 @@ trait MockApiResourceHandling[C <: ScalambdaApi] extends ApiResourceHandling[C] 
   def mockApi(api: C): C
 
   override def handleApiResource[I, R <: APIGatewayProxyRequest[I], O]
-  (handler: ApiResource[C, I, R, O], request: R, encoderI: Encoder[I], encoderO: Encoder[O], decoder: Decoder[O], requestContext: Context): APIGatewayProxyResponse[O] = {
+  (handler: ApiResource[C, I, R, O], request: R, encoderI: Encoder[I], encoderO: Encoder[O], decoder: Decoder[O], requestContext: Context): APIGatewayProxyResponse = {
 
     // inject mocks into the resource's bootstrapping
     val bootstrap = handler.init(requestContext)

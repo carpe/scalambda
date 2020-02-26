@@ -66,7 +66,7 @@ trait DefaultApiResourceHandling[C <: ScalambdaApi] extends ApiResourceHandling[
 
   private implicit lazy val apiErrorDecoder: Decoder[IntermediaryApiError] = deriveDecoder[IntermediaryApiError]
 
-  implicit def responseDecoder[T](implicit decoder: Decoder[T], encoder: Encoder[T]): Decoder[APIGatewayProxyResponse[T]] = {
+  implicit def responseDecoder[T](implicit decoder: Decoder[T], encoder: Encoder[T]): Decoder[APIGatewayProxyResponse] = {
     deriveDecoder[IntermediaryProxyResponse].map(intermediary => {
       import io.circe.parser._
 
@@ -104,7 +104,7 @@ trait DefaultApiResourceHandling[C <: ScalambdaApi] extends ApiResourceHandling[
   }
 
   override def handleApiResource[I, R <: APIGatewayProxyRequest[I], O]
-  (handler: ApiResource[C, I, R, O], apiGatewayReq: R, encoderI: Encoder[I], encoderO: Encoder[O], decoder: Decoder[O], requestContext: Context): APIGatewayProxyResponse[O] = {
+  (handler: ApiResource[C, I, R, O], apiGatewayReq: R, encoderI: Encoder[I], encoderO: Encoder[O], decoder: Decoder[O], requestContext: Context): APIGatewayProxyResponse = {
     val encoded = apiGatewayReq match {
       case withBody: APIGatewayProxyRequest.WithBody[I] =>
         proxyRequestWithBodyEncoder[I](encoderI).apply(withBody)

@@ -181,7 +181,7 @@ trait ApiResourceBehaviors[C <: ScalambdaApi] extends ApiScalambdaFixtures[C] wi
 
     cases.foreach(test => {
       it should createTestDescription(test) in {
-        makeTestRequestWithoutBody[Nothing](handler, pathParameters = Map("id" -> test.id.toString)) match {
+        makeTestRequestWithoutBody[None.type](handler, pathParameters = Map("id" -> test.id.toString)) match {
           case APIGatewayProxyResponse.WithError(headers, err, isBase64Encoded) =>
             test match {
               case DeleteTestCase.Success(id, caseDescription) =>
@@ -254,7 +254,7 @@ object ApiResourceBehaviors {
   }
 
   sealed trait IndexTestCase extends TestCase {
-    override def defaultDescription: String = "updating of a record"
+    override def defaultDescription: String = "fetching of records"
 
     def queryParameters: Map[String, String]
 
@@ -263,7 +263,7 @@ object ApiResourceBehaviors {
 
   object IndexTestCase {
 
-    case class Success[R](queryParameters: Map[String, String], expectedOutput: List[R], caseDescription: Option[String] = None) extends IndexTestCase
+    case class Success[R](queryParameters: Map[String, String], expectedOutput: R, caseDescription: Option[String] = None) extends IndexTestCase
 
     case class Fail(queryParameters: Map[String, String], expectedMessage: Option[String] = None, expectedStatus: Option[Int] = None, caseDescription: Option[String] = None) extends IndexTestCase with FailCase
 

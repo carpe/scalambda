@@ -7,20 +7,14 @@ import io.carpe.scalambda.request.{APIGatewayProxyRequest, RequestContext, Reque
 import io.carpe.scalambda.response.APIGatewayProxyResponse
 import io.carpe.scalambda.testing.ScalambdaFixtures
 import io.carpe.scalambda.testing.api.resourcehandlers.ApiResourceHandling
-import io.circe.Decoder.Result
-import io.circe.{Decoder, Encoder, HCursor, Json}
+import io.circe.{Decoder, Encoder}
 
 trait ApiScalambdaFixtures[C <: ScalambdaApi] extends ScalambdaFixtures {
   this: ApiResourceHandling[C] =>
 
-  implicit val nothingEncoder: Encoder[Nothing] = (a: Nothing) => Json.Null
-
-  implicit val nothingDecoder: Decoder[Nothing] = (c: HCursor) => ???
-
-
   def makeTestRequestWithoutBody[O]
-  (handler: ApiResource[C, Nothing, APIGatewayProxyRequest.WithoutBody, O], queryParameters: Map[String, String] = Map.empty, pathParameters: Map[String, String] = Map.empty)
-  (implicit encoderO: Encoder[O], decoderO: Decoder[O], requestContext: Context): APIGatewayProxyResponse[O] = {
+  (handler: ApiResource[C, None.type, APIGatewayProxyRequest.WithoutBody, O], queryParameters: Map[String, String] = Map.empty, pathParameters: Map[String, String] = Map.empty)
+  (implicit encoderO: Encoder[O], decoderO: Decoder[O], requestContext: Context): APIGatewayProxyResponse = {
     val apiGatewayReq = APIGatewayProxyRequest.WithoutBody(
       "/resource",
       "/unit-test",
@@ -42,12 +36,12 @@ trait ApiScalambdaFixtures[C <: ScalambdaApi] extends ScalambdaFixtures {
       None
     )
 
-    handleApiResource(handler, apiGatewayReq, nothingEncoder, encoderO, decoderO, requestContext)
+    handleApiResource(handler, apiGatewayReq, Encoder.encodeNone, encoderO, decoderO, requestContext)
   }
 
   def makeTestRequestWithBody[I, R <: APIGatewayProxyRequest.WithBody[I], O]
   (handler: ApiResource[C, I, R, O], body: I, pathParameters: Map[String, String] = Map.empty)
-  (implicit inputEncoder: Encoder[I], decoder: Decoder[O], encoder: Encoder[O], requestContext: Context): APIGatewayProxyResponse[O] = {
+  (implicit inputEncoder: Encoder[I], decoder: Decoder[O], encoder: Encoder[O], requestContext: Context): APIGatewayProxyResponse = {
     val apiGatewayReq = APIGatewayProxyRequest.WithBody(
       "/resource",
       "/unit-test",

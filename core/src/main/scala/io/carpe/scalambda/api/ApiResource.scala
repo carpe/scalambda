@@ -30,21 +30,18 @@ import scala.language.implicitConversions
  * @tparam R the specific type of api gateway proxy request this function accepts.
  * @tparam O output type, which is set on a per request type basis
  */
-sealed abstract class ApiResource[C <: ScalambdaApi, +I, R <: APIGatewayProxyRequest[I], O](
-  implicit val bootstrap: ApiBootstrap[C],
-  val inputDecoder: Decoder[R],
-  val outputEncoder: Encoder[O]
-) extends Scalambda[R, APIGatewayProxyResponse[O]] {
+sealed abstract class ApiResource[C <: ScalambdaApi, +I, R <: APIGatewayProxyRequest[I], O](implicit val bootstrap: ApiBootstrap[C], val inputDecoder: Decoder[R], val outputEncoder: Encoder[O])
+  extends Scalambda[R, APIGatewayProxyResponse] {
   implicit def init(context: Context): C = bootstrap(context)
 
-  final override def handleRequest(input: R, context: Context): APIGatewayProxyResponse[O] = {
+  final override def handleRequest(input: R, context: Context): APIGatewayProxyResponse = {
     val c: C = init(context)
     handleApiRequest(input)(c)
   }
 
-  def handleApiRequest(input: R)(implicit c: C): APIGatewayProxyResponse[O]
+  def handleApiRequest(input: R)(implicit c: C): APIGatewayProxyResponse
 
-  protected[scalambda] def handleError(err: Throwable): APIGatewayProxyResponse[O] = {
+  protected[scalambda] def handleError(err: Throwable): APIGatewayProxyResponse = {
     err match {
       case apiError: ApiError =>
         APIGatewayProxyResponse.WithError(defaultResponseHeaders, apiError)
@@ -58,9 +55,9 @@ sealed abstract class ApiResource[C <: ScalambdaApi, +I, R <: APIGatewayProxyReq
 object ApiResource {
 
   // type aliases used to simplify lambda definitions
-  type WithoutBody[C <: ScalambdaApi, O] = ApiResource[C, Nothing, APIGatewayProxyRequest.WithoutBody, O]
+  type WithoutBody[C <: ScalambdaApi, O] = ApiResource[C, None.type, APIGatewayProxyRequest.WithoutBody, O]
   type WithBody[C <: ScalambdaApi, O] = ApiResource[C, O, APIGatewayProxyRequest.WithBody[O], O]
-  type WithoutBodyOrResponse[C <: ScalambdaApi] = ApiResource[C, Nothing, APIGatewayProxyRequest.WithoutBody, Nothing]
+  type WithoutBodyOrResponse[C <: ScalambdaApi] = ApiResource[C, None.type, APIGatewayProxyRequest.WithoutBody, None.type]
 
   /**
    * Default response headers.
@@ -69,8 +66,6 @@ object ApiResource {
    */
   lazy val defaultResponseHeaders = Map("Access-Control-Allow-Origin" -> "*")
 
-  implicit val nothingEncoder: Encoder[Nothing] = (a: Nothing) => Json.Null
-
   /**
    * An [[ApiResource]] used to handle POST requests for creating records. Example: "/cars:POST"
    *
@@ -78,15 +73,9 @@ object ApiResource {
    * @param encoder for record
    * @tparam R type of record
    */
-  abstract class Create[C <: ScalambdaApi, R](
-    implicit val applicationBootstrap: ApiBootstrap[C],
-    val decoder: Decoder[R],
-    val encoder: Encoder[R]
-  ) extends ApiResource.WithBody[C, R] {
+  abstract class Create[C <: ScalambdaApi, R](implicit val applicationBootstrap: ApiBootstrap[C], val decoder: Decoder[R], val encoder: Encoder[R]) extends ApiResource.WithBody[C, R] {
 
-    override def handleApiRequest(
-      input: APIGatewayProxyRequest.WithBody[R]
-    )(implicit context: C): APIGatewayProxyResponse[R] = {
+    override def handleApiRequest(input: APIGatewayProxyRequest.WithBody[R])(implicit context: C): APIGatewayProxyResponse = {
       // try to parse a record from the input and then process it using the supplied implementation
       val result: Either[Throwable, R] = for {
         requestBody <- input.body match {
@@ -126,7 +115,7 @@ object ApiResource {
 
     override def handleApiRequest(
       input: APIGatewayProxyRequest.WithoutBody
-    )(implicit context: C): APIGatewayProxyResponse[R] = {
+    )(implicit context: C): APIGatewayProxyResponse = {
       ShowRequest.fromProxyRequest(input) match {
         case Left(err) =>
           APIGatewayProxyResponse.WithError(defaultResponseHeaders, err)
@@ -174,7 +163,8 @@ object ApiResource {
 
     override def handleApiRequest(
       input: APIGatewayProxyRequest.WithoutBody
-    )(implicit context: C): APIGatewayProxyResponse[R] = {
+    )(implicit context: C): APIGatewayProxyResponse = {
+
       val records = index(IndexRequest.fromProxyRequest(input))(context)
 
       records.attempt.unsafeRunSync() match {
@@ -212,7 +202,7 @@ object ApiResource {
 
     override def handleApiRequest(
       input: APIGatewayProxyRequest.WithBody[R]
-    )(implicit context: C): APIGatewayProxyResponse[R] = {
+    )(implicit context: C): APIGatewayProxyResponse = {
       // try to parse a record from the input and then process it using the supplied implementation
       val result = for {
         updateRequest <- UpdateRequest.fromProxyRequest(input)
@@ -242,7 +232,7 @@ object ApiResource {
 
     override def handleApiRequest(
       input: APIGatewayProxyRequest.WithoutBody
-    )(implicit context: C): APIGatewayProxyResponse[Nothing] = {
+    )(implicit context: C): APIGatewayProxyResponse = {
       // try to parse a record from the input and then process it using the supplied implementation
       val result = for {
         requestBody <- DeleteRequest.fromProxyRequest(input)

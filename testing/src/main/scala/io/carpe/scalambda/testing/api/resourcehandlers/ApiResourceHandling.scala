@@ -12,6 +12,6 @@ import org.scalatest.TestSuite
 trait ApiResourceHandling[C <: ScalambdaApi] {
   this: TestSuite =>
 
-  def handleApiResource[I, R <: APIGatewayProxyRequest[I], O](handler: ApiResource[C, I, R, O], request: R, encoderI: Encoder[I], encoderO: Encoder[O], decoder: Decoder[O], requestContext: Context): APIGatewayProxyResponse[O]
+  def handleApiResource[I, R <: APIGatewayProxyRequest[I], O](handler: ApiResource[C, I, R, O], request: R, encoderI: Encoder[I], encoderO: Encoder[O], decoder: Decoder[O], requestContext: Context): APIGatewayProxyResponse
 
 }
