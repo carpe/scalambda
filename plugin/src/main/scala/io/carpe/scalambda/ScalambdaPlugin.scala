@@ -1,6 +1,7 @@
 package io.carpe.scalambda
 
-import _root_.io.carpe.scalambda.conf.QualifiedLambdaArn
+import _root_.io.carpe.scalambda.conf.{QualifiedLambdaArn, ScalambdaFunction}
+import _root_.io.carpe.scalambda.conf.function.{ApiGatewayConf, Method, FunctionConf}
 import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
 import com.gilt.aws.lambda.AwsLambdaPlugin
 import com.gilt.aws.lambda.AwsLambdaPlugin.autoImport._
@@ -32,7 +33,9 @@ object ScalambdaPlugin extends AutoPlugin {
     lazy val scalambdaRoleArn = settingKey[String]("ARN for AWS Role to use for lambda functions.")
     lazy val functionNamePrefix = settingKey[Option[String]]("Prefix to prepend onto the names of any AWS Functions defined and deployed via Scalambda.")
 
-    lazy val scalambdaFunctions = settingKey[Seq[ScalambdaFunction]]("List of Scalambda Functions")
+    lazy val scalambdaS3BucketPrefix = settingKey[String]("Prefix for S3 bucket name to store lambda functions in. Default to project name.")
+
+    lazy val scalambdaFunctions = taskKey[Seq[ScalambdaFunction]]("List of Scalambda Functions")
 
     lazy val scalambdaPublish = taskKey[List[QualifiedLambdaArn]]("Packages and deploys the current project to an existing AWS Lambda alias")
     lazy val scalambdaTerraformPath = settingKey[Option[String]]("Path to where terraform should be written to.")
@@ -42,64 +45,36 @@ object ScalambdaPlugin extends AutoPlugin {
       functionPrefix.getOrElse("") + functionClasspath.split('.').last
     }
 
-    def lambdaFunction(functionClasspath: String): Seq[Def.Setting[_]] = {
-
-      val awsLambdaPluginConfig = Seq(
-        // add this lambda to the list of existing lambda definitions for this function
-        lambdaHandlers += (inferLambdaName(functionNamePrefix.value, functionClasspath) -> (functionClasspath + "::handler")),
-        region := Some("us-west-2"),
-        s3Bucket := Some("carpe-lambdas"),
-        // you might be asking why this amount of memory. AWS scales how much CPU your Lambdas are executed based on how much
-        // memory you give them. As on 6/14/19, at 1792MB a Lambda will run with a full vCPU which ends up saving us money in
-        // the long run as it cuts the total runtime of the Lambdas by 80% from 512MB of memory.
-        // Furthermore, an increase to 2048MB will reduce coldstart times by up to 300ms!
-        // TL;DR Even though the Function only uses ~256MB of memory, keep this number high to provide a better UX.
-        awsLambdaMemory := Some(1536),
-        // set default timeout to 15 minutes
-        awsLambdaTimeout := Some(15 * 60),
-        roleArn := Some(scalambdaRoleArn.value)
-      )
-
-      // return a project
-      awsLambdaPluginConfig ++ scalambdaLibs
-    }
-
-    def apiGatewayProxyLambda(functionClasspath: String): Seq[Def.Setting[_]] = {
+    def scalambda(functionClasspath: String, functionConfig: FunctionConf = FunctionConf.carpeDefault): Seq[Def.Setting[_]] = {
 
       val awsLambdaProxyPluginConfig = Seq(
         // add this lambda to the list of existing lambda definitions for this function
-        lambdaHandlers += (inferLambdaName(functionNamePrefix.value, functionClasspath) -> (functionClasspath + "::handler")),
-        region := Some("us-west-2"),
-        s3Bucket := Some("carpe-lambdas"),
-        // you might be asking why this amount of memory. AWS scales how much CPU your Lambdas are executed based on how much
-        // memory you give them. As on 6/14/19, at 1792MB a Lambda will run with a full vCPU which ends up saving us money in
-        // the long run as it cuts the total runtime of the Lambdas by 80% from 512MB of memory.
-        // Furthermore, an increase to 2048MB will reduce coldstart times by up to 300ms!
-        // TL;DR Even though the Function only uses ~256MB of memory, keep this number high to provide a better UX.
-        awsLambdaMemory := Some(1536),
-        awsLambdaTimeout := Some(30),
-        roleArn := Some(scalambdaRoleArn.value)
+        scalambdaFunctions += ScalambdaFunction(
+          functionName = inferLambdaName(functionNamePrefix.value, functionClasspath),
+          handlerPath = functionClasspath + "::handler",
+          functionConfig = functionConfig,
+          apiConfig = None,
+          assemblyPath = AssemblyKeys.assemblyOutputPath.value,
+          s3BucketName = scalambdaS3BucketPrefix.?.value.getOrElse(s"${project.id}-lambdas")
+        )
       )
 
       // return a project
       awsLambdaProxyPluginConfig ++ scalambdaLibs
     }
 
-    def scalambda(functionClasspath: String, route: Option[String]): Seq[Def.Setting[_]] = {
+    def scalambdaApi(functionClasspath: String, functionConfig: FunctionConf = FunctionConf.carpeDefault, apiConfig: ApiGatewayConf): Seq[Def.Setting[_]] = {
 
       val awsLambdaProxyPluginConfig = Seq(
         // add this lambda to the list of existing lambda definitions for this function
-        scalambdaFunctions += ScalambdaFunction(inferLambdaName(functionNamePrefix.value, functionClasspath), handlerPath = functionClasspath + "::handler", route = route),
-        region := Some("us-west-2"),
-        s3Bucket := Some("carpe-lambdas"),
-        // you might be asking why this amount of memory. AWS scales how much CPU your Lambdas are executed based on how much
-        // memory you give them. As on 6/14/19, at 1792MB a Lambda will run with a full vCPU which ends up saving us money in
-        // the long run as it cuts the total runtime of the Lambdas by 80% from 512MB of memory.
-        // Furthermore, an increase to 2048MB will reduce coldstart times by up to 300ms!
-        // TL;DR Even though the Function only uses ~256MB of memory, keep this number high to provide a better UX.
-        awsLambdaMemory := Some(1536),
-        awsLambdaTimeout := Some(30),
-        roleArn := Some(scalambdaRoleArn.value)
+        scalambdaFunctions += ScalambdaFunction(
+          functionName = inferLambdaName(functionNamePrefix.value, functionClasspath),
+          handlerPath = functionClasspath + "::handler",
+          functionConfig = functionConfig,
+          apiConfig = Some(apiConfig),
+          assemblyPath = AssemblyKeys.assemblyOutputPath.value,
+          s3BucketName = scalambdaS3BucketPrefix.?.value.getOrElse(s"${project.id}-lambdas")
+        )
       )
 
       // return a project
@@ -126,8 +101,8 @@ object ScalambdaPlugin extends AutoPlugin {
     ),
 
     scalambdaTerraform := ScalambdaTerraform.writeTerraform(
-      rootTerraformPath = scalambdaTerraformPath.value.getOrElse("./terraform"),
-      scalambdaFunctions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty)
+      rootTerraformPath = scalambdaTerraformPath.value.getOrElse("./terraform/scalambda"),
+      functions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty),
     )
   ) ++ LambdaLoggingSettings.loggingSettings
 
