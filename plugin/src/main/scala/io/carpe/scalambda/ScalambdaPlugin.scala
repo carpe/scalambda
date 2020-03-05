@@ -1,8 +1,9 @@
 package io.carpe.scalambda
 
 import _root_.io.carpe.scalambda.conf.ScalambdaFunction
-import _root_.io.carpe.scalambda.conf.function.{ApiGatewayConf, FunctionConf, FunctionRoleSource}
+import _root_.io.carpe.scalambda.conf.function.{ApiGatewayConf, FunctionConf, FunctionRoleSource, FunctionNaming}
 import _root_.io.carpe.scalambda.conf.function.FunctionRoleSource.FromVariable
+import _root_.io.carpe.scalambda.conf.function.FunctionNaming.WorkspaceBased
 import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
 import com.typesafe.sbt.GitVersioning
 import sbt.Keys.{baseDirectory, credentials, libraryDependencies, resolvers}
@@ -26,7 +27,6 @@ object ScalambdaPlugin extends AutoPlugin {
   )
 
   object autoImport {
-    lazy val functionNamePrefix = settingKey[String]("Prefix to prepend onto the names of any AWS Functions defined and deployed via Scalambda.")
     lazy val s3BucketName = settingKey[String]("Prefix for S3 bucket name to store lambda functions in. Defaults to project name.")
     lazy val scalambdaFunctions = settingKey[Seq[ScalambdaFunction]]("List of Scalambda Functions")
 
@@ -35,20 +35,15 @@ object ScalambdaPlugin extends AutoPlugin {
     lazy val packageScalambda = taskKey[File]("Use sbt-assembly to create jar for your Lambda Function(s)")
     lazy val scalambdaTerraform = taskKey[Unit]("Produces a terraform module from the project's scalambda configuration.")
 
-    private def inferLambdaName(functionPrefix: Option[String], functionClasspath: String) = {
-      functionPrefix.getOrElse("") + functionClasspath.split('.').last
-    }
-
-    def scalambda(functionClasspath: String, functionConfig: FunctionConf = FunctionConf.carpeDefault): Seq[Def.Setting[_]] = {
+    def scalambda(functionClasspath: String, functionNaming: FunctionNaming = WorkspaceBased, iamRoleSource: FunctionRoleSource = FromVariable, functionConfig: FunctionConf = FunctionConf.carpeDefault): Seq[Def.Setting[_]] = {
 
       val awsLambdaProxyPluginConfig = Seq(
         // add this lambda to the list of existing lambda definitions for this function
         scalambdaFunctions += {
-          val inferredFunctionName = inferLambdaName(functionNamePrefix.?.value, functionClasspath)
           ScalambdaFunction(
-            functionName = inferredFunctionName,
+            naming = functionNaming,
             handlerPath = functionClasspath + "::handler",
-            iamRole = FromVariable(ScalambdaFunction.terraformLambdaResourceName(inferredFunctionName), s"Arn for the IAM Role to be used by the ${inferredFunctionName} Lambda Function."),
+            iamRole = iamRoleSource,
             functionConfig = functionConfig,
             apiConfig = None,
             s3BucketName = s3BucketName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas")
@@ -60,16 +55,15 @@ object ScalambdaPlugin extends AutoPlugin {
       awsLambdaProxyPluginConfig ++ scalambdaLibs
     }
 
-    def scalambdaApi(functionClasspath: String, functionConfig: FunctionConf = FunctionConf.carpeDefault, apiConfig: ApiGatewayConf): Seq[Def.Setting[_]] = {
+    def scalambdaApi(functionClasspath: String, functionNaming: FunctionNaming = WorkspaceBased, iamRoleSource: FunctionRoleSource = FromVariable, functionConfig: FunctionConf = FunctionConf.carpeDefault, apiConfig: ApiGatewayConf): Seq[Def.Setting[_]] = {
 
       val awsLambdaProxyPluginConfig = Seq(
         // add this lambda to the list of existing lambda definitions for this function
         scalambdaFunctions += {
-          val inferredFunctionName = inferLambdaName(functionNamePrefix.?.value, functionClasspath)
           ScalambdaFunction(
-            functionName = inferredFunctionName,
+            naming = functionNaming,
             handlerPath = functionClasspath + "::handler",
-            iamRole = FromVariable(ScalambdaFunction.terraformLambdaResourceName(inferredFunctionName), s"Arn for the IAM Role to be used by the ${inferredFunctionName} Lambda Function."),
+            iamRole = iamRoleSource,
             functionConfig = functionConfig,
             apiConfig = Some(apiConfig),
             s3BucketName = s3BucketName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas")

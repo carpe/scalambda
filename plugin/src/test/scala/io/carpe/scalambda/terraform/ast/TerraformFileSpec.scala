@@ -17,11 +17,11 @@ class TerraformFileSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |resource "aws_lambda_function" "drive_car_lambda" {
         |  function_name = "DriveCar"
         |  s3_bucket = aws_s3_bucket.testing.id
-        |  role = var.testing_role_arn
-        |  s3_key = aws_s3_bucket_object.drive_car.key
+        |  role = "arn:aws:iam::12345678900:role/lambda_basic_execution"
+        |  s3_key = aws_s3_bucket_object.drive_car_code.key
         |  memory_size = 1536
         |  timeout = 900
-        |  handler = "io.cars.lambda.DriveCar"
+        |  handler = "io.cars.lambda.DriveCar::handler"
         |  runtime = "java8"
         |}
         |""".stripMargin
@@ -41,22 +41,22 @@ class TerraformFileSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |resource "aws_lambda_function" "drive_car_lambda" {
         |  function_name = "DriveCar"
         |  s3_bucket = aws_s3_bucket.testing.id
-        |  role = var.testing_role_arn
-        |  s3_key = aws_s3_bucket_object.drive_car.key
+        |  role = "arn:aws:iam::12345678900:role/lambda_basic_execution"
+        |  s3_key = aws_s3_bucket_object.drive_car_code.key
         |  memory_size = 1536
         |  timeout = 900
-        |  handler = "io.cars.lambda.DriveCar"
+        |  handler = "io.cars.lambda.DriveCar::handler"
         |  runtime = "java8"
         |}
         |
         |resource "aws_lambda_function" "fly_plane_lambda" {
         |  function_name = "FlyPlane"
         |  s3_bucket = aws_s3_bucket.testing.id
-        |  role = var.testing_role_arn
-        |  s3_key = aws_s3_bucket_object.fly_plane.key
+        |  role = "arn:aws:iam::12345678900:role/lambda_basic_execution"
+        |  s3_key = aws_s3_bucket_object.fly_plane_code.key
         |  memory_size = 256
         |  timeout = 30
-        |  handler = "io.plane.lambda.FlyPlane"
+        |  handler = "io.plane.lambda.FlyPlane::handler"
         |  runtime = "java8"
         |}
         |""".stripMargin

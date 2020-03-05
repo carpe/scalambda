@@ -29,10 +29,10 @@ case class LambdaFunction(scalambdaFunction: ScalambdaFunction) extends Resource
     "s3_key" -> TResourceRef("aws_s3_bucket_object", scalambdaFunction.terraformS3BucketItemResourceName, "key"),
 
     // role for the lambda
-    "role" -> scalambdaFunction.iamRole.asTFValue,
+    "role" -> scalambdaFunction.iamRole.asTFValue(scalambdaFunction),
 
     // name of the lambda
-    "function_name" -> TString(scalambdaFunction.functionName),
+    "function_name" -> scalambdaFunction.naming.asTValue(scalambdaFunction),
 
     // path to the scalambda function that this function uses as an entrypoint to your code during execution
     "handler" -> TString(scalambdaFunction.handlerPath),

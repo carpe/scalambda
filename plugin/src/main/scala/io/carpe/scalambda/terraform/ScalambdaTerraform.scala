@@ -42,8 +42,10 @@ object ScalambdaTerraform {
       val functionResource = LambdaFunction(function)
       val functionVariables = Seq(
         function.iamRole match {
-          case fromVariable: FunctionRoleSource.FromVariable =>
-            Some(Variable[TString](fromVariable.variableName, description = Some(fromVariable.description), defaultValue = None))
+          case fromVariable: FunctionRoleSource.FromVariable.type =>
+            Some(Variable[TString](fromVariable.variableName(function), description = Some(s"Arn for the IAM Role to be used by the ${function.approximateFunctionName} Lambda Function."), defaultValue = None))
+          case FunctionRoleSource.StaticArn(_) =>
+            None
         }
       ).flatten
 

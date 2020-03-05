@@ -1,6 +1,7 @@
 package io.carpe.scalambda.terraform
 
 import io.carpe.scalambda.conf.ScalambdaFunction
+import io.carpe.scalambda.conf.function.FunctionNaming.Static
 import io.carpe.scalambda.conf.function.{ApiGatewayConf, FunctionConf, FunctionRoleSource, Method}
 import org.scalatest.flatspec.AnyFlatSpec
 
@@ -9,8 +10,8 @@ class OpenApiSpec extends AnyFlatSpec {
   "OpenApi" should "be able to be serialized as yaml" in {
     val functions = List(
       ScalambdaFunction(
-        "CarsIndex", "io.cars.index.CarsIndex",
-        iamRole = FunctionRoleSource.FromVariable("testing", "this is not real"),
+        Static("CarsIndex"), "io.cars.index.CarsIndex",
+        iamRole = FunctionRoleSource.FromVariable,
         functionConfig = FunctionConf.carpeDefault,
         apiConfig = Some(ApiGatewayConf(route = "/cars", method = Method.GET)),
         s3BucketName = "testing"
