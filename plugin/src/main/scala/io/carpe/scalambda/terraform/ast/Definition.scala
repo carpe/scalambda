@@ -1,6 +1,7 @@
 package io.carpe.scalambda.terraform.ast
 
 import io.carpe.scalambda.terraform.ast.props.TValue
+import io.carpe.scalambda.terraform.ast.props.TValue.{TNumber, TLiteral, TString}
 
 /**
  * A single piece of HCL configuration. Such as a [[io.carpe.scalambda.terraform.ast.Definition.Resource]].
@@ -60,5 +61,29 @@ object Definition {
    */
   abstract class Data extends Definition {
     override def definitionType: String = "data"
+  }
+
+  import scala.reflect.runtime.universe._
+
+  case class Variable[T <: TValue](name: String, description: Option[String], defaultValue: Option[T])(implicit tag: TypeTag[T]) extends Definition {
+    override def definitionType: String = "variable"
+    override def resourceType: Option[String] = None
+
+    /**
+     * Properties of the definition
+     */
+    override def body: Map[String, TValue] = Map(
+      "type" -> {
+
+        typeOf[T] match {
+          case t if t =:= typeOf[TNumber] => Some(TLiteral("string"))
+          case t if t =:= typeOf[TNumber] => Some(TLiteral("number"))
+          case _ => None
+        }
+      },
+      "description" -> description.map(TString)
+    ).collect {
+      case (k, Some(v)) => k -> v
+    }
   }
 }

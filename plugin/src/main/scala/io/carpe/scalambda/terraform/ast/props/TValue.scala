@@ -5,8 +5,8 @@ sealed trait TValue {
 }
 
 object TValue {
-  case class TInt(int: Int) extends TValue {
-    override def serialize: String = int.toString
+  case class TNumber(number: Long) extends TValue {
+    override def serialize: String = number.toString
   }
 
 
@@ -22,8 +22,31 @@ object TValue {
     }
   }
 
+  /**
+   * Reference to property on a [[io.carpe.scalambda.terraform.ast.Definition.Resource]]
+   *
+   * @param resourceType type or resource (i.e. "aws_iam_role")
+   * @param name name of the resource (i.e. "my_personal_iam_role")
+   * @param property name of the property on the resource type that is being referred to
+   */
   case class TResourceRef(resourceType: String, name: String, property: String) extends TValue {
     override def serialize: String = s"${resourceType}.${name}.${property}"
+  }
+
+  /**
+   * Reference to a defined "variable"
+   * @param name of the referenced variable
+   */
+  case class TVariableRef(name: String) extends TValue {
+    override def serialize: String = s"var.${name}"
+  }
+
+  /**
+   * Used for edge cases such as the `type` property on a terraform `variable`
+   * @param literal type
+   */
+  case class TLiteral(literal: String) extends TValue {
+    override def serialize: String = literal
   }
 
 }

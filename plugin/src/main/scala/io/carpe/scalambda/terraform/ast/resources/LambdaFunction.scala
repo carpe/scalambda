@@ -28,6 +28,9 @@ case class LambdaFunction(scalambdaFunction: ScalambdaFunction) extends Resource
     "s3_bucket" -> TResourceRef("aws_s3_bucket", scalambdaFunction.terraformS3BucketResourceName, "id"),
     "s3_key" -> TResourceRef("aws_s3_bucket_object", scalambdaFunction.terraformS3BucketItemResourceName, "key"),
 
+    // role for the lambda
+    "role" -> scalambdaFunction.iamRole.asTFValue,
+
     // name of the lambda
     "function_name" -> TString(scalambdaFunction.functionName),
 
@@ -35,12 +38,12 @@ case class LambdaFunction(scalambdaFunction: ScalambdaFunction) extends Resource
     "handler" -> TString(scalambdaFunction.handlerPath),
 
     // amount of memory, in MB, that the function can use at runtime
-    "memory_size" -> TInt(scalambdaFunction.functionConfig.memory),
+    "memory_size" -> TNumber(scalambdaFunction.functionConfig.memory),
 
     // TODO: evaluate amazon coretto 11
     "runtime" -> TString("java8"),
 
-    "timeout" -> TInt(scalambdaFunction.functionConfig.timeout)
+    "timeout" -> TNumber(scalambdaFunction.functionConfig.timeout)
 
   )
 }

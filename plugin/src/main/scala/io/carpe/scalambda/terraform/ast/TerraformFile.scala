@@ -10,7 +10,7 @@ case class TerraformFile(definitions: Seq[Definition], fileName: String) {
 object TerraformFile {
 
   def writeFile(file: TerraformFile, rootPath: String): Unit = {
-    val filePath = rootPath + file.fileName
+    val filePath = rootPath + "/" + file.fileName
     val fileContent = file.toString
 
     new PrintWriter(filePath) { write(fileContent); close() }

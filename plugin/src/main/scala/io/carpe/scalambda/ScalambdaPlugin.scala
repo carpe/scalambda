@@ -1,10 +1,11 @@
 package io.carpe.scalambda
 
 import _root_.io.carpe.scalambda.conf.ScalambdaFunction
-import _root_.io.carpe.scalambda.conf.function.{ApiGatewayConf, FunctionConf}
+import _root_.io.carpe.scalambda.conf.function.{ApiGatewayConf, FunctionConf, FunctionRoleSource}
+import _root_.io.carpe.scalambda.conf.function.FunctionRoleSource.FromVariable
 import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
 import com.typesafe.sbt.GitVersioning
-import sbt.Keys.{credentials, libraryDependencies, resolvers}
+import sbt.Keys.{baseDirectory, credentials, libraryDependencies, resolvers}
 import sbt._
 import sbtassembly._
 
@@ -25,11 +26,11 @@ object ScalambdaPlugin extends AutoPlugin {
   )
 
   object autoImport {
-    lazy val functionNamePrefix = settingKey[Option[String]]("Prefix to prepend onto the names of any AWS Functions defined and deployed via Scalambda.")
-    lazy val scalambdaS3BucketPrefix = settingKey[String]("Prefix for S3 bucket name to store lambda functions in. Defaults to project name.")
+    lazy val functionNamePrefix = settingKey[String]("Prefix to prepend onto the names of any AWS Functions defined and deployed via Scalambda.")
+    lazy val s3BucketName = settingKey[String]("Prefix for S3 bucket name to store lambda functions in. Defaults to project name.")
     lazy val scalambdaFunctions = settingKey[Seq[ScalambdaFunction]]("List of Scalambda Functions")
 
-    lazy val scalambdaTerraformPath = settingKey[String]("Path to where terraform should be written to.")
+    lazy val scalambdaTerraformPath = settingKey[File]("Path to where terraform should be written to.")
 
     lazy val packageScalambda = taskKey[File]("Use sbt-assembly to create jar for your Lambda Function(s)")
     lazy val scalambdaTerraform = taskKey[Unit]("Produces a terraform module from the project's scalambda configuration.")
@@ -42,13 +43,17 @@ object ScalambdaPlugin extends AutoPlugin {
 
       val awsLambdaProxyPluginConfig = Seq(
         // add this lambda to the list of existing lambda definitions for this function
-        scalambdaFunctions += ScalambdaFunction(
-          functionName = inferLambdaName(functionNamePrefix.value, functionClasspath),
-          handlerPath = functionClasspath + "::handler",
-          functionConfig = functionConfig,
-          apiConfig = None,
-          s3BucketName = scalambdaS3BucketPrefix.?.value.getOrElse(s"${project.id}-lambdas")
-        )
+        scalambdaFunctions += {
+          val inferredFunctionName = inferLambdaName(functionNamePrefix.?.value, functionClasspath)
+          ScalambdaFunction(
+            functionName = inferredFunctionName,
+            handlerPath = functionClasspath + "::handler",
+            iamRole = FromVariable(ScalambdaFunction.terraformLambdaResourceName(inferredFunctionName), s"Arn for the IAM Role to be used by the ${inferredFunctionName} Lambda Function."),
+            functionConfig = functionConfig,
+            apiConfig = None,
+            s3BucketName = s3BucketName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas")
+          )
+        }
       )
 
       // return a project
@@ -59,13 +64,17 @@ object ScalambdaPlugin extends AutoPlugin {
 
       val awsLambdaProxyPluginConfig = Seq(
         // add this lambda to the list of existing lambda definitions for this function
-        scalambdaFunctions += ScalambdaFunction(
-          functionName = inferLambdaName(functionNamePrefix.value, functionClasspath),
-          handlerPath = functionClasspath + "::handler",
-          functionConfig = functionConfig,
-          apiConfig = Some(apiConfig),
-          s3BucketName = scalambdaS3BucketPrefix.?.value.getOrElse(s"${project.id}-lambdas")
-        )
+        scalambdaFunctions += {
+          val inferredFunctionName = inferLambdaName(functionNamePrefix.?.value, functionClasspath)
+          ScalambdaFunction(
+            functionName = inferredFunctionName,
+            handlerPath = functionClasspath + "::handler",
+            iamRole = FromVariable(ScalambdaFunction.terraformLambdaResourceName(inferredFunctionName), s"Arn for the IAM Role to be used by the ${inferredFunctionName} Lambda Function."),
+            functionConfig = functionConfig,
+            apiConfig = Some(apiConfig),
+            s3BucketName = s3BucketName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas")
+          )
+        }
       )
 
       // return a project
@@ -83,20 +92,20 @@ object ScalambdaPlugin extends AutoPlugin {
 
     packageScalambda := sbtassembly.AssemblyKeys.assembly.value,
 
+    scalambdaTerraformPath := baseDirectory.value / "terraform" / sbt.Keys.name.value,
+
     scalambdaTerraform := {
-      val projectId = project.id
+
 
       ScalambdaTerraform.writeTerraform(
         functions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty),
         assemblyOutput = { packageScalambda.value },
-        rootTerraformPath = scalambdaTerraformPath.?.value.getOrElse(s"./terraform/${projectId}")
+        terraformOutput = scalambdaTerraformPath.value
       )
     }
   ) ++ LambdaLoggingSettings.loggingSettings
 
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
-    // set defualt value for function name prefix
-    functionNamePrefix := None,
     credentials += Credentials(new File(Properties.envOrElse("JENKINS_HOME", Properties.envOrElse("HOME", "")) + "/.sbt/.credentials")),
     resolvers += "Carpe Artifactory Realm" at "https://bin.carpe.io/artifactory/sbt-release",
     resolvers += "Carpe Artifactory Realm Snapshots" at "https://bin.carpe.io/artifactory/sbt-dev"

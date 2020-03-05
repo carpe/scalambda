@@ -3,16 +3,18 @@ package io.carpe.scalambda.terraform
 import java.io.{File, PrintWriter}
 
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.function.FunctionSource
+import io.carpe.scalambda.conf.function.FunctionRoleSource
+import io.carpe.scalambda.terraform.ast.Definition.Variable
 import io.carpe.scalambda.terraform.ast.module.ScalambdaModule
+import io.carpe.scalambda.terraform.ast.props.TValue.TString
 import io.carpe.scalambda.terraform.ast.resources.{LambdaFunction, S3Bucket, S3BucketItem}
 
 object ScalambdaTerraform {
 
-  def writeTerraform(functions: List[ScalambdaFunction], assemblyOutput: File, rootTerraformPath: String): Unit = {
+  def writeTerraform(functions: List[ScalambdaFunction], assemblyOutput: File, terraformOutput: File): Unit = {
 
     // create resource definitions for the lambda functions
-    val lambdas = defineLambdaResources(functions)
+    val (lambdas, lambdaVariables) = defineLambdaResources(functions)
 
     // create resource definitions for the s3 resources that will be used to store the function's source code
     val (s3Buckets, s3BucketItems) = defineS3Resources(functions, assemblyOutput)
@@ -23,18 +25,29 @@ object ScalambdaTerraform {
       val openApi = OpenApi.forFunctions(functions)
 
       // write the swagger to a file
-      writeSwagger(rootTerraformPath, openApi)
+      writeSwagger(terraformOutput.getAbsolutePath, openApi)
     }
 
     // load those sources into a module
-    val scalambdaModule = ScalambdaModule(lambdas, s3Buckets = s3Buckets, s3BucketItems = s3BucketItems)
+    val scalambdaModule = ScalambdaModule(lambdas, s3Buckets = s3Buckets, s3BucketItems = s3BucketItems, variables = lambdaVariables)
 
-    ScalambdaModule.write(scalambdaModule, rootTerraformPath)
+    // write the module to a series of files
+    ScalambdaModule.write(scalambdaModule, terraformOutput.getAbsolutePath)
   }
 
-  def defineLambdaResources(scalambdaFunctions: List[ScalambdaFunction]): Seq[LambdaFunction] = {
-    scalambdaFunctions.map(function => {
-      LambdaFunction(function)
+  def defineLambdaResources(scalambdaFunctions: List[ScalambdaFunction]): (Seq[LambdaFunction], Seq[Variable[_]]) = {
+    scalambdaFunctions.foldRight(Seq.empty[LambdaFunction], Seq.empty[Variable[_]])((function: ScalambdaFunction, resources) => {
+      val (functionResources, variables) = resources
+
+      val functionResource = LambdaFunction(function)
+      val functionVariables = Seq(
+        function.iamRole match {
+          case fromVariable: FunctionRoleSource.FromVariable =>
+            Some(Variable[TString](fromVariable.variableName, description = Some(fromVariable.description), defaultValue = None))
+        }
+      ).flatten
+
+      (functionResources :+ functionResource, variables ++ functionVariables)
     })
   }
 
