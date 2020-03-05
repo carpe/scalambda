@@ -1,7 +1,5 @@
 package io.carpe.scalambda.terraform
 
-import java.io.File
-
 import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.conf.function.{ApiGatewayConf, FunctionConf, Method}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -14,7 +12,6 @@ class OpenApiSpec extends AnyFlatSpec {
         "CarsIndex", "io.cars.index.CarsIndex",
         functionConfig = FunctionConf.carpeDefault,
         apiConfig = Some(ApiGatewayConf(route = "/cars", method = Method.GET)),
-        assemblyPath = new File("testingtesting"),
         s3BucketName = "testing"
       )
     )

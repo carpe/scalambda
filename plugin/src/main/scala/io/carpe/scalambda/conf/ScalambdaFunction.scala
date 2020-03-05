@@ -1,15 +1,12 @@
 package io.carpe.scalambda.conf
 
-import java.io.File
-
-import io.carpe.scalambda.conf.function.{ApiGatewayConf, FunctionConf}
+import io.carpe.scalambda.conf.function.{ApiGatewayConf, FunctionConf, FunctionSource}
 import io.carpe.scalambda.conf.utils.StringUtils
 
 case class ScalambdaFunction(functionName: String,
                              handlerPath: String,
                              functionConfig: FunctionConf,
                              apiConfig: Option[ApiGatewayConf],
-                             assemblyPath: File,
                              s3BucketName: String
                             ) {
 

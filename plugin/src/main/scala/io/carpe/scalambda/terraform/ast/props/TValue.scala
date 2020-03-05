@@ -14,6 +14,13 @@ object TValue {
     override def serialize: String = s""""${string.toString}""""
   }
 
+  case class TBool(boolean: Boolean) extends TValue {
+    override def serialize: String = if (boolean) {
+      "true"
+    } else {
+      "false"
+    }
+  }
 
   case class TResourceRef(resourceType: String, name: String, property: String) extends TValue {
     override def serialize: String = s"${resourceType}.${name}.${property}"

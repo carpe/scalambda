@@ -1,12 +1,9 @@
 package io.carpe.scalambda
 
-import _root_.io.carpe.scalambda.conf.{QualifiedLambdaArn, ScalambdaFunction}
-import _root_.io.carpe.scalambda.conf.function.{ApiGatewayConf, Method, FunctionConf}
+import _root_.io.carpe.scalambda.conf.ScalambdaFunction
+import _root_.io.carpe.scalambda.conf.function.{ApiGatewayConf, FunctionConf}
 import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
-import com.gilt.aws.lambda.AwsLambdaPlugin
-import com.gilt.aws.lambda.AwsLambdaPlugin.autoImport._
 import com.typesafe.sbt.GitVersioning
-import com.typesafe.sbt.SbtGit.GitKeys.{formattedDateVersion, gitHeadCommit}
 import sbt.Keys.{credentials, libraryDependencies, resolvers}
 import sbt._
 import sbtassembly._
@@ -28,17 +25,13 @@ object ScalambdaPlugin extends AutoPlugin {
   )
 
   object autoImport {
-
-    lazy val scalambdaAlias = settingKey[Option[String]]("Optional Function Alias to attach to newly deployed Lambda Function versions.")
-    lazy val scalambdaRoleArn = settingKey[String]("ARN for AWS Role to use for lambda functions.")
     lazy val functionNamePrefix = settingKey[Option[String]]("Prefix to prepend onto the names of any AWS Functions defined and deployed via Scalambda.")
+    lazy val scalambdaS3BucketPrefix = settingKey[String]("Prefix for S3 bucket name to store lambda functions in. Defaults to project name.")
+    lazy val scalambdaFunctions = settingKey[Seq[ScalambdaFunction]]("List of Scalambda Functions")
 
-    lazy val scalambdaS3BucketPrefix = settingKey[String]("Prefix for S3 bucket name to store lambda functions in. Default to project name.")
+    lazy val scalambdaTerraformPath = settingKey[String]("Path to where terraform should be written to.")
 
-    lazy val scalambdaFunctions = taskKey[Seq[ScalambdaFunction]]("List of Scalambda Functions")
-
-    lazy val scalambdaPublish = taskKey[List[QualifiedLambdaArn]]("Packages and deploys the current project to an existing AWS Lambda alias")
-    lazy val scalambdaTerraformPath = settingKey[Option[String]]("Path to where terraform should be written to.")
+    lazy val packageScalambda = taskKey[File]("Use sbt-assembly to create jar for your Lambda Function(s)")
     lazy val scalambdaTerraform = taskKey[Unit]("Produces a terraform module from the project's scalambda configuration.")
 
     private def inferLambdaName(functionPrefix: Option[String], functionClasspath: String) = {
@@ -54,7 +47,6 @@ object ScalambdaPlugin extends AutoPlugin {
           handlerPath = functionClasspath + "::handler",
           functionConfig = functionConfig,
           apiConfig = None,
-          assemblyPath = AssemblyKeys.assemblyOutputPath.value,
           s3BucketName = scalambdaS3BucketPrefix.?.value.getOrElse(s"${project.id}-lambdas")
         )
       )
@@ -72,7 +64,6 @@ object ScalambdaPlugin extends AutoPlugin {
           handlerPath = functionClasspath + "::handler",
           functionConfig = functionConfig,
           apiConfig = Some(apiConfig),
-          assemblyPath = AssemblyKeys.assemblyOutputPath.value,
           s3BucketName = scalambdaS3BucketPrefix.?.value.getOrElse(s"${project.id}-lambdas")
         )
       )
@@ -84,26 +75,23 @@ object ScalambdaPlugin extends AutoPlugin {
 
   import autoImport._
 
-  override def requires: Plugins = AwsLambdaPlugin && AssemblyPlugin && GitVersioning
+  override def requires: Plugins = AssemblyPlugin && GitVersioning
 
   override def projectSettings: Seq[Def.Setting[_]] = Seq(
-    scalambdaPublish := LambdaTasks.publishLambda(
-      deployMethod = deployMethod.value.getOrElse("S3"),
-      region = region.value.getOrElse("us-west-2"),
-      jar = packageLambda.value,
-      s3Bucket = s3Bucket.value.getOrElse("carpe-lambdas"),
-      s3KeyPrefix = s3KeyPrefix.?.value.getOrElse(""),
-      lambdaName = lambdaName.value,
-      handlerName = handlerName.value,
-      lambdaHandlers = lambdaHandlers.value,
-      versionDescription = gitHeadCommit.value.getOrElse({ formattedDateVersion.value }),
-      maybeAlias = scalambdaAlias.value.orElse(sys.env.get("SCALAMBDA_ALIAS"))
-    ),
+    // set scalambda functions to empty list initially. lambda functions can then be added by users
+    scalambdaFunctions := List.empty,
 
-    scalambdaTerraform := ScalambdaTerraform.writeTerraform(
-      rootTerraformPath = scalambdaTerraformPath.value.getOrElse("./terraform/scalambda"),
-      functions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty),
-    )
+    packageScalambda := sbtassembly.AssemblyKeys.assembly.value,
+
+    scalambdaTerraform := {
+      val projectId = project.id
+
+      ScalambdaTerraform.writeTerraform(
+        functions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty),
+        assemblyOutput = { packageScalambda.value },
+        rootTerraformPath = scalambdaTerraformPath.?.value.getOrElse(s"./terraform/${projectId}")
+      )
+    }
   ) ++ LambdaLoggingSettings.loggingSettings
 
   override def globalSettings: Seq[Def.Setting[_]] = Seq(
