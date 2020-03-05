@@ -1,5 +1,6 @@
 package io.carpe.scalambda.response
 
+import io.carpe.scalambda.Scalambda
 import io.circe.{Encoder, Json}
 
 sealed trait APIGatewayProxyResponse[+T]
@@ -20,7 +21,9 @@ object APIGatewayProxyResponse {
                           headers: Map[String, String] = Map.empty,
                           body: T,
                           isBase64Encoded: Boolean = false
-                        )(implicit val bodyEncoder: Encoder[T]) extends APIGatewayProxyResponse[T]
+                        )(implicit val bodyEncoder: Encoder[T]) extends APIGatewayProxyResponse[T] {
+    protected[response] def bodyAsString: String = Scalambda.encode(body)(bodyEncoder)
+  }
 
   implicit def encoder[T]: Encoder[APIGatewayProxyResponse[T]] = {
     case Empty(statusCode, headers, isBase64Encoded) =>
@@ -43,7 +46,7 @@ object APIGatewayProxyResponse {
 
     case wb@WithBody(statusCode, headers, body, isBase64Encoded) =>
       // AWS wants the response body to always be a string, so we encode it first
-      val bodyAsString = wb.bodyEncoder.apply(wb.body).noSpaces
+      val bodyAsString: String = wb.bodyAsString
 
       Json.obj(
         ("statusCode", Json.fromInt(statusCode)),
