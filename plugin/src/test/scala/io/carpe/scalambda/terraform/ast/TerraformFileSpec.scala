@@ -17,6 +17,7 @@ class TerraformFileSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |resource "aws_lambda_function" "drive_car_lambda" {
         |  function_name = "DriveCar"
         |  s3_bucket = aws_s3_bucket.testing.id
+        |  role = var.testing_role_arn
         |  s3_key = aws_s3_bucket_object.drive_car.key
         |  memory_size = 1536
         |  timeout = 900
@@ -40,6 +41,7 @@ class TerraformFileSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |resource "aws_lambda_function" "drive_car_lambda" {
         |  function_name = "DriveCar"
         |  s3_bucket = aws_s3_bucket.testing.id
+        |  role = var.testing_role_arn
         |  s3_key = aws_s3_bucket_object.drive_car.key
         |  memory_size = 1536
         |  timeout = 900
@@ -50,6 +52,7 @@ class TerraformFileSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |resource "aws_lambda_function" "fly_plane_lambda" {
         |  function_name = "FlyPlane"
         |  s3_bucket = aws_s3_bucket.testing.id
+        |  role = var.testing_role_arn
         |  s3_key = aws_s3_bucket_object.fly_plane.key
         |  memory_size = 256
         |  timeout = 30

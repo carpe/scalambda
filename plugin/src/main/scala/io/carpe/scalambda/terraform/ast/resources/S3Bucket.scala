@@ -22,7 +22,7 @@ case class S3Bucket(bucketName: String) extends Resource {
    * Properties of the definition
    */
   override def body: Map[String, TValue] = Map(
-    "bucket" -> TString(name),
+    "bucket" -> TString(name.replace('_', '-')),
     "force_destroy" -> TBool(true)
   )
 }
