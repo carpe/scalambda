@@ -14,6 +14,9 @@ object ScalambdaModule {
     val variablesFile = TerraformFile(scalambdaModule.variables, "variables.tf")
 
     val allFiles = Seq(lambdasFile, s3File, variablesFile)
+
     TerraformFile.writeFiles(allFiles, rootPath)
+
+    println(s"${allFiles.map(_.definitions.size).sum} Terraform definitions were generated. They have been written to: ${rootPath}")
   }
 }

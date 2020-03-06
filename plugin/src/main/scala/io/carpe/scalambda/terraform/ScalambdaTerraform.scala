@@ -3,7 +3,7 @@ package io.carpe.scalambda.terraform
 import java.io.{File, PrintWriter}
 
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.function.FunctionRoleSource
+import io.carpe.scalambda.conf.function.{FunctionRoleSource, FunctionSource}
 import io.carpe.scalambda.terraform.ast.Definition.Variable
 import io.carpe.scalambda.terraform.ast.module.ScalambdaModule
 import io.carpe.scalambda.terraform.ast.props.TValue.TString

@@ -1,7 +1,7 @@
 package io.carpe.scalambda.terraform.ast
 
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TNumber, TLiteral, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TBlock, TLiteral, TNumber, TString}
 
 /**
  * A single piece of HCL configuration. Such as a [[io.carpe.scalambda.terraform.ast.Definition.Resource]].
@@ -30,15 +30,10 @@ sealed trait Definition {
    */
   def body: Map[String, TValue]
 
-
   override def toString: String = {
     val serializedHeader = Seq(Some(definitionType), resourceType.map(r => s""""$r""""), Some(s""""$name"""")).flatten.mkString(" ")
 
-    val indent = "  "
-    val serializedBody = body.map({ case (propertyName, propertyValue) =>
-      s"$indent$propertyName = ${propertyValue.serialize}"
-    }).mkString("\n")
-
+    val serializedBody = TBlock(body.toSeq: _*).serialize(level = 1)
 
     s"""${serializedHeader} {
       |${serializedBody}

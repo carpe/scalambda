@@ -2,7 +2,8 @@ package io.carpe.scalambda.terraform
 
 import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.conf.function.FunctionNaming.Static
-import io.carpe.scalambda.conf.function.{ApiGatewayConf, FunctionConf, FunctionRoleSource, Method}
+import io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
+import io.carpe.scalambda.conf.function.{ApiGatewayConf, EnvironmentVariable, FunctionConf, FunctionRoleSource, Method}
 import org.scalatest.flatspec.AnyFlatSpec
 
 class OpenApiSpec extends AnyFlatSpec {
@@ -11,10 +12,12 @@ class OpenApiSpec extends AnyFlatSpec {
     val functions = List(
       ScalambdaFunction(
         Static("CarsIndex"), "io.cars.index.CarsIndex",
+        functionSource = IncludedInModule,
         iamRole = FunctionRoleSource.FromVariable,
         functionConfig = FunctionConf.carpeDefault,
         apiConfig = Some(ApiGatewayConf(route = "/cars", method = Method.GET)),
-        s3BucketName = "testing"
+        s3BucketName = "testing",
+        environmentVariables = List.empty
       )
     )
 

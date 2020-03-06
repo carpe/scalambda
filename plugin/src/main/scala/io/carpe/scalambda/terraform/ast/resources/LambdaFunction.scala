@@ -1,6 +1,7 @@
 package io.carpe.scalambda.terraform.ast.resources
 
 import io.carpe.scalambda.conf.ScalambdaFunction
+import io.carpe.scalambda.conf.function.EnvironmentVariable
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue._
@@ -43,7 +44,16 @@ case class LambdaFunction(scalambdaFunction: ScalambdaFunction) extends Resource
     // TODO: evaluate amazon coretto 11
     "runtime" -> TString("java8"),
 
-    "timeout" -> TNumber(scalambdaFunction.functionConfig.timeout)
+    "timeout" -> TNumber(scalambdaFunction.functionConfig.timeout),
+
+    "environment" -> TBlock("variables" -> TObject(scalambdaFunction.environmentVariables.flatMap(envVariable => {
+      envVariable match {
+        case EnvironmentVariable.Static(key, value) =>
+          Some(key -> TString(value))
+        case EnvironmentVariable.Variable(key, variableName) =>
+          Some(key -> TVariableRef(variableName))
+      }
+    }): _*))
 
   )
 }

@@ -11,7 +11,7 @@ sealed trait FunctionNaming {
 object FunctionNaming {
 
   def inferLambdaName(functionClasspath: String): String = {
-    functionClasspath.split('.').last
+    functionClasspath.split('.').last.split(":").head
   }
 
   /**

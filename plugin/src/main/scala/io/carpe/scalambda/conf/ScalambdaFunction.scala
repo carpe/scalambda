@@ -1,16 +1,18 @@
 package io.carpe.scalambda.conf
 
 import io.carpe.scalambda.conf.function.FunctionNaming.Static
-import io.carpe.scalambda.conf.function.{ApiGatewayConf, FunctionConf, FunctionNaming, FunctionRoleSource}
+import io.carpe.scalambda.conf.function.{ApiGatewayConf, EnvironmentVariable, FunctionConf, FunctionNaming, FunctionRoleSource, FunctionSource}
 import io.carpe.scalambda.conf.utils.StringUtils
 import io.carpe.scalambda.terraform.ast.resources.S3Bucket
 
 case class ScalambdaFunction(naming: FunctionNaming,
                              handlerPath: String,
+                             functionSource: FunctionSource,
                              iamRole: FunctionRoleSource,
                              functionConfig: FunctionConf,
                              apiConfig: Option[ApiGatewayConf],
-                             s3BucketName: String
+                             s3BucketName: String,
+                             environmentVariables: Seq[EnvironmentVariable]
                             ) {
 
   /**

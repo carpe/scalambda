@@ -20,6 +20,11 @@ class TerraformFileSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |  role = "arn:aws:iam::12345678900:role/lambda_basic_execution"
         |  s3_key = aws_s3_bucket_object.drive_car_code.key
         |  memory_size = 1536
+        |  environment {
+        |    variables = {
+        |      API = "www.google.com"
+        |    }
+        |  }
         |  timeout = 900
         |  handler = "io.cars.lambda.DriveCar::handler"
         |  runtime = "java8"
@@ -44,6 +49,11 @@ class TerraformFileSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |  role = "arn:aws:iam::12345678900:role/lambda_basic_execution"
         |  s3_key = aws_s3_bucket_object.drive_car_code.key
         |  memory_size = 1536
+        |  environment {
+        |    variables = {
+        |      API = "www.google.com"
+        |    }
+        |  }
         |  timeout = 900
         |  handler = "io.cars.lambda.DriveCar::handler"
         |  runtime = "java8"
