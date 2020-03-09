@@ -1,9 +1,8 @@
 package io.carpe.scalambda.conf
 
 import io.carpe.scalambda.conf.function.FunctionNaming.Static
-import io.carpe.scalambda.conf.function.{ApiGatewayConf, EnvironmentVariable, FunctionConf, FunctionNaming, FunctionRoleSource, FunctionSource}
+import io.carpe.scalambda.conf.function._
 import io.carpe.scalambda.conf.utils.StringUtils
-import io.carpe.scalambda.terraform.ast.resources.S3Bucket
 
 case class ScalambdaFunction(naming: FunctionNaming,
                              handlerPath: String,
@@ -11,7 +10,6 @@ case class ScalambdaFunction(naming: FunctionNaming,
                              iamRole: FunctionRoleSource,
                              functionConfig: FunctionConf,
                              apiConfig: Option[ApiGatewayConf],
-                             s3BucketName: String,
                              environmentVariables: Seq[EnvironmentVariable]
                             ) {
 
@@ -42,13 +40,6 @@ case class ScalambdaFunction(naming: FunctionNaming,
    */
   lazy val swaggerVariableName: String = {
     """${""" + terraformLambdaResourceName  + """_invoke_arn}"""
-  }
-
-  /**
-   * This will be the name of the terraform resource representing the s3 bucket this lambda's code is stored in
-   */
-  lazy val terraformS3BucketResourceName: String = {
-    S3Bucket(s3BucketName).name
   }
 
   /**

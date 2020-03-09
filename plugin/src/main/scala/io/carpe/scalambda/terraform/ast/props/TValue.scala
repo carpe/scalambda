@@ -66,6 +66,17 @@ object TValue {
   }
 
   /**
+   * Reference to property on a [[io.carpe.scalambda.terraform.ast.Definition.Data]]
+   *
+   * @param resourceType type or resource (i.e. "aws_iam_role")
+   * @param name name of the resource (i.e. "my_personal_iam_role")
+   * @param property name of the property on the resource type that is being referred to
+   */
+  case class TDataRef(resourceType: String, name: String, property: String) extends TValue {
+    override def serialize(implicit level: Int): String = s"data.${resourceType}.${name}.${property}"
+  }
+
+  /**
    * Reference to property on a [[io.carpe.scalambda.terraform.ast.Definition.Resource]]
    *
    * @param resourceType type or resource (i.e. "aws_iam_role")

@@ -6,7 +6,7 @@ import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue._
 
-case class LambdaFunction(scalambdaFunction: ScalambdaFunction) extends Resource {
+case class LambdaFunction(scalambdaFunction: ScalambdaFunction, s3Bucket: S3Bucket, s3BucketItem: S3BucketItem) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    *
@@ -26,8 +26,8 @@ case class LambdaFunction(scalambdaFunction: ScalambdaFunction) extends Resource
    */
   override def body: Map[String, TValue] = Map(
     // sources for the code this lambda runs
-    "s3_bucket" -> TResourceRef("aws_s3_bucket", scalambdaFunction.terraformS3BucketResourceName, "id"),
-    "s3_key" -> TResourceRef("aws_s3_bucket_object", scalambdaFunction.terraformS3BucketItemResourceName, "key"),
+    "s3_bucket" -> TResourceRef("aws_s3_bucket", s3Bucket.name, "id"),
+    "s3_key" -> TResourceRef("aws_s3_bucket_object", s3BucketItem.name, "key"),
 
     // role for the lambda
     "role" -> scalambdaFunction.iamRole.asTFValue(scalambdaFunction),

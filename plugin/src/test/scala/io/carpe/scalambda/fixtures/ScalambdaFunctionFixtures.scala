@@ -3,7 +3,9 @@ package io.carpe.scalambda.fixtures
 import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.conf.function.FunctionNaming.Static
 import io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
-import io.carpe.scalambda.conf.function.{ApiGatewayConf, EnvironmentVariable, FunctionConf, FunctionRoleSource, Method}
+import io.carpe.scalambda.conf.function._
+import io.carpe.scalambda.terraform.ast.data.ArchiveFile
+import io.carpe.scalambda.terraform.ast.resources.{S3Bucket, S3BucketItem}
 import org.scalatest.flatspec.AnyFlatSpec
 
 trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
@@ -14,7 +16,6 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
       functionConfig = FunctionConf.carpeDefault,
       apiConfig = Some(ApiGatewayConf(route = "/cars", method = Method.GET)),
-      s3BucketName = "testing",
       environmentVariables = List.empty
     )
   }
@@ -26,7 +27,6 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
       functionConfig = FunctionConf.carpeDefault,
       apiConfig = None,
-      s3BucketName = "testing",
       environmentVariables = List(
         EnvironmentVariable.Static("API", "www.google.com")
       )
@@ -40,8 +40,10 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
       functionConfig = FunctionConf.carpeDefault.copy(memory = 256, timeout = 30),
       apiConfig = None,
-      s3BucketName = "testing",
       environmentVariables = List.empty
     )
   }
+
+  lazy val s3Bucket: S3Bucket = S3Bucket("testing")
+  lazy val s3BucketItem: S3BucketItem = S3BucketItem(s3Bucket, "sources", "sources.zip", ArchiveFile("code", "project.jar", "project.zip"))
 }

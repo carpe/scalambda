@@ -56,6 +56,13 @@ object Definition {
    */
   abstract class Data extends Definition {
     override def definitionType: String = "data"
+
+    /**
+     * Examples: "aws_lambda_function" "template_file"
+     * @return
+     */
+    def dataType: String
+    override def resourceType: Option[String] = Some(dataType)
   }
 
   import scala.reflect.runtime.universe._

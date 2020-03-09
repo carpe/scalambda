@@ -16,7 +16,6 @@ class OpenApiSpec extends AnyFlatSpec {
         iamRole = FunctionRoleSource.FromVariable,
         functionConfig = FunctionConf.carpeDefault,
         apiConfig = Some(ApiGatewayConf(route = "/cars", method = Method.GET)),
-        s3BucketName = "testing",
         environmentVariables = List.empty
       )
     )

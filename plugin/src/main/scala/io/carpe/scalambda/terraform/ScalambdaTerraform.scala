@@ -1,23 +1,28 @@
 package io.carpe.scalambda.terraform
 
 import java.io.{File, PrintWriter}
+import java.nio.file.Files
 
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.function.{FunctionRoleSource, FunctionSource}
+import io.carpe.scalambda.conf.function.FunctionRoleSource
 import io.carpe.scalambda.terraform.ast.Definition.Variable
+import io.carpe.scalambda.terraform.ast.data.ArchiveFile
 import io.carpe.scalambda.terraform.ast.module.ScalambdaModule
 import io.carpe.scalambda.terraform.ast.props.TValue.TString
 import io.carpe.scalambda.terraform.ast.resources.{LambdaFunction, S3Bucket, S3BucketItem}
 
 object ScalambdaTerraform {
 
-  def writeTerraform(functions: List[ScalambdaFunction], assemblyOutput: File, terraformOutput: File): Unit = {
+  def writeTerraform(functions: List[ScalambdaFunction], s3BucketName: String, projectSource: File, dependencies: File, terraformOutput: File): Unit = {
 
-    // create resource definitions for the lambda functions
-    val (lambdas, lambdaVariables) = defineLambdaResources(functions)
+    // create archive file resources to use to zip the assembly output in TF
+    val (projectArchive, depsArchive) = createArchives(projectSource, dependencies, terraformOutput.getAbsolutePath)
 
     // create resource definitions for the s3 resources that will be used to store the function's source code
-    val (s3Buckets, s3BucketItems) = defineS3Resources(functions, assemblyOutput)
+    val (s3Bucket, projectBucketItem, dependenciesBucketItem) = defineS3Resources(s3BucketName, projectArchive, depsArchive)
+
+    // create resource definitions for the lambda functions
+    val (lambdas, lambdaVariables) = defineLambdaResources(functions, s3Bucket, projectBucketItem)
 
     // if there are functions that are configured to be connected to an API Gateway instance
     if (functions.count(_.apiConfig.isDefined) > 0) {
@@ -29,17 +34,24 @@ object ScalambdaTerraform {
     }
 
     // load those sources into a module
-    val scalambdaModule = ScalambdaModule(lambdas, s3Buckets = s3Buckets, s3BucketItems = s3BucketItems, variables = lambdaVariables)
+    val scalambdaModule = ScalambdaModule(
+      lambdas, s3Buckets = Seq(s3Bucket),
+      s3BucketItems = Seq(projectBucketItem, dependenciesBucketItem),
+      sources = Seq(projectArchive, depsArchive),
+
+      variables = lambdaVariables
+    )
+
 
     // write the module to a series of files
     ScalambdaModule.write(scalambdaModule, terraformOutput.getAbsolutePath)
   }
 
-  def defineLambdaResources(scalambdaFunctions: List[ScalambdaFunction]): (Seq[LambdaFunction], Seq[Variable[_]]) = {
+  def defineLambdaResources(scalambdaFunctions: List[ScalambdaFunction], s3Bucket: S3Bucket, projectBucketItem: S3BucketItem): (Seq[LambdaFunction], Seq[Variable[_]]) = {
     scalambdaFunctions.foldRight(Seq.empty[LambdaFunction], Seq.empty[Variable[_]])((function: ScalambdaFunction, resources) => {
       val (functionResources, variables) = resources
 
-      val functionResource = LambdaFunction(function)
+      val functionResource = LambdaFunction(function, s3Bucket, projectBucketItem)
       val functionVariables = Seq(
         function.iamRole match {
           case fromVariable: FunctionRoleSource.FromVariable.type =>
@@ -53,26 +65,36 @@ object ScalambdaTerraform {
     })
   }
 
-  def defineS3Resources(scalambdaFunctions: List[ScalambdaFunction], assemblyOutput: File): (Seq[S3Bucket], Seq[S3BucketItem]) = {
-    val sourcePath = assemblyOutput.getPath
+  def createArchives(source: File, dependencies: File, output: String): (ArchiveFile, ArchiveFile) = {
 
-    val initialResources = (Seq.empty[S3Bucket], Seq.empty[S3BucketItem])
+    def copyFile(from: File, to: String) = {
+      import java.io.{File, FileInputStream, FileOutputStream}
+      val dest = new File(to)
+      Files.createDirectories(new File(output).toPath)
+      new FileOutputStream(dest) getChannel() transferFrom(
+        new FileInputStream(from).getChannel, 0, Long.MaxValue )
+    }
 
-    scalambdaFunctions.groupBy(_.s3BucketName).foldRight(initialResources)((bucketNameAndLambdas, resources) => {
-      val (bucketName, scalambdas) = bucketNameAndLambdas
+    val sourcesOutputPath = output + s"/source.jar"
+    copyFile(source, sourcesOutputPath)
+    val sourcesArchive = ArchiveFile("sources", sourcesOutputPath, "sources.zip")
 
-      // create a new bucket for the set of lambda functions that use it to store their sources
-      val newBucket = S3Bucket(bucketName)
+    val dependenciesOutputPath = output + s"/dependencies.jar"
+    copyFile(dependencies, dependenciesOutputPath)
+    val dependenciesArchive = ArchiveFile("dependencies", sourcesOutputPath, "dependencies.zip")
 
-      // create bucket items (to be placed into that bucket) that are pointed to the sources of each lambda function
-      val newBucketItems = scalambdas.foldRight(Seq.empty[S3BucketItem])((function, bucketItems) => {
-        bucketItems :+ S3BucketItem(newBucket, key = function.terraformS3BucketItemResourceName, source = sourcePath)
-      })
+    (sourcesArchive, dependenciesArchive)
+  }
 
-      // append the new bucket and bucket items
-      val (buckets, bucketItems) = resources
-      (buckets :+ newBucket, bucketItems ++ newBucketItems)
-    })
+  def defineS3Resources(bucketName: String, sourceArchive: ArchiveFile, depsArchive: ArchiveFile): (S3Bucket, S3BucketItem, S3BucketItem) = {
+    // create a new bucket
+    val newBucket = S3Bucket(bucketName)
+
+    // create bucket items (to be placed into that bucket) that are pointed to the sources of each lambda function
+    val sourceBucketItem = S3BucketItem(newBucket, name = "sources", key = sourceArchive.name, source = sourceArchive)
+    val depsBucketItem = S3BucketItem(newBucket, name = "dependencies", key = depsArchive.name, source = depsArchive)
+
+    (newBucket, sourceBucketItem, depsBucketItem)
   }
 
   def writeSwagger(rootTerraformPath: String, openApi: OpenApi): Unit = {

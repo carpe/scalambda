@@ -9,6 +9,7 @@ import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
 import com.typesafe.sbt.GitVersioning
 import sbt.Keys.{credentials, libraryDependencies, resolvers, target}
 import sbt._
+import sbtassembly.AssemblyKeys._
 import sbtassembly._
 
 import scala.tools.nsc.Properties
@@ -33,7 +34,8 @@ object ScalambdaPlugin extends AutoPlugin {
 
     lazy val scalambdaTerraformPath = settingKey[File]("Path to where terraform should be written to.")
 
-    lazy val packageScalambda = taskKey[File]("Use sbt-assembly to create jar for your Lambda Function(s)")
+    lazy val packageScalambda = taskKey[File]("Create jar (without dependencies) for your Lambda Function(s)")
+    lazy val packageScalambdaDependencies = taskKey[File]("Create a jar containing all the dependencies for your Lambda Function(s). This will be used as a Lambda Layer to support your function.")
     lazy val scalambdaTerraform = taskKey[Unit]("Produces a terraform module from the project's scalambda configuration.")
 
     def functionNaming: FunctionNaming.type = FunctionNaming
@@ -53,7 +55,6 @@ object ScalambdaPlugin extends AutoPlugin {
             iamRole = iamRoleSource,
             functionConfig = functionConfig,
             apiConfig = None,
-            s3BucketName = s3BucketName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas"),
             environmentVariables = environmentVariables
           )
         }
@@ -75,7 +76,6 @@ object ScalambdaPlugin extends AutoPlugin {
             iamRole = iamRoleSource,
             functionConfig = functionConfig,
             apiConfig = Some(apiConfig),
-            s3BucketName = s3BucketName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas"),
             environmentVariables = environmentVariables
           )
         }
@@ -94,13 +94,18 @@ object ScalambdaPlugin extends AutoPlugin {
     // set scalambda functions to empty list initially. lambda functions can then be added by users
     scalambdaFunctions := List.empty,
 
+    // builds the lambda function jar without dependencies (so we can bake them in as a separate lambda layer)
+    assemblyOption in packageScalambda := (assemblyOption in packageScalambda).value.copy(includeScala = false, includeDependency = false),
     packageScalambda := sbtassembly.AssemblyKeys.assembly.value,
+    packageScalambdaDependencies := sbtassembly.AssemblyKeys.assemblyPackageDependency.value,
 
     scalambdaTerraformPath := target.value / "terraform",
     scalambdaTerraform := ScalambdaTerraform.writeTerraform(
       functions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty),
-      assemblyOutput = { packageScalambda.value },
-      terraformOutput = scalambdaTerraformPath.value
+      s3BucketName = s3BucketName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas"),
+      projectSource = { packageScalambda.value },
+      terraformOutput = scalambdaTerraformPath.value,
+      dependencies = { packageScalambdaDependencies.value }
     )
   ) ++ LambdaLoggingSettings.loggingSettings
 

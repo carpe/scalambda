@@ -8,7 +8,7 @@ class TerraformFileSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
 
   "TerraformFile (containing a valid Definition)" should "be serializable" in {
     val testFile = TerraformFile(Seq(
-      LambdaFunction(driveCarFunction)
+      LambdaFunction(driveCarFunction, s3Bucket = s3Bucket, s3BucketItem = s3BucketItem)
     ), "lambdas.tf")
 
     val expectation =
@@ -18,7 +18,7 @@ class TerraformFileSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |  function_name = "DriveCar"
         |  s3_bucket = aws_s3_bucket.testing.id
         |  role = "arn:aws:iam::12345678900:role/lambda_basic_execution"
-        |  s3_key = aws_s3_bucket_object.drive_car_code.key
+        |  s3_key = aws_s3_bucket_object.sources.key
         |  memory_size = 1536
         |  environment {
         |    variables = {
@@ -36,8 +36,8 @@ class TerraformFileSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
 
   "TerraformFile (containing multiple valid Definitions)" should "be serializable" in {
     val testFile = TerraformFile(Seq(
-      LambdaFunction(driveCarFunction),
-      LambdaFunction(flyPlaneFunction)
+      LambdaFunction(driveCarFunction, s3Bucket = s3Bucket, s3BucketItem = s3BucketItem),
+      LambdaFunction(flyPlaneFunction, s3Bucket = s3Bucket, s3BucketItem = s3BucketItem)
     ), "lambdas.tf")
 
     val expectation =
@@ -47,7 +47,7 @@ class TerraformFileSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |  function_name = "DriveCar"
         |  s3_bucket = aws_s3_bucket.testing.id
         |  role = "arn:aws:iam::12345678900:role/lambda_basic_execution"
-        |  s3_key = aws_s3_bucket_object.drive_car_code.key
+        |  s3_key = aws_s3_bucket_object.sources.key
         |  memory_size = 1536
         |  environment {
         |    variables = {
@@ -63,7 +63,7 @@ class TerraformFileSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |  function_name = "FlyPlane"
         |  s3_bucket = aws_s3_bucket.testing.id
         |  role = "arn:aws:iam::12345678900:role/lambda_basic_execution"
-        |  s3_key = aws_s3_bucket_object.fly_plane_code.key
+        |  s3_key = aws_s3_bucket_object.sources.key
         |  memory_size = 256
         |  timeout = 30
         |  handler = "io.plane.lambda.FlyPlane::handler"
