@@ -6,13 +6,14 @@ import java.nio.file.Files
 import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.conf.function.FunctionRoleSource
 import io.carpe.scalambda.terraform.ast.Definition.Variable
+import io.carpe.scalambda.terraform.ast.data.TemplateFile
 import io.carpe.scalambda.terraform.ast.module.ScalambdaModule
 import io.carpe.scalambda.terraform.ast.props.TValue.TString
-import io.carpe.scalambda.terraform.ast.resources.{LambdaFunction, LambdaLayerVersion, S3Bucket, S3BucketItem}
+import io.carpe.scalambda.terraform.ast.resources._
 
 object ScalambdaTerraform {
 
-  def writeTerraform(functions: List[ScalambdaFunction], s3BucketName: String, projectSource: File, dependencies: File, terraformOutput: File): Unit = {
+  def writeTerraform(functions: List[ScalambdaFunction], s3BucketName: String, projectSource: File, dependencies: File, apiName: String, terraformOutput: File): Unit = {
 
     // create archive file resources to use to zip the assembly output in TF
     createArchives(projectSource, dependencies, terraformOutput.getAbsolutePath)
@@ -23,14 +24,7 @@ object ScalambdaTerraform {
     // create resource definitions for the lambda functions
     val (lambdas, lambdaDependenciesLayer, lambdaVariables) = defineLambdaResources(functions, s3Bucket, projectBucketItem, dependenciesBucketItem)
 
-    // if there are functions that are configured to be connected to an API Gateway instance
-    if (functions.count(_.apiConfig.isDefined) > 0) {
-      // create open api for functions
-      val openApi = OpenApi.forFunctions(functions)
-
-      // write the swagger to a file
-      writeSwagger(terraformOutput.getAbsolutePath, openApi)
-    }
+    val (apiGateway, lambdaPermissions) = maybeDefineApiResources(apiName, lambdas, terraformOutput)
 
     // load those sources into a module
     val scalambdaModule = ScalambdaModule(
@@ -41,7 +35,6 @@ object ScalambdaTerraform {
 
       variables = lambdaVariables
     )
-
 
     // write the module to a series of files
     ScalambdaModule.write(scalambdaModule, terraformOutput.getAbsolutePath)
@@ -119,12 +112,42 @@ object ScalambdaTerraform {
     (newBucket, sourceBucketItem, depsBucketItem)
   }
 
-  def writeSwagger(rootTerraformPath: String, openApi: OpenApi): Unit = {
-    // convert the api to yaml
-    val openApiDefinition = OpenApi.apiToYaml(openApi)
+  def maybeDefineApiResources(apiName: String, functions: Seq[LambdaFunction], terraformOutput: File): (Option[ApiGateway], Seq[LambdaPermission]) = {
 
-    // write that yaml to the path
-    val swaggerFilePath = rootTerraformPath + "/swagger.yaml"
-    new PrintWriter(swaggerFilePath) { write(openApiDefinition); close() }
+    // if there are no functions that are configured to be exposed via api
+    if (functions.count(_.scalambdaFunction.apiConfig.isDefined) == 0) {
+      // do an early return
+      return (None, Seq.empty)
+    }
+
+    def writeSwagger(apiName: String, functions: Seq[LambdaFunction], rootTerraformPath: String): TemplateFile = {
+      val openApi = OpenApi.forFunctions(functions)
+
+      // convert the api to yaml
+      val openApiDefinition = OpenApi.apiToYaml(openApi)
+
+      // write that yaml to the path
+      val swaggerFilePath = rootTerraformPath + "/swagger.yaml"
+      new PrintWriter(swaggerFilePath) { write(openApiDefinition); close() }
+
+      TemplateFile("swagger.yaml", apiName, functions)
+    }
+    val swaggerTemplate = writeSwagger(apiName = apiName, rootTerraformPath = terraformOutput.getAbsolutePath, functions = functions)
+
+
+    def defineApiGateway(apiName: String): ApiGateway = {
+      ApiGateway(TString(apiName), None, swaggerTemplate)
+    }
+    val api = defineApiGateway(apiName)
+
+
+    def defineLambdaPermissions(functions: Seq[LambdaFunction], apiGateway: ApiGateway): Seq[LambdaPermission] = {
+      functions.map(function => {
+        LambdaPermission(function, apiGateway)
+      })
+    }
+    val permissions = defineLambdaPermissions(functions, api)
+
+    (Some(api), permissions)
   }
 }

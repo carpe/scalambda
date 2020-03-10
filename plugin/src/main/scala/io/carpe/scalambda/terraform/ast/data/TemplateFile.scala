@@ -2,9 +2,10 @@ package io.carpe.scalambda.terraform.ast.data
 
 import io.carpe.scalambda.terraform.ast.Definition.Data
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TLiteral, TVariableRef}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TLiteral, TObject, TResourceRef, TString}
+import io.carpe.scalambda.terraform.ast.resources.LambdaFunction
 
-case object TemplateFile extends Data {
+case class TemplateFile(filename: String, apiName: String, lambdas: Seq[LambdaFunction]) extends Data {
 
   /**
    * Examples: "aws_lambda_function" "template_file"
@@ -23,8 +24,20 @@ case object TemplateFile extends Data {
   /**
    * Properties of the definition
    */
-  override def body: Map[String, TValue] = Map(
-    "template" -> TLiteral("file(\"${path.module}/swagger.yaml\")"),
-    "vars" -> TLiteral("merge({\"api_name\" = local.api_name }, {\"verifier_invoke_arn\" = var.lambda_verifier.invoke_arn }, { for k, v in var.lambdas : k => v.invoke_arn })")
-  )
+  override def body: Map[String, TValue] = {
+    val lambdaVars: Seq[(String, TValue)] = lambdas.map(lambda => {
+      lambda.swaggerVariableName -> TResourceRef("aws_lambda_function", lambda.name, "invoke_arn")
+    })
+
+
+
+    Map(
+      "template" -> TLiteral("file(\"${path.module}/swagger.yaml\")"),
+      "vars" -> TObject(
+        Seq(
+          "api_name" -> TString(apiName)
+        ) ++ lambdaVars: _*
+      )
+    )
+  }
 }

@@ -29,6 +29,7 @@ object ScalambdaPlugin extends AutoPlugin {
   )
 
   object autoImport {
+    lazy val apiName = settingKey[String]("Prefix for the name of the api. Defaults to project name")
     lazy val s3BucketName = settingKey[String]("Prefix for S3 bucket name to store lambda functions in. Defaults to project name.")
     lazy val scalambdaFunctions = settingKey[Seq[ScalambdaFunction]]("List of Scalambda Functions")
 
@@ -42,6 +43,7 @@ object ScalambdaPlugin extends AutoPlugin {
     def iamRoleSource: FunctionRoleSource.type = FunctionRoleSource
     def functionSource: FunctionSource.type = FunctionSource
     def environmentVariable: EnvironmentVariable.type = EnvironmentVariable
+    val Endpoint: ApiGatewayConf.type = ApiGatewayConf
 
     def scalambda(functionClasspath: String, functionNaming: FunctionNaming = WorkspaceBased, iamRoleSource: FunctionRoleSource = FromVariable, functionConfig: FunctionConf = FunctionConf.carpeDefault, environmentVariables: Seq[EnvironmentVariable] = List.empty): Seq[Def.Setting[_]] = {
 
@@ -64,7 +66,7 @@ object ScalambdaPlugin extends AutoPlugin {
       awsLambdaProxyPluginConfig ++ scalambdaLibs
     }
 
-    def scalambdaApi(functionClasspath: String, functionNaming: FunctionNaming = WorkspaceBased, iamRoleSource: FunctionRoleSource = FromVariable, functionConfig: FunctionConf = FunctionConf.carpeDefault, environmentVariables: Seq[EnvironmentVariable] = List.empty, apiConfig: ApiGatewayConf): Seq[Def.Setting[_]] = {
+    def scalambdaEndpoint(functionClasspath: String, functionNaming: FunctionNaming = WorkspaceBased, iamRoleSource: FunctionRoleSource = FromVariable, functionConfig: FunctionConf = FunctionConf.carpeDefault, environmentVariables: Seq[EnvironmentVariable] = List.empty, apiConfig: ApiGatewayConf): Seq[Def.Setting[_]] = {
 
       val awsLambdaProxyPluginConfig = Seq(
         // add this lambda to the list of existing lambda definitions for this function
@@ -105,8 +107,9 @@ object ScalambdaPlugin extends AutoPlugin {
       functions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty),
       s3BucketName = s3BucketName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas"),
       projectSource = { packageScalambda.value },
-      terraformOutput = scalambdaTerraformPath.value,
-      dependencies = { packageScalambdaDependencies.value }
+      dependencies = { packageScalambdaDependencies.value },
+      apiName = apiName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas"),
+      terraformOutput = scalambdaTerraformPath.value
     )
   ) ++ LambdaLoggingSettings.loggingSettings
 

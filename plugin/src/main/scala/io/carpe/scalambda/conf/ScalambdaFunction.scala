@@ -33,16 +33,6 @@ case class ScalambdaFunction(naming: FunctionNaming,
   lazy val terraformLambdaResourceName: String = ScalambdaFunction.terraformLambdaResourceName(approximateFunctionName)
 
   /**
-   * Create a variable in the outputted yaml that the terraform will inject the actual arn into once the lambda has
-   * been created.
-   *
-   * This makes sure that our swagger file uses the proper lambda invocation ARN.
-   */
-  lazy val swaggerVariableName: String = {
-    """${""" + terraformLambdaResourceName  + """_invoke_arn}"""
-  }
-
-  /**
    * This will be the name of the terraform resource representing the s3 bucket item that is the lambda's code
    */
   lazy val terraformS3BucketItemResourceName: String = {

@@ -1,23 +1,13 @@
 package io.carpe.scalambda.terraform
 
-import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.function.FunctionNaming.Static
-import io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
-import io.carpe.scalambda.conf.function.{ApiGatewayConf, EnvironmentVariable, FunctionConf, FunctionRoleSource, Method}
+import io.carpe.scalambda.fixtures.ScalambdaFunctionFixtures
 import org.scalatest.flatspec.AnyFlatSpec
 
-class OpenApiSpec extends AnyFlatSpec {
+class OpenApiSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
 
   "OpenApi" should "be able to be serialized as yaml" in {
     val functions = List(
-      ScalambdaFunction(
-        Static("CarsIndex"), "io.cars.index.CarsIndex",
-        functionSource = IncludedInModule,
-        iamRole = FunctionRoleSource.FromVariable,
-        functionConfig = FunctionConf.carpeDefault,
-        apiConfig = Some(ApiGatewayConf(route = "/cars", method = Method.GET)),
-        environmentVariables = List.empty
-      )
+      asLambdaFunction(carsIndexFunction)
     )
 
     val testApi = OpenApi.forFunctions(functions)

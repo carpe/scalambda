@@ -1,13 +1,14 @@
 package io.carpe.scalambda.terraform.openapi.resourcemethod
 
 import io.carpe.scalambda.conf.ScalambdaFunction
+import io.carpe.scalambda.terraform.ast.resources.LambdaFunction
 import io.circe.{Encoder, Json}
 
 sealed trait Integration
 
 object Integration {
 
-  case class LambdaIntegration(function: ScalambdaFunction) extends Integration
+  case class LambdaIntegration(function: LambdaFunction) extends Integration
 
   case class AllowOrigin(origin: String) extends Integration
 

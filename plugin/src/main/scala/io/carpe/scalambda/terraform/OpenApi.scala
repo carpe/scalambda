@@ -1,6 +1,6 @@
 package io.carpe.scalambda.terraform
 
-import io.carpe.scalambda.conf.ScalambdaFunction
+import io.carpe.scalambda.terraform.ast.resources.LambdaFunction
 import io.carpe.scalambda.terraform.openapi.{ResourceMethod, ResourcePath}
 
 case class OpenApi(paths: List[ResourcePath])
@@ -13,9 +13,9 @@ object OpenApi {
    * @param scalambdaFunctions functions to create api from
    * @return an OpenAPI that wraps the provided functions
    */
-  def forFunctions(scalambdaFunctions: List[ScalambdaFunction]): OpenApi = {
-    val functionsByRoute: Map[String, List[ScalambdaFunction]] = scalambdaFunctions
-      .groupBy(_.apiConfig.map(_.route))
+  def forFunctions(scalambdaFunctions: Seq[LambdaFunction]): OpenApi = {
+    val functionsByRoute: Map[String, Seq[LambdaFunction]] = scalambdaFunctions
+      .groupBy(_.scalambdaFunction.apiConfig.map(_.route))
       .flatMap({ case (maybeRoute, functions) => maybeRoute.map(_ -> functions)})
 
     val resourcePaths = functionsByRoute.map({ case (resourcePath, functions) =>

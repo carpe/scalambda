@@ -33,12 +33,10 @@ sealed trait Definition {
   override def toString: String = {
     val serializedHeader = Seq(Some(definitionType), resourceType.map(r => s""""$r""""), Some(s""""$name"""")).flatten.mkString(" ")
 
-    val serializedBody = TBlock(body.toSeq: _*).serialize(level = 1)
+    val serializedBody = TBlock(body.toSeq: _*).serialize(level = 0)
 
-    s"""${serializedHeader} {
-      |${serializedBody}
-      |}
-      |""".stripMargin
+    s"""${serializedHeader} ${serializedBody}
+       |""".stripMargin
   }
 }
 

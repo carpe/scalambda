@@ -18,6 +18,7 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |  role = "arn:aws:iam::12345678900:role/lambda_basic_execution"
         |  s3_key = aws_s3_bucket_object.sources.key
         |  memory_size = 1536
+        |  source_code_hash = filebase64sha256(aws_s3_bucket_object.sources.source)
         |  s3_object_version = aws_s3_bucket_object.sources.version_id
         |  environment {
         |    variables = {

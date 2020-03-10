@@ -1,6 +1,7 @@
 package io.carpe.scalambda.terraform.openapi
 
 import io.carpe.scalambda.conf.ScalambdaFunction
+import io.carpe.scalambda.terraform.ast.resources.LambdaFunction
 import io.carpe.scalambda.terraform.openapi.resourcemethod.Integration.{AllowOrigin, LambdaIntegration}
 import io.carpe.scalambda.terraform.openapi.resourcemethod.{Integration, MethodResponse, Security}
 import io.circe.{Encoder, Json}
@@ -26,7 +27,7 @@ object ResourceMethod {
       integration = AllowOrigin("*")
     )
 
-  def fromLambda(lambda: ScalambdaFunction): ResourceMethod = {
+  def fromLambda(lambda: LambdaFunction): ResourceMethod = {
     new ResourceMethod(
       List.empty,
       description = "TBD",

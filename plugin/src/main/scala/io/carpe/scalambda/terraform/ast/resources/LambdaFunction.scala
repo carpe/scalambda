@@ -22,6 +22,16 @@ case class LambdaFunction(scalambdaFunction: ScalambdaFunction, s3Bucket: S3Buck
   override def name: String = scalambdaFunction.terraformLambdaResourceName
 
   /**
+   * Create a variable in the outputted yaml that the terraform will inject the actual arn into once the lambda has
+   * been created.
+   *
+   * This makes sure that our swagger file uses the proper lambda invocation ARN.
+   */
+  lazy val swaggerVariableName: String = {
+    """${""" + name  + """_invoke_arn}"""
+  }
+
+  /**
    * Properties of the definition
    */
   override def body: Map[String, TValue] = Map(
