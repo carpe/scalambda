@@ -1,6 +1,7 @@
 package io.carpe.scalambda.terraform.ast.props
 
 sealed trait TValue {
+  val indent: String = "  "
   def serialize(implicit level: Int): String
 }
 
@@ -23,8 +24,7 @@ object TValue {
   }
 
 
-  abstract class TNested(props: (String, TValue)*) {
-    val indent = "  "
+  abstract class TNested(props: (String, TValue)*) extends TValue {
     def serializeNested(implicit level: Int): String = {
       props.flatMap({ case (propertyName, propertyValue) =>
         val indentation = indent * level
@@ -63,6 +63,18 @@ object TValue {
 
   case class TObject(props: (String, TValue)*) extends TNested(props: _*) with TValue {
     override def serialize(implicit level: Int): String = serializeNested(level)
+  }
+
+  case class TArray(values: TValue*) extends  TValue {
+    override def serialize(implicit level: Int): String = {
+      val serializedValues = values.map(value => {
+        s"${indent * (level + 1)}${value.serialize(level + 1)}"
+      })
+
+      s"""[
+        |${serializedValues.mkString(",\n")}
+        |${indent}]""".stripMargin
+    }
   }
 
   /**

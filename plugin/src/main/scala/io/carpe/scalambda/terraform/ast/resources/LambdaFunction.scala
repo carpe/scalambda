@@ -6,7 +6,7 @@ import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue._
 
-case class LambdaFunction(scalambdaFunction: ScalambdaFunction, s3Bucket: S3Bucket, s3BucketItem: S3BucketItem) extends Resource {
+case class LambdaFunction(scalambdaFunction: ScalambdaFunction, s3Bucket: S3Bucket, s3BucketItem: S3BucketItem, dependenciesLayer: LambdaLayerVersion) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    *
@@ -28,6 +28,13 @@ case class LambdaFunction(scalambdaFunction: ScalambdaFunction, s3Bucket: S3Buck
     // sources for the code this lambda runs
     "s3_bucket" -> TResourceRef("aws_s3_bucket", s3Bucket.name, "id"),
     "s3_key" -> TResourceRef("aws_s3_bucket_object", s3BucketItem.name, "key"),
+    "s3_object_version" -> TResourceRef("aws_s3_bucket_object", s3BucketItem.name, "version_id"),
+    "source_code_hash" -> TLiteral(s"filebase64sha256(aws_s3_bucket_object.${s3BucketItem.name}.source)"),
+
+    // dependency layer
+    "layers" -> TArray(
+      TResourceRef("aws_lambda_layer_version", dependenciesLayer.name, "arn")
+    ),
 
     // role for the lambda
     "role" -> scalambdaFunction.iamRole.asTFValue(scalambdaFunction),

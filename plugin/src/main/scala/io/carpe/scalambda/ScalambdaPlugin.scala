@@ -95,8 +95,9 @@ object ScalambdaPlugin extends AutoPlugin {
     scalambdaFunctions := List.empty,
 
     // builds the lambda function jar without dependencies (so we can bake them in as a separate lambda layer)
-    assemblyOption in packageScalambda := (assemblyOption in packageScalambda).value.copy(includeScala = false, includeDependency = false),
+    assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeScala = false, includeDependency = false),
     packageScalambda := sbtassembly.AssemblyKeys.assembly.value,
+    // builds the dependencies of the lambda version. these will be baked into a lambda layer to improve deployment times
     packageScalambdaDependencies := sbtassembly.AssemblyKeys.assemblyPackageDependency.value,
 
     scalambdaTerraformPath := target.value / "terraform",

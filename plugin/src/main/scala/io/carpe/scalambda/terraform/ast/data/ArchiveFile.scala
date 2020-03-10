@@ -1,12 +1,11 @@
 package io.carpe.scalambda.terraform.ast.data
 
-import java.io.File
-
 import io.carpe.scalambda.terraform.ast.Definition.Data
+import io.carpe.scalambda.terraform.ast.data.ArchiveFile.ArchiveSource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue.TString
 
-case class ArchiveFile(name: String, source: String, output: String) extends Data {
+case class ArchiveFile(name: String, source: ArchiveSource, output: String) extends Data {
 
   /**
    * Examples: "aws_lambda_function" "template_file"
@@ -20,14 +19,35 @@ case class ArchiveFile(name: String, source: String, output: String) extends Dat
    */
   override def body: Map[String, TValue] = Map(
     "type" -> TString("zip"),
-    "source_file" -> TString("${path.module}/" + source),
+    source.key -> source.value,
     "output_path" -> TString("${path.module}/" + output)
   )
 }
 
+object ArchiveFile {
+  sealed trait ArchiveSource {
+    def key: String
+    def value: TValue
+  }
 
-//data "archive_file" "init" {
-//  type        = "zip"
-//  source_file = "${path.module}/init.tpl"
-//  output_path = "${path.module}/files/init.zip"
-//}
+  object ArchiveSource {
+
+    /**
+     * A single file to create an archive for
+     * @param path relative to inside of module. (e.g. "source.jar", "my/file.txt")
+     */
+    case class SourceFile(path: String) extends ArchiveSource {
+      override def key: String = "source_file"
+      override def value: TValue = TString("${path.module}/" + path)
+    }
+
+    /**
+     * A folder to create an archive for
+     * @param path relative to inside of module. (e.g. "sources", "my/folder")
+     */
+    case class SourceFolder(path: String) extends ArchiveSource {
+      override def key: String = "source_dir"
+      override def value: TValue = TString("${path.module}/" + path)
+    }
+  }
+}

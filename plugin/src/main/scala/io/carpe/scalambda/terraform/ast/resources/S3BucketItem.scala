@@ -1,11 +1,10 @@
 package io.carpe.scalambda.terraform.ast.resources
 
 import io.carpe.scalambda.terraform.ast.Definition.Resource
-import io.carpe.scalambda.terraform.ast.data.ArchiveFile
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TDataRef, TResourceRef, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TDataRef, TLiteral, TResourceRef, TString}
 
-case class S3BucketItem(s3Bucket: S3Bucket, name: String, key: String, source: ArchiveFile) extends Resource {
+case class S3BucketItem(s3Bucket: S3Bucket, name: String, key: String, source: String, etag: String) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    */
@@ -17,6 +16,7 @@ case class S3BucketItem(s3Bucket: S3Bucket, name: String, key: String, source: A
   override def body: Map[String, TValue] = Map(
     "key" -> TString(key),
     "bucket" -> TResourceRef("aws_s3_bucket", s3Bucket.name, "id"),
-    "source" -> TDataRef(source.dataType, source.name, "output_path")
+    "source" -> TString("${path.module}/" + source),
+    "etag" -> TLiteral("""filemd5("""" + "${path.module}/" + etag + """")""")
   )
 }
