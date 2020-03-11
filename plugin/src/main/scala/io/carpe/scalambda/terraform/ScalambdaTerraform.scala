@@ -4,7 +4,7 @@ import java.io.{File, PrintWriter}
 import java.nio.file.Files
 
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.function.FunctionRoleSource
+import io.carpe.scalambda.conf.function.{EnvironmentVariable, FunctionRoleSource}
 import io.carpe.scalambda.terraform.ast.Definition.Variable
 import io.carpe.scalambda.terraform.ast.data.TemplateFile
 import io.carpe.scalambda.terraform.ast.module.ScalambdaModule
@@ -66,12 +66,17 @@ object ScalambdaTerraform {
           case FunctionRoleSource.StaticArn(_) =>
             None
         }
-      ).flatten
+      ).flatten ++ function.environmentVariables.flatMap(_ match {
+        case EnvironmentVariable.Static(key, value) =>
+          None
+        case EnvironmentVariable.Variable(key, variableName) =>
+          Some(variableName)
+      }).map(variable => Variable[TString](variable, description = Some("Injected as ENV variable into lambda functions"), defaultValue = None))
 
       (functionResources :+ functionResource, variables ++ functionVariables)
     })
 
-    (lambdaFunctions, lambdaDependenciesLayer, lambdaVariables)
+    (lambdaFunctions, lambdaDependenciesLayer, lambdaVariables.distinct)
   }
 
   def createArchives(source: File, dependencies: File, output: String): Unit = {
