@@ -21,11 +21,10 @@ case class LambdaPermission(lambda: LambdaFunction, apiGateway: ApiGateway) exte
    * Properties of the definition
    */
   override def body: Map[String, TValue] = Map(
-    "statement_id" -> TString("Allow${title(aws_lambda_function." + lambda.name + ".name)}InvokeBy${title(aws_api_gateway_rest_api." + apiGateway.name + ".name)}"),
+    "statement_id" -> TString("Allow${title(aws_lambda_function." + lambda.name + ".function_name)}InvokeBy${title(aws_api_gateway_rest_api." + apiGateway.name + ".name)}"),
     "action" -> TString("lambda:InvokeFunction"),
-    "function_name" -> TResourceRef("aws_lambda_function", lambda.name, "name"),
+    "function_name" -> TResourceRef("aws_lambda_function", lambda.name, "function_name"),
     "principal" -> TString("apigateway.amazonaws.com"),
-    "qualifier" -> TResourceRef("aws_lambda_function", lambda.name, "qualifier"),
     "source_arn" -> TString("${aws_api_gateway_rest_api." + apiGateway.name + ".execution_arn}*/*")
   )
 }

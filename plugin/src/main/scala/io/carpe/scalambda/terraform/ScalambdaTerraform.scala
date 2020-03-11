@@ -24,14 +24,19 @@ object ScalambdaTerraform {
     // create resource definitions for the lambda functions
     val (lambdas, lambdaDependenciesLayer, lambdaVariables) = defineLambdaResources(functions, s3Bucket, projectBucketItem, dependenciesBucketItem)
 
-    val (apiGateway, lambdaPermissions) = maybeDefineApiResources(apiName, lambdas, terraformOutput)
+    // create resource definitions for an api gateway instance, if lambdas are configured for HTTP
+    val (apiGateway,  swaggerTemplate, lambdaPermissions, apiGatewayDeployment) = maybeDefineApiResources(apiName, lambdas, terraformOutput)
 
-    // load those sources into a module
+    // load resources into module
     val scalambdaModule = ScalambdaModule(
       lambdas, lambdaDependenciesLayer,
       s3Buckets = Seq(s3Bucket),
       s3BucketItems = Seq(projectBucketItem, dependenciesBucketItem),
       sources = Seq(),
+      apiGateway = apiGateway,
+      lambdaPermissions = lambdaPermissions,
+      swaggerTemplate = swaggerTemplate,
+      apiGatewayDeployment = apiGatewayDeployment,
 
       variables = lambdaVariables
     )
@@ -112,12 +117,12 @@ object ScalambdaTerraform {
     (newBucket, sourceBucketItem, depsBucketItem)
   }
 
-  def maybeDefineApiResources(apiName: String, functions: Seq[LambdaFunction], terraformOutput: File): (Option[ApiGateway], Seq[LambdaPermission]) = {
+  def maybeDefineApiResources(apiName: String, functions: Seq[LambdaFunction], terraformOutput: File): (Option[ApiGateway], Option[TemplateFile], Seq[LambdaPermission], Option[ApiGatewayDeployment]) = {
 
     // if there are no functions that are configured to be exposed via api
     if (functions.count(_.scalambdaFunction.apiConfig.isDefined) == 0) {
       // do an early return
-      return (None, Seq.empty)
+      return (None, None, Seq.empty, None)
     }
 
     def writeSwagger(apiName: String, functions: Seq[LambdaFunction], rootTerraformPath: String): TemplateFile = {
@@ -134,20 +139,17 @@ object ScalambdaTerraform {
     }
     val swaggerTemplate = writeSwagger(apiName = apiName, rootTerraformPath = terraformOutput.getAbsolutePath, functions = functions)
 
+    // define api gateway
+    val api = ApiGateway(TString(apiName), None, swaggerTemplate)
 
-    def defineApiGateway(apiName: String): ApiGateway = {
-      ApiGateway(TString(apiName), None, swaggerTemplate)
-    }
-    val api = defineApiGateway(apiName)
+    // define permissions for api gateway to invoke lambdas
+    val permissions = functions.map(function => {
+      LambdaPermission(function, api)
+    })
 
+    // create deployment
+    val apiGatewayDeployment = ApiGatewayDeployment(api, permissions)
 
-    def defineLambdaPermissions(functions: Seq[LambdaFunction], apiGateway: ApiGateway): Seq[LambdaPermission] = {
-      functions.map(function => {
-        LambdaPermission(function, apiGateway)
-      })
-    }
-    val permissions = defineLambdaPermissions(functions, api)
-
-    (Some(api), permissions)
+    (Some(api), Some(swaggerTemplate), permissions, Some(apiGatewayDeployment))
   }
 }

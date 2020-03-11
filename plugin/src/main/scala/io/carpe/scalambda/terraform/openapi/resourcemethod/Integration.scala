@@ -15,7 +15,7 @@ object Integration {
   implicit val encoder: Encoder[Integration] = {
     case LambdaIntegration(function) =>
       Json.obj(
-        "uri" -> Json.fromString(function.swaggerVariableName),
+        "uri" -> Json.fromString("""${""" + function.swaggerVariableName  + """}"""),
         "passthroughBehavior" -> Json.fromString("when_no_match"),
         "httpMethod" -> Json.fromString("POST"),
         "type" -> Json.fromString("aws_proxy")

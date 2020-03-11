@@ -28,7 +28,7 @@ case class LambdaFunction(scalambdaFunction: ScalambdaFunction, s3Bucket: S3Buck
    * This makes sure that our swagger file uses the proper lambda invocation ARN.
    */
   lazy val swaggerVariableName: String = {
-    """${""" + name  + """_invoke_arn}"""
+    s"${name}_invoke_arn"
   }
 
   /**
@@ -70,7 +70,12 @@ case class LambdaFunction(scalambdaFunction: ScalambdaFunction, s3Bucket: S3Buck
         case EnvironmentVariable.Variable(key, variableName) =>
           Some(key -> TVariableRef(variableName))
       }
-    }): _*))
+    }): _*)),
+
+    "vpc_config" -> TBlock(
+      "subnet_ids" -> TArray(scalambdaFunction.vpcConfig.subnetIds.map(TString): _*),
+      "security_group_ids" -> TArray(scalambdaFunction.vpcConfig.securityGroupIds.map(TString): _*)
+    )
 
   )
 }

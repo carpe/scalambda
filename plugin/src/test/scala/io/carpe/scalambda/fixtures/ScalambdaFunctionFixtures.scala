@@ -15,6 +15,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
       functionConfig = FunctionConf.carpeDefault,
       apiConfig = Some(ApiGatewayConf(route = "/cars", method = Method.GET)),
+      vpcConfig = VpcConf.withoutVpc,
       environmentVariables = List.empty
     )
   }
@@ -26,6 +27,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
       functionConfig = FunctionConf.carpeDefault,
       apiConfig = None,
+      vpcConfig = VpcConf.withoutVpc,
       environmentVariables = List(
         EnvironmentVariable.Static("API", "www.google.com")
       )
@@ -39,6 +41,10 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
       functionConfig = FunctionConf.carpeDefault.copy(memory = 256, timeout = 30),
       apiConfig = None,
+      vpcConfig = VpcConf(
+        subnetIds = Seq("subnet-12345678987654321"),
+        securityGroupIds = Seq("sg-12345678987654321")
+      ),
       environmentVariables = List.empty
     )
   }

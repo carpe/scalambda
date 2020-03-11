@@ -75,6 +75,14 @@ class TerraformFileSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |  ]
         |  function_name = "FlyPlane"
         |  s3_bucket = aws_s3_bucket.testing.id
+        |  vpc_config {
+        |    subnet_ids = [
+        |      "subnet-12345678987654321"
+        |    ]
+        |    security_group_ids = [
+        |      "sg-12345678987654321"
+        |    ]
+        |  }
         |  role = "arn:aws:iam::12345678900:role/lambda_basic_execution"
         |  s3_key = aws_s3_bucket_object.sources.key
         |  memory_size = 256

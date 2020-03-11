@@ -5,6 +5,7 @@ import _root_.io.carpe.scalambda.conf.function.FunctionNaming.WorkspaceBased
 import _root_.io.carpe.scalambda.conf.function.FunctionRoleSource.FromVariable
 import _root_.io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import _root_.io.carpe.scalambda.conf.function._
+import _root_.io.carpe.scalambda.conf.function.VpcConf
 import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
 import com.typesafe.sbt.GitVersioning
 import sbt.Keys.{credentials, libraryDependencies, resolvers, target}
@@ -44,8 +45,9 @@ object ScalambdaPlugin extends AutoPlugin {
     def functionSource: FunctionSource.type = FunctionSource
     def environmentVariable: EnvironmentVariable.type = EnvironmentVariable
     val Endpoint: ApiGatewayConf.type = ApiGatewayConf
+    val Vpc: VpcConf.type = VpcConf
 
-    def scalambda(functionClasspath: String, functionNaming: FunctionNaming = WorkspaceBased, iamRoleSource: FunctionRoleSource = FromVariable, functionConfig: FunctionConf = FunctionConf.carpeDefault, environmentVariables: Seq[EnvironmentVariable] = List.empty): Seq[Def.Setting[_]] = {
+    def scalambda(functionClasspath: String, functionNaming: FunctionNaming = WorkspaceBased, iamRoleSource: FunctionRoleSource = FromVariable, functionConfig: FunctionConf = FunctionConf.carpeDefault, vpcConfig: VpcConf = Vpc.withoutVpc, environmentVariables: Seq[EnvironmentVariable] = List.empty): Seq[Def.Setting[_]] = {
 
       val awsLambdaProxyPluginConfig = Seq(
         // add this lambda to the list of existing lambda definitions for this function
@@ -56,6 +58,7 @@ object ScalambdaPlugin extends AutoPlugin {
             functionSource = IncludedInModule,
             iamRole = iamRoleSource,
             functionConfig = functionConfig,
+            vpcConfig = vpcConfig,
             apiConfig = None,
             environmentVariables = environmentVariables
           )
@@ -66,7 +69,7 @@ object ScalambdaPlugin extends AutoPlugin {
       awsLambdaProxyPluginConfig ++ scalambdaLibs
     }
 
-    def scalambdaEndpoint(functionClasspath: String, functionNaming: FunctionNaming = WorkspaceBased, iamRoleSource: FunctionRoleSource = FromVariable, functionConfig: FunctionConf = FunctionConf.carpeDefault, environmentVariables: Seq[EnvironmentVariable] = List.empty, apiConfig: ApiGatewayConf): Seq[Def.Setting[_]] = {
+    def scalambdaEndpoint(functionClasspath: String, functionNaming: FunctionNaming = WorkspaceBased, iamRoleSource: FunctionRoleSource = FromVariable, functionConfig: FunctionConf = FunctionConf.carpeDefault, environmentVariables: Seq[EnvironmentVariable] = List.empty, vpcConfig: VpcConf = Vpc.withoutVpc, apiConfig: ApiGatewayConf): Seq[Def.Setting[_]] = {
 
       val awsLambdaProxyPluginConfig = Seq(
         // add this lambda to the list of existing lambda definitions for this function
@@ -77,6 +80,7 @@ object ScalambdaPlugin extends AutoPlugin {
             functionSource = IncludedInModule,
             iamRole = iamRoleSource,
             functionConfig = functionConfig,
+            vpcConfig = vpcConfig,
             apiConfig = Some(apiConfig),
             environmentVariables = environmentVariables
           )

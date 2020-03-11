@@ -9,6 +9,7 @@ case class ScalambdaFunction(naming: FunctionNaming,
                              functionSource: FunctionSource,
                              iamRole: FunctionRoleSource,
                              functionConfig: FunctionConf,
+                             vpcConfig: VpcConf,
                              apiConfig: Option[ApiGatewayConf],
                              environmentVariables: Seq[EnvironmentVariable]
                             ) {

@@ -67,6 +67,10 @@ object TValue {
         s"${indent(level + 1)}${value.serialize(level + 2)}"
       })
 
+      if (values.isEmpty) {
+        return ""
+      }
+
       s"""[
         |${serializedValues.mkString(",\n")}
         |$indent]""".stripMargin

@@ -72,7 +72,9 @@ class OpenApiSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |              application/json: '{}'
         |""".stripMargin
 
-    assert(OpenApi.apiToYaml(testApi) === expectedOutput)
+    val actual = OpenApi.apiToYaml(testApi)
+
+    assert(actual === expectedOutput)
   }
 
 
