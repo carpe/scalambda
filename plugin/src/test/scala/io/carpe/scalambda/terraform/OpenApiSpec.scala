@@ -70,6 +70,18 @@ class OpenApiSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |              method.response.header.Access-Control-Max-Age: '''600'''
         |            responseTemplates:
         |              application/json: '{}'
+        |securityDefinitions:
+        |  carpeAuthorizer:
+        |    type: apiKey
+        |    name: Authorization
+        |    in: header
+        |    x-amazon-apigateway-authtype: custom
+        |    x-amazon-apigateway-authorizer:
+        |      authorizerUri: arn:aws:lambda:us-west-2:120864075170:function:CarpeAuthorizer:prod
+        |      authorizerCredentials: arn:aws:iam::120864075170:role/Auth0Integration
+        |      authorizerResultTtlInSeconds: 300
+        |      identityValidationExpression: ^Bearer [-0-9a-zA-z\.]*$
+        |      type: token
         |""".stripMargin
 
     val actual = OpenApi.apiToYaml(testApi)

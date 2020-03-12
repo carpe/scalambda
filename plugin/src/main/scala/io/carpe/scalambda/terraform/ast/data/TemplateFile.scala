@@ -29,8 +29,6 @@ case class TemplateFile(filename: String, apiName: String, lambdas: Seq[LambdaFu
       lambda.swaggerVariableName -> TResourceRef("aws_lambda_function", lambda.name, "invoke_arn")
     })
 
-
-
     Map(
       "template" -> TLiteral("file(\"${path.module}/swagger.yaml\")"),
       "vars" -> TObject(

@@ -46,6 +46,7 @@ object ScalambdaPlugin extends AutoPlugin {
     def environmentVariable: EnvironmentVariable.type = EnvironmentVariable
     val Endpoint: ApiGatewayConf.type = ApiGatewayConf
     val Vpc: VpcConf.type = VpcConf
+    val Auth: AuthConf.type = AuthConf
 
     def scalambda(functionClasspath: String, functionNaming: FunctionNaming = WorkspaceBased, iamRoleSource: FunctionRoleSource = FromVariable, functionConfig: FunctionConf = FunctionConf.carpeDefault, vpcConfig: VpcConf = Vpc.withoutVpc, environmentVariables: Seq[EnvironmentVariable] = List.empty): Seq[Def.Setting[_]] = {
 

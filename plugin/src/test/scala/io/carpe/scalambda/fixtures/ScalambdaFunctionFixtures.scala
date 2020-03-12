@@ -1,6 +1,7 @@
 package io.carpe.scalambda.fixtures
 
 import io.carpe.scalambda.conf.ScalambdaFunction
+import io.carpe.scalambda.conf.function.AuthConf.{CarpeAuthorizer, Unauthorized}
 import io.carpe.scalambda.conf.function.FunctionNaming.Static
 import io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import io.carpe.scalambda.conf.function._
@@ -14,7 +15,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       functionSource = IncludedInModule,
       iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
       functionConfig = FunctionConf.carpeDefault,
-      apiConfig = Some(ApiGatewayConf(route = "/cars", method = Method.GET)),
+      apiConfig = Some(ApiGatewayConf(route = "/cars", method = Method.GET, authConf = CarpeAuthorizer)),
       vpcConfig = VpcConf.withoutVpc,
       environmentVariables = List.empty
     )

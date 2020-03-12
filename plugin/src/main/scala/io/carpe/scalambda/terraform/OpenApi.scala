@@ -1,9 +1,12 @@
 package io.carpe.scalambda.terraform
 
+import io.carpe.scalambda.conf.function.AuthConf
+import io.carpe.scalambda.conf.function.AuthConf.CarpeAuthorizer
 import io.carpe.scalambda.terraform.ast.resources.LambdaFunction
-import io.carpe.scalambda.terraform.openapi.{ResourceMethod, ResourcePath}
+import io.carpe.scalambda.terraform.openapi.resourcemethod.Security
+import io.carpe.scalambda.terraform.openapi.{ResourceMethod, ResourcePath, SecurityDefinition}
 
-case class OpenApi(paths: List[ResourcePath])
+case class OpenApi(paths: Seq[ResourcePath], securityDefinitions: Seq[SecurityDefinition])
 
 object OpenApi {
 
@@ -27,7 +30,20 @@ object OpenApi {
       })
     }).toList
 
-    OpenApi(resourcePaths)
+    val securityDefinitions = scalambdaFunctions.flatMap(_.scalambdaFunction.apiConfig).map(_.authConf).distinct.flatMap(authConf => {
+      authConf match {
+        case CarpeAuthorizer =>
+          Some(SecurityDefinition(
+            authorizerName = Security.carpeAuthorizer.name,
+            authorizerArn = "arn:aws:lambda:us-west-2:120864075170:function:CarpeAuthorizer:prod",
+            authorizerRole = "arn:aws:iam::120864075170:role/Auth0Integration"
+          ))
+        case AuthConf.Unauthorized =>
+          None
+      }
+    })
+
+    OpenApi(resourcePaths, securityDefinitions)
   }
 
   import io.circe._
@@ -48,6 +64,11 @@ object OpenApi {
     ("paths", Json.obj(
       api.paths.map(path => {
         path.name -> ResourcePath.encoder.apply(path)
+      }): _*
+    )),
+    ("securityDefinitions", Json.obj(
+      api.securityDefinitions.map(securityDefinition => {
+        securityDefinition.authorizerName -> SecurityDefinition.encoder.apply(securityDefinition)
       }): _*
     ))
   )
