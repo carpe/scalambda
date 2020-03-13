@@ -15,7 +15,7 @@ import scala.tools.nsc.Properties
 credentials += Credentials(new File(Properties.envOrElse("JENKINS_HOME", Properties.envOrElse("HOME", "")) + "/.sbt/.credentials"))
 
 // CarpeData's own sbt plugin for jumpstarting Lambda Function development
-addSbtPlugin("io.carpe" % "sbt-scalambda" % "0.22.0")
+addSbtPlugin("io.carpe" % "sbt-scalambda" % "0.25.0")
 ```
 
 After adding the plugin to your project, add each Lambda Function as a subproject in your project's `build.sbt` file. There are two possible function types. 
