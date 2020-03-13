@@ -4,6 +4,7 @@ import java.io.{File, PrintWriter}
 import java.nio.file.Files
 
 import io.carpe.scalambda.conf.ScalambdaFunction
+import io.carpe.scalambda.conf.ScalambdaFunction.ProjectFunction
 import io.carpe.scalambda.conf.function.{EnvironmentVariable, FunctionRoleSource}
 import io.carpe.scalambda.terraform.ast.Definition.Variable
 import io.carpe.scalambda.terraform.ast.data.TemplateFile
@@ -21,11 +22,18 @@ object ScalambdaTerraform {
     // create resource definitions for the s3 resources that will be used to store the function's source code
     val (s3Bucket, projectBucketItem, dependenciesBucketItem) = defineS3Resources(s3BucketName)
 
+    val projectFunctions = functions.flatMap(_ match {
+      case function: ProjectFunction =>
+        Some(function)
+      case ScalambdaFunction.ReferencedFunction(functionName, _, functionArn, apiGatewayConf) =>
+        None
+    })
+
     // create resource definitions for the lambda functions
-    val (lambdas, lambdaDependenciesLayer, lambdaVariables) = defineLambdaResources(functions, s3Bucket, projectBucketItem, dependenciesBucketItem)
+    val (lambdas, lambdaDependenciesLayer, lambdaVariables) = defineLambdaResources(projectFunctions, s3Bucket, projectBucketItem, dependenciesBucketItem)
 
     // create resource definitions for an api gateway instance, if lambdas are configured for HTTP
-    val (apiGateway,  swaggerTemplate, lambdaPermissions, apiGatewayDeployment) = maybeDefineApiResources(apiName, lambdas, terraformOutput)
+    val (apiGateway,  swaggerTemplate, lambdaPermissions, apiGatewayDeployment) = maybeDefineApiResources(apiName, functions, terraformOutput)
 
     // load resources into module
     val scalambdaModule = ScalambdaModule(
@@ -45,7 +53,7 @@ object ScalambdaTerraform {
     ScalambdaModule.write(scalambdaModule, terraformOutput.getAbsolutePath)
   }
 
-  def defineLambdaResources( scalambdaFunctions: List[ScalambdaFunction],
+  def defineLambdaResources( scalambdaFunctions: List[ProjectFunction],
                              s3Bucket: S3Bucket,
                              projectBucketItem: S3BucketItem,
                              dependenciesBucketItem: S3BucketItem
@@ -55,16 +63,26 @@ object ScalambdaTerraform {
     val lambdaDependenciesLayer = LambdaLayerVersion(dependenciesBucketItem)
 
     // create resources for each of the lambda functions and the variables they require
-    val (lambdaFunctions, lambdaVariables) = scalambdaFunctions.foldRight(Seq.empty[LambdaFunction], Seq.empty[Variable[_]])((function: ScalambdaFunction, resources) => {
+    val (lambdaFunctions, lambdaVariables) = scalambdaFunctions.foldRight(Seq.empty[LambdaFunction], Seq.empty[Variable[_]])((function: ProjectFunction, resources) => {
       val (functionResources, variables) = resources
 
       val functionResource = LambdaFunction(function, s3Bucket, projectBucketItem, lambdaDependenciesLayer)
       val functionVariables = Seq(
-        function.iamRole match {
-          case fromVariable: FunctionRoleSource.FromVariable.type =>
-            Some(Variable[TString](fromVariable.variableName(function), description = Some(s"Arn for the IAM Role to be used by the ${function.approximateFunctionName} Lambda Function."), defaultValue = None))
-          case FunctionRoleSource.StaticArn(_) =>
-            None
+        function match {
+          case f: ScalambdaFunction.Function =>
+            f.iamRole match {
+              case fromVariable: FunctionRoleSource.FromVariable.type =>
+                Some(Variable[TString](fromVariable.variableName(f), description = Some(s"Arn for the IAM Role to be used by the ${f.approximateFunctionName} Lambda Function."), defaultValue = None))
+              case FunctionRoleSource.StaticArn(_) =>
+                None
+            }
+          case af: ScalambdaFunction.ApiFunction =>
+            af.iamRole match {
+              case fromVariable: FunctionRoleSource.FromVariable.type =>
+                Some(Variable[TString](fromVariable.variableName(af), description = Some(s"Arn for the IAM Role to be used by the ${af.approximateFunctionName} Lambda Function."), defaultValue = None))
+              case FunctionRoleSource.StaticArn(_) =>
+                None
+            }
         }
       ).flatten ++ function.environmentVariables.flatMap(_ match {
         case EnvironmentVariable.Static(key, value) =>
@@ -122,15 +140,15 @@ object ScalambdaTerraform {
     (newBucket, sourceBucketItem, depsBucketItem)
   }
 
-  def maybeDefineApiResources(apiName: String, functions: Seq[LambdaFunction], terraformOutput: File): (Option[ApiGateway], Option[TemplateFile], Seq[LambdaPermission], Option[ApiGatewayDeployment]) = {
+  def maybeDefineApiResources(apiName: String, functions: Seq[ScalambdaFunction], terraformOutput: File): (Option[ApiGateway], Option[TemplateFile], Seq[LambdaPermission], Option[ApiGatewayDeployment]) = {
 
     // if there are no functions that are configured to be exposed via api
-    if (functions.count(_.scalambdaFunction.apiConfig.isDefined) == 0) {
+    if (functions.count(_.apiGatewayConfig.isDefined) == 0) {
       // do an early return
       return (None, None, Seq.empty, None)
     }
 
-    def writeSwagger(apiName: String, functions: Seq[LambdaFunction], rootTerraformPath: String): TemplateFile = {
+    def writeSwagger(apiName: String, functions: Seq[ScalambdaFunction], rootTerraformPath: String): TemplateFile = {
       val openApi = OpenApi.forFunctions(functions)
 
       // convert the api to yaml

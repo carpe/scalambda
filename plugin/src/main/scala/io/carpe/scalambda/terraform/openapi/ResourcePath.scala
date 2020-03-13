@@ -1,21 +1,20 @@
 package io.carpe.scalambda.terraform.openapi
 
-import io.carpe.scalambda.conf.function.Method
-import io.carpe.scalambda.terraform.ast.resources.LambdaFunction
+import io.carpe.scalambda.conf.ScalambdaFunction
+import io.carpe.scalambda.conf.function.{ApiGatewayConf, Method}
 
 case class ResourcePath(name: String, post: Option[ResourceMethod], get: Option[ResourceMethod], put: Option[ResourceMethod], delete: Option[ResourceMethod], options: Option[ResourceMethod]) {
-  def addFunction(function: LambdaFunction): ResourcePath = {
-    val apiConfig = function.scalambdaFunction.apiConfig.getOrElse({ throw new RuntimeException(s"Scalambda tried to add ${function.name} to ApiGateway, but the function was not configured to be added to ApiGateway. This is likely a bug in Scalambda itself")})
+  def addFunction(apiConfig: ApiGatewayConf, function: ScalambdaFunction): ResourcePath = {
 
     apiConfig.method match {
       case Method.POST =>
-        this.post.fold(this.copy(post = Some(ResourceMethod.fromLambda(function))))(conflicting => { throw new RuntimeException(s"Tried to add ${function.name}, but it conflicted with another method: ${conflicting}")})
+        this.post.fold(this.copy(post = Some(ResourceMethod.fromLambda(function))))(conflicting => { throw new RuntimeException(s"Tried to add ${function.terraformLambdaResourceName}, but it conflicted with another method: ${conflicting}")})
       case Method.GET =>
-        this.get.fold(this.copy(get = Some(ResourceMethod.fromLambda(function))))(conflicting => { throw new RuntimeException(s"Tried to add ${function.name}, but it conflicted with another method: ${conflicting}")})
+        this.get.fold(this.copy(get = Some(ResourceMethod.fromLambda(function))))(conflicting => { throw new RuntimeException(s"Tried to add ${function.terraformLambdaResourceName}, but it conflicted with another method: ${conflicting}")})
       case Method.PUT =>
-        this.put.fold(this.copy(put = Some(ResourceMethod.fromLambda(function))))(conflicting => { throw new RuntimeException(s"Tried to add ${function.name}, but it conflicted with another method: ${conflicting}")})
+        this.put.fold(this.copy(put = Some(ResourceMethod.fromLambda(function))))(conflicting => { throw new RuntimeException(s"Tried to add ${function.terraformLambdaResourceName}, but it conflicted with another method: ${conflicting}")})
       case Method.DELETE =>
-        this.delete.fold(this.copy(delete = Some(ResourceMethod.fromLambda(function))))(conflicting => { throw new RuntimeException(s"Tried to add ${function.name}, but it conflicted with another method: ${conflicting}")})
+        this.delete.fold(this.copy(delete = Some(ResourceMethod.fromLambda(function))))(conflicting => { throw new RuntimeException(s"Tried to add ${function.terraformLambdaResourceName}, but it conflicted with another method: ${conflicting}")})
     }
   }
 }

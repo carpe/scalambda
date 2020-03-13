@@ -114,4 +114,8 @@ object TValue {
     override def serialize(implicit level: Int): String = literal
   }
 
+  case object TNone extends TValue {
+    override def serialize(implicit level: Int): String = ""
+  }
+
 }

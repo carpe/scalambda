@@ -7,7 +7,7 @@ class OpenApiSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
 
   "OpenApi" should "be able to be serialized as yaml" in {
     val functions = List(
-      asLambdaFunction(carsIndexFunction)
+      carsIndexFunction
     )
 
     val testApi = OpenApi.forFunctions(functions)
@@ -42,8 +42,7 @@ class OpenApiSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |      description: Used to handle CORS on UI
         |      consumes:
         |      - application/json
-        |      security:
-        |      - carpeAuthorizer: []
+        |      security: []
         |      responses:
         |        '200':
         |          description: Default response for CORS method
@@ -77,7 +76,7 @@ class OpenApiSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |    in: header
         |    x-amazon-apigateway-authtype: custom
         |    x-amazon-apigateway-authorizer:
-        |      authorizerUri: arn:aws:lambda:us-west-2:120864075170:function:CarpeAuthorizer:prod
+        |      authorizerUri: arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:120864075170:function:CarpeAuthorizer:prod/invocations
         |      authorizerCredentials: arn:aws:iam::120864075170:role/Auth0Integration
         |      authorizerResultTtlInSeconds: 300
         |      identityValidationExpression: ^Bearer [-0-9a-zA-z\.]*$

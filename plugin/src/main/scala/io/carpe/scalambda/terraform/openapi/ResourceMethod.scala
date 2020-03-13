@@ -1,7 +1,6 @@
 package io.carpe.scalambda.terraform.openapi
 
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.terraform.ast.resources.LambdaFunction
 import io.carpe.scalambda.terraform.openapi.resourcemethod.Integration.{AllowOrigin, LambdaIntegration}
 import io.carpe.scalambda.terraform.openapi.resourcemethod.{Integration, MethodResponse, Security}
 import io.circe.{Encoder, Json}
@@ -15,7 +14,7 @@ object ResourceMethod {
   lazy val optionsMethod =
     new ResourceMethod(
       tags = List("Meta"), description = "Used to handle CORS on UI", consumes = List("application/json"),
-      security = List(Security.carpeAuthorizer),
+      security = List.empty,
       responses = List(
         MethodResponse(200, description = "Default response for CORS method", headers = List(
           "Access-Control-Allow-Headers" -> "string",
@@ -27,7 +26,7 @@ object ResourceMethod {
       integration = AllowOrigin("*")
     )
 
-  def fromLambda(lambda: LambdaFunction): ResourceMethod = {
+  def fromLambda(lambda: ScalambdaFunction): ResourceMethod = {
     new ResourceMethod(
       List.empty,
       description = "TBD",

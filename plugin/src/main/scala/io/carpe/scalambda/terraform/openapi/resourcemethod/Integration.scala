@@ -1,25 +1,34 @@
 package io.carpe.scalambda.terraform.openapi.resourcemethod
 
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.terraform.ast.resources.LambdaFunction
 import io.circe.{Encoder, Json}
 
 sealed trait Integration
 
 object Integration {
 
-  case class LambdaIntegration(function: LambdaFunction) extends Integration
+  case class LambdaIntegration(function: ScalambdaFunction) extends Integration
 
   case class AllowOrigin(origin: String) extends Integration
 
   implicit val encoder: Encoder[Integration] = {
     case LambdaIntegration(function) =>
-      Json.obj(
-        "uri" -> Json.fromString("""${""" + function.swaggerVariableName  + """}"""),
-        "passthroughBehavior" -> Json.fromString("when_no_match"),
-        "httpMethod" -> Json.fromString("POST"),
-        "type" -> Json.fromString("aws_proxy")
-      )
+      function match {
+        case function: ScalambdaFunction.ProjectFunction =>
+          Json.obj(
+            "uri" -> Json.fromString("""${""" + function.swaggerVariableName  + """}"""),
+            "passthroughBehavior" -> Json.fromString("when_no_match"),
+            "httpMethod" -> Json.fromString("POST"),
+            "type" -> Json.fromString("aws_proxy")
+          )
+        case ScalambdaFunction.ReferencedFunction(functionName, _, functionArn, apiGatewayConf) =>
+          Json.obj(
+            "uri" -> Json.fromString(functionArn),
+            "passthroughBehavior" -> Json.fromString("when_no_match"),
+            "httpMethod" -> Json.fromString("POST"),
+            "type" -> Json.fromString("aws_proxy")
+          )
+      }
     case AllowOrigin(origin) =>
       Json.obj(
         "type" -> Json.fromString("mock"),

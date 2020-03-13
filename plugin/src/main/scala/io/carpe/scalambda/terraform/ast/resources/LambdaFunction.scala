@@ -1,12 +1,12 @@
 package io.carpe.scalambda.terraform.ast.resources
 
-import io.carpe.scalambda.conf.ScalambdaFunction
+import io.carpe.scalambda.conf.ScalambdaFunction.ProjectFunction
 import io.carpe.scalambda.conf.function.EnvironmentVariable
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue._
 
-case class LambdaFunction(scalambdaFunction: ScalambdaFunction, s3Bucket: S3Bucket, s3BucketItem: S3BucketItem, dependenciesLayer: LambdaLayerVersion) extends Resource {
+case class LambdaFunction(scalambdaFunction: ProjectFunction, s3Bucket: S3Bucket, s3BucketItem: S3BucketItem, dependenciesLayer: LambdaLayerVersion) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    *

@@ -53,15 +53,32 @@ object ScalambdaPlugin extends AutoPlugin {
       val awsLambdaProxyPluginConfig = Seq(
         // add this lambda to the list of existing lambda definitions for this function
         scalambdaFunctions += {
-          ScalambdaFunction(
+          ScalambdaFunction.Function(
             naming = functionNaming,
             handlerPath = functionClasspath + "::handler",
             functionSource = IncludedInModule,
             iamRole = iamRoleSource,
             functionConfig = functionConfig,
             vpcConfig = vpcConfig,
-            apiConfig = None,
             environmentVariables = environmentVariables
+          )
+        }
+      )
+
+      // return a project
+      awsLambdaProxyPluginConfig ++ scalambdaLibs
+    }
+
+    def foreignEndpoint(functionName: String, qualifier: String, invokeArn: String, apiConfig: ApiGatewayConf): Seq[Def.Setting[_]] = {
+
+      val awsLambdaProxyPluginConfig = Seq(
+        // add this lambda to the list of existing lambda definitions for this function
+        scalambdaFunctions += {
+          ScalambdaFunction.ReferencedFunction(
+            functionName = functionName,
+            qualifier = qualifier,
+            functionArn = invokeArn,
+            apiGatewayConf = apiConfig
           )
         }
       )
@@ -75,14 +92,14 @@ object ScalambdaPlugin extends AutoPlugin {
       val awsLambdaProxyPluginConfig = Seq(
         // add this lambda to the list of existing lambda definitions for this function
         scalambdaFunctions += {
-          ScalambdaFunction(
+          ScalambdaFunction.ApiFunction(
             naming = functionNaming,
             handlerPath = functionClasspath + "::handler",
             functionSource = IncludedInModule,
             iamRole = iamRoleSource,
             functionConfig = functionConfig,
             vpcConfig = vpcConfig,
-            apiConfig = Some(apiConfig),
+            apiConfig = apiConfig,
             environmentVariables = environmentVariables
           )
         }

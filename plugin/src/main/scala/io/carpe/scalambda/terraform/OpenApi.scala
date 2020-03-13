@@ -1,8 +1,8 @@
 package io.carpe.scalambda.terraform
 
-import io.carpe.scalambda.conf.function.AuthConf
+import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.conf.function.AuthConf.CarpeAuthorizer
-import io.carpe.scalambda.terraform.ast.resources.LambdaFunction
+import io.carpe.scalambda.conf.function.{ApiGatewayConf, AuthConf}
 import io.carpe.scalambda.terraform.openapi.resourcemethod.Security
 import io.carpe.scalambda.terraform.openapi.{ResourceMethod, ResourcePath, SecurityDefinition}
 
@@ -16,32 +16,40 @@ object OpenApi {
    * @param scalambdaFunctions functions to create api from
    * @return an OpenAPI that wraps the provided functions
    */
-  def forFunctions(scalambdaFunctions: Seq[LambdaFunction]): OpenApi = {
-    val functionsByRoute: Map[String, Seq[LambdaFunction]] = scalambdaFunctions
-      .groupBy(_.scalambdaFunction.apiConfig.map(_.route))
-      .flatMap({ case (maybeRoute, functions) => maybeRoute.map(_ -> functions)})
+  def forFunctions(scalambdaFunctions: Seq[ScalambdaFunction]): OpenApi = {
+    val functionsByRoute: Map[String, Seq[(ApiGatewayConf, ScalambdaFunction)]] = scalambdaFunctions
+        .flatMap(lambda => lambda match {
+          case ScalambdaFunction.Function(naming, handlerPath, functionSource, iamRole, functionConfig, vpcConfig, environmentVariables) =>
+            None
+          case ScalambdaFunction.ApiFunction(naming, handlerPath, functionSource, iamRole, functionConfig, vpcConfig, apiConfig, environmentVariables) =>
+            Some(apiConfig -> lambda)
+          case ScalambdaFunction.ReferencedFunction(_, _, _, apiConfig) =>
+            Some(apiConfig -> lambda)
+        })
+      .groupBy(_._1.route)
+      .map({ case (route, functions) => route -> functions })
 
     val resourcePaths = functionsByRoute.map({ case (resourcePath, functions) =>
       // TODO: Optionally add this OPTIONS request. Or at least make the response configurable
       val defaultOptionsMethod = Some(ResourceMethod.optionsMethod)
 
       functions.foldRight(ResourcePath(resourcePath, post = None, get = None, put = None, delete = None, options = defaultOptionsMethod))((function, resourcePath) => {
-        resourcePath.addFunction(function)
+        resourcePath.addFunction(function._1, function._2)
       })
     }).toList
 
-    val securityDefinitions = scalambdaFunctions.flatMap(_.scalambdaFunction.apiConfig).map(_.authConf).distinct.flatMap(authConf => {
+    val securityDefinitions = functionsByRoute.flatMap(_._2.map(_._1.authConf)).flatMap(authConf => {
       authConf match {
         case CarpeAuthorizer =>
           Some(SecurityDefinition(
             authorizerName = Security.carpeAuthorizer.name,
-            authorizerArn = "arn:aws:lambda:us-west-2:120864075170:function:CarpeAuthorizer:prod",
+            authorizerArn = "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:120864075170:function:CarpeAuthorizer:prod/invocations",
             authorizerRole = "arn:aws:iam::120864075170:role/Auth0Integration"
           ))
         case AuthConf.Unauthorized =>
           None
       }
-    })
+    }).toSeq
 
     OpenApi(resourcePaths, securityDefinitions)
   }
