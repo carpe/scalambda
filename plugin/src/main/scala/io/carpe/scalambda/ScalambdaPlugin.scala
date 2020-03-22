@@ -40,6 +40,8 @@ object ScalambdaPlugin extends AutoPlugin {
     lazy val packageScalambdaDependencies = taskKey[File]("Create a jar containing all the dependencies for your Lambda Function(s). This will be used as a Lambda Layer to support your function.")
     lazy val scalambdaTerraform = taskKey[Unit]("Produces a terraform module from the project's scalambda configuration.")
 
+    val ScalambdaKeys = Keys
+
     def functionNaming: FunctionNaming.type = FunctionNaming
     def iamRoleSource: FunctionRoleSource.type = FunctionRoleSource
     def functionSource: FunctionSource.type = FunctionSource
