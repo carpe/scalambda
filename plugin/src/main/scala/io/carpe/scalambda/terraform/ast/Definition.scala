@@ -1,7 +1,7 @@
 package io.carpe.scalambda.terraform.ast
 
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TBlock, TLiteral, TNumber, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TBlock, TBool, TLiteral, TNone, TNumber, TString}
 
 /**
  * A single piece of HCL configuration. Such as a [[io.carpe.scalambda.terraform.ast.Definition.Resource]].
@@ -85,5 +85,26 @@ object Definition {
     ).collect {
       case (k, Some(v)) => k -> v
     }
+  }
+
+  case class Output[T <: TValue](name: String, description: Option[String], isSensitive: Boolean, value: T) extends Definition {
+    /**
+     * Examples: "data", "resource", "module"
+     */
+    override def definitionType: String = "output"
+
+    /**
+     * Examples: "aws_lambda_function" "aws_iam_role"
+     */
+    override def resourceType: Option[String] = None
+
+    /**
+     * Properties of the definition
+     */
+    override def body: Map[String, TValue] = Map(
+      "value" -> value,
+      "description" -> description.map(TString).getOrElse(TNone),
+      "sensitive" -> TBool(isSensitive)
+    )
   }
 }

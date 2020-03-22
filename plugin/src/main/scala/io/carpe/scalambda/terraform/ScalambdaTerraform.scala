@@ -6,10 +6,10 @@ import java.nio.file.Files
 import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.conf.ScalambdaFunction.ProjectFunction
 import io.carpe.scalambda.conf.function.{EnvironmentVariable, FunctionRoleSource}
-import io.carpe.scalambda.terraform.ast.Definition.Variable
+import io.carpe.scalambda.terraform.ast.Definition.{Output, Variable}
 import io.carpe.scalambda.terraform.ast.data.TemplateFile
 import io.carpe.scalambda.terraform.ast.module.ScalambdaModule
-import io.carpe.scalambda.terraform.ast.props.TValue.TString
+import io.carpe.scalambda.terraform.ast.props.TValue.{TResourceRef, TString}
 import io.carpe.scalambda.terraform.ast.resources._
 
 object ScalambdaTerraform {
@@ -30,7 +30,7 @@ object ScalambdaTerraform {
     })
 
     // create resource definitions for the lambda functions
-    val (lambdas, lambdaDependenciesLayer, lambdaVariables) = defineLambdaResources(projectFunctions, s3Bucket, projectBucketItem, dependenciesBucketItem)
+    val (lambdas, lambdaDependenciesLayer, lambdaVariables, lambdaOutputs) = defineLambdaResources(projectFunctions, s3Bucket, projectBucketItem, dependenciesBucketItem)
 
     // create resource definitions for an api gateway instance, if lambdas are configured for HTTP
     val (apiGateway,  swaggerTemplate, lambdaPermissions, apiGatewayDeployment) = maybeDefineApiResources(apiName, functions, terraformOutput)
@@ -46,7 +46,8 @@ object ScalambdaTerraform {
       swaggerTemplate = swaggerTemplate,
       apiGatewayDeployment = apiGatewayDeployment,
 
-      variables = lambdaVariables
+      variables = lambdaVariables,
+      outputs = lambdaOutputs
     )
 
     // write the module to a series of files
@@ -57,44 +58,58 @@ object ScalambdaTerraform {
                              s3Bucket: S3Bucket,
                              projectBucketItem: S3BucketItem,
                              dependenciesBucketItem: S3BucketItem
-                           ): (Seq[LambdaFunction], LambdaLayerVersion, Seq[Variable[_]]) = {
+                           ): (Seq[LambdaFunction], LambdaLayerVersion, Seq[Variable[_]], Seq[Output[_]]) = {
     // create a lambda layer that can be shared by all functions that contains the dependencies of said functions.
     // this will be used to speed up deployments
     val lambdaDependenciesLayer = LambdaLayerVersion(dependenciesBucketItem)
 
     // create resources for each of the lambda functions and the variables they require
-    val (lambdaFunctions, lambdaVariables) = scalambdaFunctions.foldRight(Seq.empty[LambdaFunction], Seq.empty[Variable[_]])((function: ProjectFunction, resources) => {
-      val (functionResources, variables) = resources
+    val (lambdaFunctions, lambdaVariables, outputs) = scalambdaFunctions.foldRight(Seq.empty[LambdaFunction], Seq.empty[Variable[_]], Seq.empty[Output[_]])((function: ProjectFunction, resources) => {
+      val (functionResources, variables, outputs) = resources
+
+      /**
+       * Define Terraform resource for function
+       */
 
       val functionResource = LambdaFunction(function, s3Bucket, projectBucketItem, lambdaDependenciesLayer)
-      val functionVariables = Seq(
-        function match {
-          case f: ScalambdaFunction.Function =>
-            f.iamRole match {
-              case fromVariable: FunctionRoleSource.FromVariable.type =>
-                Some(Variable[TString](fromVariable.variableName(f), description = Some(s"Arn for the IAM Role to be used by the ${f.approximateFunctionName} Lambda Function."), defaultValue = None))
-              case FunctionRoleSource.StaticArn(_) =>
-                None
-            }
-          case af: ScalambdaFunction.ApiFunction =>
-            af.iamRole match {
-              case fromVariable: FunctionRoleSource.FromVariable.type =>
-                Some(Variable[TString](fromVariable.variableName(af), description = Some(s"Arn for the IAM Role to be used by the ${af.approximateFunctionName} Lambda Function."), defaultValue = None))
-              case FunctionRoleSource.StaticArn(_) =>
-                None
-            }
+
+      /**
+       * Define Terraform variables for function
+       */
+
+      val functionRoleVariables = Seq(
+        function.iamRole match {
+          case fromVariable: FunctionRoleSource.FromVariable.type =>
+            Some(Variable[TString](fromVariable.variableName(function), description = Some(s"Arn for the IAM Role to be used by the ${function.approximateFunctionName} Lambda Function."), defaultValue = None))
+          case FunctionRoleSource.StaticArn(_) =>
+            None
         }
-      ).flatten ++ function.environmentVariables.flatMap(_ match {
+      ).flatten
+
+      val functionEnvVariables = function.environmentVariables.flatMap(_ match {
         case EnvironmentVariable.Static(key, value) =>
           None
         case EnvironmentVariable.Variable(key, variableName) =>
           Some(variableName)
       }).map(variable => Variable[TString](variable, description = Some("Injected as ENV variable into lambda functions"), defaultValue = None))
 
-      (functionResources :+ functionResource, variables ++ functionVariables)
+      val functionVariables = functionRoleVariables ++ functionEnvVariables
+
+      /**
+       * Define Terraform outputs for function
+       */
+
+      val functionOutputs = Seq(Output(
+        name = s"${function.terraformLambdaResourceName}_arn",
+        description = Some(s"Arn for the ${function.approximateFunctionName}"),
+        isSensitive = false,
+        value = TResourceRef("aws_lambda_function", function.terraformLambdaResourceName, "arn")
+      ))
+
+      (functionResources :+ functionResource, variables ++ functionVariables, outputs ++ functionOutputs)
     })
 
-    (lambdaFunctions, lambdaDependenciesLayer, lambdaVariables.distinct)
+    (lambdaFunctions, lambdaDependenciesLayer, lambdaVariables.distinct, outputs)
   }
 
   def createArchives(source: File, dependencies: File, output: String): Unit = {
