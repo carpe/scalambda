@@ -5,7 +5,6 @@ import _root_.io.carpe.scalambda.conf.function.FunctionNaming.WorkspaceBased
 import _root_.io.carpe.scalambda.conf.function.FunctionRoleSource.FromVariable
 import _root_.io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import _root_.io.carpe.scalambda.conf.function._
-import _root_.io.carpe.scalambda.conf.keys.Keys
 import _root_.io.carpe.scalambda.conf.function.VpcConf
 import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
 import com.typesafe.sbt.GitVersioning
@@ -31,6 +30,8 @@ object ScalambdaPlugin extends AutoPlugin {
   )
 
   object autoImport {
+    import _root_.io.carpe.scalambda.conf.keys.Keys
+
     lazy val apiName = settingKey[String]("Prefix for the name of the api. Defaults to project name")
     lazy val s3BucketName = settingKey[String]("Prefix for S3 bucket name to store lambda functions in. Defaults to project name.")
     lazy val scalambdaFunctions = settingKey[Seq[ScalambdaFunction]]("List of Scalambda Functions")
@@ -41,13 +42,12 @@ object ScalambdaPlugin extends AutoPlugin {
     lazy val packageScalambdaDependencies = taskKey[File]("Create a jar containing all the dependencies for your Lambda Function(s). This will be used as a Lambda Layer to support your function.")
     lazy val scalambdaTerraform = taskKey[Unit]("Produces a terraform module from the project's scalambda configuration.")
 
-    val ScalambdaKeys = Keys
+    val ScalambdaKeys: Keys.type = Keys
 
     def functionNaming: FunctionNaming.type = FunctionNaming
     def iamRoleSource: FunctionRoleSource.type = FunctionRoleSource
     def functionSource: FunctionSource.type = FunctionSource
     def environmentVariable: EnvironmentVariable.type = EnvironmentVariable
-    val Endpoint: ApiGatewayConf.type = ApiGatewayConf
     val Vpc: VpcConf.type = VpcConf
     val Auth: AuthConf.type = AuthConf
 
