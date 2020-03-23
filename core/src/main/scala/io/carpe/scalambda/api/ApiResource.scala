@@ -271,11 +271,15 @@ object ApiResource {
                                                     val encoder: Encoder[O]
                                                   ) extends ApiResource[C, I, APIGatewayProxyRequest.WithBody[I], O] {
 
-
     override def handleApiRequest(input: APIGatewayProxyRequest.WithBody[I])(implicit c: C): APIGatewayProxyResponse[O] = {
-      request(input).attempt.unsafeRunSync().fold(handleError, identity)
+      request(input).attempt.unsafeRunSync().fold(
+        // handle the failure of the IO
+        handleError,
+        // wrap successful result in a proxy response object so that API Gateway can respond with it
+        o => APIGatewayProxyResponse.WithBody(200, defaultResponseHeaders, o)
+      )
     }
 
-    def request(input: APIGatewayProxyRequest[I])(implicit api: C): IO[APIGatewayProxyResponse[O]]
+    def request(input: APIGatewayProxyRequest[I])(implicit api: C): IO[O]
   }
 }

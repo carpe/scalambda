@@ -5,6 +5,7 @@ import _root_.io.carpe.scalambda.conf.function.FunctionNaming.WorkspaceBased
 import _root_.io.carpe.scalambda.conf.function.FunctionRoleSource.FromVariable
 import _root_.io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import _root_.io.carpe.scalambda.conf.function._
+import _root_.io.carpe.scalambda.conf.keys.Keys
 import _root_.io.carpe.scalambda.conf.function.VpcConf
 import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
 import com.typesafe.sbt.GitVersioning
