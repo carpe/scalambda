@@ -27,7 +27,7 @@ case class ApiGatewayDeployment(apiGateway: ApiGateway, lambdaPermissions: Seq[L
       "create_before_destroy" -> TBool(true)
     ),
     "depends_on" -> TArray(lambdaPermissions.map(lambdaPermission => {
-      TString(s"aws_lambda_permission.${lambdaPermission.name}")
+      TLiteral(s"aws_lambda_permission.${lambdaPermission.name}")
     }): _*)
   )
 
