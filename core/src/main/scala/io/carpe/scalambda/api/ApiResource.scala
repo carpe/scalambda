@@ -252,4 +252,30 @@ object ApiResource {
     def delete(input: DeleteRequest)(implicit api: C): IO[Unit]
   }
 
+
+  /**
+   * If your application's endpoint does not fit a RESTful method like those above, you can use this more generic
+   * [[Resource]].
+   *
+   * @param applicationBootstrap bootstrap for context
+   * @param decoder for input body
+   * @param encoder for response body
+   * @tparam C context type, this can be used to map the lambda context into something more specific to your application.
+   *           It also allows for easier testing, by allowing the context to be captured by test helpers so that mocks can
+   *           be injected.
+   * @tparam I input type, which is set on a per request type basis
+   * @tparam O output type, which is set on a per request type basis
+   */
+  abstract class Resource[C <: ScalambdaApi, I, O]( implicit val applicationBootstrap: ApiBootstrap[C],
+                                                    val decoder: Decoder[I],
+                                                    val encoder: Encoder[O]
+                                                  ) extends ApiResource[C, I, APIGatewayProxyRequest.WithBody[I], O] {
+
+
+    override def handleApiRequest(input: APIGatewayProxyRequest.WithBody[I])(implicit c: C): APIGatewayProxyResponse[O] = {
+      request(input).attempt.unsafeRunSync().fold(handleError, identity)
+    }
+
+    def request(input: APIGatewayProxyRequest[I])(implicit api: C): IO[APIGatewayProxyResponse[O]]
+  }
 }
