@@ -15,14 +15,14 @@ import io.carpe.scalambda.terraform.ast.resources._
 
 object ScalambdaTerraform {
 
-  def writeTerraform(
-    functions: List[ScalambdaFunction],
-    version: String,
-    s3BucketName: String,
-    projectSource: File,
-    dependencies: File,
-    apiName: String,
-    terraformOutput: File
+  def writeTerraform( functions: List[ScalambdaFunction],
+                      version: String,
+                      s3BucketName: String,
+                      projectSource: File,
+                      dependencies: File,
+                      apiName: String,
+                      terraformOutput: File,
+                      maybeDomainName: Option[String]
   ): Unit = {
 
     // create archive file resources to use to zip the assembly output in TF
@@ -44,8 +44,8 @@ object ScalambdaTerraform {
       defineLambdaResources(projectFunctions, versionAsAlias, s3Bucket, projectBucketItem, dependenciesBucketItem)
 
     // create resource definitions for an api gateway instance, if lambdas are configured for HTTP
-    val (apiGateway, swaggerTemplate, lambdaPermissions, apiGatewayDeployment) =
-      maybeDefineApiResources(apiName, lambdaAliases, terraformOutput)
+    val (apiGateway, swaggerTemplate, lambdaPermissions, apiGatewayDeployment, apiDomainName, apiPathMapping, apiVariables) =
+      maybeDefineApiResources(apiName, lambdaAliases, terraformOutput, maybeDomainName)
 
     // load resources into module
     val scalambdaModule = ScalambdaModule(
@@ -59,7 +59,9 @@ object ScalambdaTerraform {
       lambdaPermissions = lambdaPermissions,
       swaggerTemplate = swaggerTemplate,
       apiGatewayDeployment = apiGatewayDeployment,
-      variables = lambdaVariables,
+      apiGatewayDomainName = apiDomainName,
+      apiGatewayBasePathMapping = apiPathMapping,
+      variables = lambdaVariables ++ apiVariables,
       outputs = lambdaOutputs
     )
 
@@ -200,13 +202,14 @@ object ScalambdaTerraform {
 
   def maybeDefineApiResources( apiName: String,
                                functionAliases: Seq[LambdaFunctionAlias],
-                               terraformOutput: File
-  ): (Option[ApiGateway], Option[TemplateFile], Seq[LambdaPermission], Option[ApiGatewayDeployment]) = {
+                               terraformOutput: File,
+                               maybeDomainName: Option[String]
+  ): (Option[ApiGateway], Option[TemplateFile], Seq[LambdaPermission], Option[ApiGatewayDeployment], Option[ApiGatewayDomainName], Option[ApiGatewayBasePathMapping], Seq[Variable[_]]) = {
 
     // if there are no functions that are configured to be exposed via api
     if (functionAliases.count(_.function.scalambdaFunction.apiGatewayConfig.isDefined) == 0) {
       // do an early return
-      return (None, None, Seq.empty, None)
+      return (None, None, Seq.empty, None, None, None, Seq.empty)
     }
 
     def writeSwagger(apiName: String, aliases: Seq[LambdaFunctionAlias], rootTerraformPath: String): TemplateFile = {
@@ -235,6 +238,11 @@ object ScalambdaTerraform {
     // create deployment
     val apiGatewayDeployment = ApiGatewayDeployment(api, permissions)
 
-    (Some(api), Some(swaggerTemplate), permissions, Some(apiGatewayDeployment))
+    // create resources for domain mapping (if domain name was supplied)
+    val maybeApiGatewayDomainName = maybeDomainName.map(domainName => ApiGatewayDomainName(domainName))
+    val maybeBasePathMapping = maybeApiGatewayDomainName.map(domainName => { ApiGatewayBasePathMapping(api, apiGatewayDeployment, domainName) })
+    val certificateVariable = maybeDomainName.map(_ => Variable("certificate_arn", Some("Arn of AWS Certificate Manager certificate."), None)).toSeq
+
+    (Some(api), Some(swaggerTemplate), permissions, Some(apiGatewayDeployment), maybeApiGatewayDomainName, maybeBasePathMapping, certificateVariable)
   }
 }

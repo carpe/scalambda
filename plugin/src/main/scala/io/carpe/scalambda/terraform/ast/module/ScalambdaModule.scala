@@ -3,7 +3,7 @@ package io.carpe.scalambda.terraform.ast.module
 import io.carpe.scalambda.terraform.ast.Definition.{Output, Variable}
 import io.carpe.scalambda.terraform.ast.TerraformFile
 import io.carpe.scalambda.terraform.ast.data.{ArchiveFile, TemplateFile}
-import io.carpe.scalambda.terraform.ast.resources.{ApiGateway, ApiGatewayDeployment, LambdaFunction, LambdaFunctionAlias, LambdaLayerVersion, LambdaPermission, S3Bucket, S3BucketItem}
+import io.carpe.scalambda.terraform.ast.resources.{ApiGateway, ApiGatewayBasePathMapping, ApiGatewayDeployment, ApiGatewayDomainName, LambdaFunction, LambdaFunctionAlias, LambdaLayerVersion, LambdaPermission, S3Bucket, S3BucketItem}
 
 case class ScalambdaModule( // lambda resources
                             lambdas: Seq[LambdaFunction],
@@ -18,6 +18,8 @@ case class ScalambdaModule( // lambda resources
                             lambdaPermissions: Seq[LambdaPermission],
                             swaggerTemplate: Option[TemplateFile],
                             apiGatewayDeployment: Option[ApiGatewayDeployment],
+                            apiGatewayDomainName: Option[ApiGatewayDomainName],
+                            apiGatewayBasePathMapping: Option[ApiGatewayBasePathMapping],
 
                             // other
                             variables: Seq[Variable[_]],
@@ -33,9 +35,12 @@ object ScalambdaModule {
     val coreLambdaFiles = Seq(lambdasFile, s3File, variablesAndOutputsFile)
 
     val apiFiles = scalambdaModule match {
-      case ScalambdaModule(_, _, _, _, _, _, Some(apiGateway), _, Some(swaggerTemplate), Some(apiGatewayDeployment), _, _) =>
+      case ScalambdaModule(_, _, _, _, _, _, Some(apiGateway), _, Some(swaggerTemplate), Some(apiGatewayDeployment), _, _, maybeDomainName, maybeBasePathMapping) =>
+        val domainResources = Seq(maybeDomainName, maybeBasePathMapping).flatten
+        val apiResources = apiGateway +: swaggerTemplate +: apiGatewayDeployment +: scalambdaModule.lambdaPermissions
+
         Seq(
-          TerraformFile(apiGateway +: swaggerTemplate +: apiGatewayDeployment +: scalambdaModule.lambdaPermissions, "api.tf")
+          TerraformFile(domainResources ++ apiResources, "api.tf")
         )
       case _ =>
         Seq.empty

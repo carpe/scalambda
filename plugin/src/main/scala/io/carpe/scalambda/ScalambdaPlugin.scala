@@ -34,6 +34,7 @@ object ScalambdaPlugin extends AutoPlugin {
 
     lazy val apiName = settingKey[String]("Prefix for the name of the api. Defaults to project name")
     lazy val s3BucketName = settingKey[String]("Prefix for S3 bucket name to store lambda functions in. Defaults to project name.")
+    lazy val domainName = settingKey[String]("Domain name to be used in the terraform output")
     lazy val scalambdaFunctions = settingKey[Seq[ScalambdaFunction]]("List of Scalambda Functions")
 
     lazy val scalambdaTerraformPath = settingKey[File]("Path to where terraform should be written to.")
@@ -135,7 +136,8 @@ object ScalambdaPlugin extends AutoPlugin {
       projectSource = { packageScalambda.value },
       dependencies = { packageScalambdaDependencies.value },
       apiName = apiName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas"),
-      terraformOutput = scalambdaTerraformPath.value
+      terraformOutput = scalambdaTerraformPath.value,
+      maybeDomainName = domainName.?.value
     )
   ) ++ LambdaLoggingSettings.loggingSettings
 
