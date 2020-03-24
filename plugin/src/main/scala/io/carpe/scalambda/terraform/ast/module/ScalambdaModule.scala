@@ -35,7 +35,7 @@ object ScalambdaModule {
     val coreLambdaFiles = Seq(lambdasFile, s3File, variablesAndOutputsFile)
 
     val apiFiles = scalambdaModule match {
-      case ScalambdaModule(_, _, _, _, _, _, Some(apiGateway), _, Some(swaggerTemplate), Some(apiGatewayDeployment), _, _, maybeDomainName, maybeBasePathMapping) =>
+      case ScalambdaModule(_, _, _, _, _, _, Some(apiGateway), _, Some(swaggerTemplate), Some(apiGatewayDeployment), maybeDomainName, maybeBasePathMapping, _, _) =>
         val domainResources = Seq(maybeDomainName, maybeBasePathMapping).flatten
         val apiResources = apiGateway +: swaggerTemplate +: apiGatewayDeployment +: scalambdaModule.lambdaPermissions
 

@@ -22,7 +22,7 @@ case class LambdaFunctionAlias(function: LambdaFunction, aliasName: String) exte
    *
    * @return
    */
-  override def name: String = s"${function.name}_${StringUtils.toSnakeCase(aliasName)}"
+  override def name: String = s"${function.name}"
 
   /**
    * Properties of the definition
@@ -30,7 +30,7 @@ case class LambdaFunctionAlias(function: LambdaFunction, aliasName: String) exte
   override def body: Map[String, TValue] = Map(
     "name" -> TString(aliasName),
     "description" -> TString("Managed by Scalambda"),
-    "function_name" -> TResourceRef("aws_lambda_function", function.name, "name"),
+    "function_name" -> TResourceRef("aws_lambda_function", function.name, "function_name"),
     "function_version" -> TResourceRef("aws_lambda_function", function.name, "version"),
   )
 }
