@@ -4,7 +4,7 @@ import com.amazonaws.services.lambda.runtime.Context
 import io.carpe.scalambda.api.ApiResource
 import io.carpe.scalambda.api.conf.ScalambdaApi
 import io.carpe.scalambda.request.{APIGatewayProxyRequest, RequestContext, RequestContextIdentity}
-import io.carpe.scalambda.response.{APIGatewayProxyResponse, ApiError}
+import io.carpe.scalambda.response.{APIGatewayProxyResponse, ApiError, ApiErrors}
 import io.carpe.scalambda.testing.ScalambdaFixtures
 import io.carpe.scalambda.testing.api.resourcehandlers.ApiResourceHandling
 import io.circe.generic.semiauto.deriveDecoder
@@ -16,7 +16,7 @@ trait ApiScalambdaFixtures[C <: ScalambdaApi] extends ScalambdaFixtures with Api
 
   def makeTestRequestWithoutBodyOrResponse
   (handler: ApiResource[C, Nothing, APIGatewayProxyRequest.WithoutBody, Nothing], queryParameters: Map[String, String] = Map.empty, pathParameters: Map[String, String] = Map.empty)
-  (implicit encoderO: Encoder[APIGatewayProxyResponse[Nothing]], requestContext: Context): APIGatewayProxyResponse[Nothing] = {
+  (implicit requestContext: Context): APIGatewayProxyResponse[Nothing] = {
     val apiGatewayReq: APIGatewayProxyRequest.WithoutBody = APIGatewayProxyRequest.WithoutBody(
       "/resource",
       "/unit-test",
@@ -53,13 +53,13 @@ trait ApiScalambdaFixtures[C <: ScalambdaApi] extends ScalambdaFixtures with Api
                 fail("Could not serialize response to a record OR error. ", decoderFailure),
               responseErr =>
                 // build proper response from parsed error
-                APIGatewayProxyResponse.WithError(intermediary.headers, new ApiError {
+                APIGatewayProxyResponse.WithError(intermediary.headers, ApiErrors(new ApiError {
                   override val httpStatus: Int = intermediary.statusCode
                   override val headers: Map[String, String] = intermediary.headers
                   override val message: String = responseErr.message
                   override val errorCode: Option[Int] = responseErr.errorCode
-                  override val data: Option[Json] = responseErr.data
-                }, intermediary.isBase64Encoded)
+                  override val additional: Option[Json] = responseErr.additional
+                }), intermediary.isBase64Encoded)
             )
 
           case None =>

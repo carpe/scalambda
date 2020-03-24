@@ -5,7 +5,7 @@ import io.carpe.scalambda.api.ApiResource
 import io.carpe.scalambda.api.conf.ScalambdaApi
 import io.carpe.scalambda.request.RequestContext.{Authenticated, Unauthenticated}
 import io.carpe.scalambda.request.{APIGatewayProxyRequest, RequestContext}
-import io.carpe.scalambda.response.{APIGatewayProxyResponse, ApiError}
+import io.carpe.scalambda.response.{APIGatewayProxyResponse, ApiError, ApiErrors}
 import io.circe.{Decoder, Encoder, Json}
 import org.scalatest.TestSuite
 
@@ -62,14 +62,15 @@ trait ApiResourceHandling[C <: ScalambdaApi] {
   case class IntermediaryProxyResponse(statusCode: Int, headers: Map[String, String] = Map.empty, body: Option[String], isBase64Encoded: Boolean = false)
 
   case class IntermediaryApiError(message: String) extends ApiError
-
+  case class IntermediaryApiErrors(errors: Seq[IntermediaryApiError])
   implicit lazy val apiErrorDecoder: Decoder[IntermediaryApiError] = deriveDecoder[IntermediaryApiError]
+  implicit lazy val apiErrorsDecoder: Decoder[IntermediaryApiErrors] = deriveDecoder[IntermediaryApiErrors]
 
   implicit def responseDecoder[T](implicit decoder: Decoder[T], encoder: Encoder[T]): Decoder[APIGatewayProxyResponse[T]] = {
     deriveDecoder[IntermediaryProxyResponse].map(intermediary => {
       import io.circe.parser._
 
-      val errorOrSuccessDecoder: Decoder[Either[IntermediaryApiError, T]] = decoder.map(Right(_)) or apiErrorDecoder.map(Left(_))
+      val errorsOrSuccessDecoder: Decoder[Either[IntermediaryApiErrors, T]] = decoder.map(Right(_)) or apiErrorsDecoder.map(Left(_))
 
       intermediary.body match {
         case Some(body) =>
@@ -77,19 +78,25 @@ trait ApiResourceHandling[C <: ScalambdaApi] {
           val parsed: Json = parse(body).fold(e => throw e, c => c)
 
           // decode the response into either an ApiError or api response
-          errorOrSuccessDecoder.decodeJson(parsed).fold(
+          errorsOrSuccessDecoder.decodeJson(parsed).fold(
             decodeFailure =>
               fail("Could not serialize response to a record OR error. ", decodeFailure),
             {
-              case Left(responseErr) =>
+              case Left(responseErrs) =>
                 // build proper response from parsed error
-                APIGatewayProxyResponse.WithError(intermediary.headers, new ApiError {
-                  override val httpStatus: Int = intermediary.statusCode
-                  override val headers: Map[String, String] = intermediary.headers
-                  override val message: String = responseErr.message
-                  override val errorCode: Option[Int] = responseErr.errorCode
-                  override val data: Option[Json] = responseErr.data
-                }, intermediary.isBase64Encoded)
+                val apiErrorSeq = responseErrs.errors.map(responseErr => {
+                  new ApiError {
+                    override val httpStatus: Int = intermediary.statusCode
+                    override val headers: Map[String, String] = intermediary.headers
+                    override val message: String = responseErr.message
+                    override val errorCode: Option[Int] = responseErr.errorCode
+                    override val additional: Option[Json] = responseErr.additional
+                  }
+                })
+
+                val apiErrors = ApiErrors(apiErrorSeq.head, apiErrorSeq.tail: _*)
+
+                APIGatewayProxyResponse.WithError(intermediary.headers, apiErrors, intermediary.isBase64Encoded)
               case Right(responseBody) =>
                 APIGatewayProxyResponse.WithBody(intermediary.statusCode, intermediary.headers, responseBody, intermediary.isBase64Encoded)
             }

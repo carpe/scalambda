@@ -26,10 +26,9 @@ abstract class ApiError extends Throwable {
   val errorCode: Option[Int] = None
 
   /**
-   * Use the optional data field when you need to pass back some specific Json value of additional data in the
-   * error that the caller might need when processing what to do with the error.
+   * The json in this field will be merged with the standard error fields.
    */
-  val data: Option[Json] = None
+  val additional: Option[Json] = None
 
   /**
    * The plain text string of what happened. Great for humans, bad for systems - use errorCodes when a system needs
@@ -39,13 +38,14 @@ abstract class ApiError extends Throwable {
 }
 
 object ApiError {
-  implicit val encoder: Encoder[ApiError] = Encoder[ApiError](a => {
+
+  val defaultEncoder: Encoder[ApiError] = Encoder[ApiError](a => {
     val requiredJson = Json.obj(
-      ("errorCode", a.errorCode.map(x => Json.fromInt(x)).getOrElse(Json.Null)),
+      ("code", a.errorCode.map(x => Json.fromInt(x)).getOrElse(Json.Null)),
       ("message", Json.fromString(a.message))
     )
 
-    a.data.fold(requiredJson)(d => requiredJson.deepMerge(Json.obj("data" -> d)))
+    a.additional.fold(requiredJson)(d => requiredJson.deepMerge(d))
   })
 
   /**

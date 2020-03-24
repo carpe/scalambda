@@ -2,6 +2,7 @@ package io.carpe.scalambda.testing.api.resourcehandlers
 
 import com.amazonaws.services.lambda.runtime.Context
 import io.carpe.scalambda.api.ApiResource
+import io.carpe.scalambda.api.ApiResource.defaultResponseHeaders
 import io.carpe.scalambda.api.conf.ScalambdaApi
 import io.carpe.scalambda.request.APIGatewayProxyRequest
 import io.carpe.scalambda.response.APIGatewayProxyResponse
@@ -28,5 +29,6 @@ trait MockApiResourceHandling[C <: ScalambdaApi] extends ApiResourceHandling[C] 
     implicit val bootstrapWithMocks: C = mockApi(bootstrap)
 
     handler.handleApiRequest(request)
+      .fold(errors => APIGatewayProxyResponse.WithError(defaultResponseHeaders, errors), identity)
   }
 }

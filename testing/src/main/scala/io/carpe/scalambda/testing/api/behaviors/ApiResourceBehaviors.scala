@@ -35,8 +35,8 @@ trait ApiResourceBehaviors[C <: ScalambdaApi] extends ApiScalambdaFixtures[C] wi
                 fail(s"Expected success, but the handler failed. Response was: ${err}")
 
               case CreateTestCase.Fail(input, expectedMessage, expectedStatus, caseDescription) =>
-                expectedStatus.foreach(expected => assert(err.httpStatus === expected))
-                expectedMessage.foreach(expected => assert(err.message === expected))
+                expectedStatus.foreach(expected => assert(err.errors.head.httpStatus === expected))
+                expectedMessage.foreach(expected => assert(err.errors.head.message === expected))
             }
 
 
@@ -74,8 +74,8 @@ trait ApiResourceBehaviors[C <: ScalambdaApi] extends ApiScalambdaFixtures[C] wi
                 fail(s"Expected success, but the handler failed. Response was: ${err}")
 
               case IndexTestCase.Fail(queryParameters, expectedMessage, expectedStatus, caseDescription) =>
-                expectedStatus.foreach(expected => assert(err.httpStatus === expected))
-                expectedMessage.foreach(expected => assert(err.message === expected))
+                expectedStatus.foreach(expected => assert(err.errors.head.httpStatus === expected))
+                expectedMessage.foreach(expected => assert(err.errors.head.message === expected))
             }
 
 
@@ -113,8 +113,8 @@ trait ApiResourceBehaviors[C <: ScalambdaApi] extends ApiScalambdaFixtures[C] wi
                 fail(s"Expected success, but the handler failed. Response was: ${err}")
 
               case ShowTestCase.Fail(id, expectedMessage, expectedStatus, caseDescription) =>
-                expectedStatus.foreach(expected => assert(err.httpStatus === expected))
-                expectedMessage.foreach(expected => assert(err.message === expected))
+                expectedStatus.foreach(expected => assert(err.errors.head.httpStatus === expected))
+                expectedMessage.foreach(expected => assert(err.errors.head.message === expected))
             }
 
 
@@ -152,8 +152,8 @@ trait ApiResourceBehaviors[C <: ScalambdaApi] extends ApiScalambdaFixtures[C] wi
                 fail(s"Expected success, but the handler failed. Response was: ${err}")
 
               case UpdateTestCase.Fail(id, input, expectedMessage, expectedStatus, caseDescription) =>
-                expectedStatus.foreach(expected => assert(err.httpStatus === expected))
-                expectedMessage.foreach(expected => assert(err.message === expected))
+                expectedStatus.foreach(expected => assert(err.errors.head.httpStatus === expected))
+                expectedMessage.foreach(expected => assert(err.errors.head.message === expected))
             }
 
 
