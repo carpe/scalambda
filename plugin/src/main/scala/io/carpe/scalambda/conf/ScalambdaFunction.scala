@@ -42,6 +42,7 @@ object ScalambdaFunction {
     lazy val swaggerVariableName: String = {
       s"${terraformLambdaResourceName}_invoke_arn"
     }
+
   }
 
   case class Function(naming: FunctionNaming,

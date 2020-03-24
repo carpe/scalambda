@@ -36,7 +36,8 @@ lazy val core = project
     libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
 
     // Testing
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.0" % Test,
+    libraryDependencies += "org.scalactic" %% "scalactic" % "3.1.1" % Test,
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % Test,
     libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test,
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")
   )
@@ -47,7 +48,7 @@ lazy val testing = project
   .settings(description := "Utilities for testing Lambda Functions created with Scalambda.")
   .settings(
     // Testing
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.0",
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1",
     libraryDependencies += "org.scalamock" %% "scalamock" % "4.4.0",
     libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10",
 
@@ -73,8 +74,8 @@ lazy val plugin = project
     libraryDependencies ++= carpeDeps.minimalCats,
 
     // Used to generate swagger file for terraforming
-    libraryDependencies += "io.circe" %% "circe-generic" % "0.11.1",
-    libraryDependencies += "io.circe" %% "circe-yaml" % "0.10.0",
+    libraryDependencies += "io.circe" %% "circe-generic" % "0.12.1",
+    libraryDependencies += "io.circe" %% "circe-yaml" % "0.12.0",
 
       // Used for reading configuration values
     libraryDependencies += "com.typesafe" % "config" % "1.2.1",
@@ -96,7 +97,8 @@ lazy val plugin = project
     },
 
     // Testing
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.0" % Test,
+    libraryDependencies += "org.scalactic" %% "scalactic" % "3.1.1" % Test,
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % Test,
     libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test,
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")
   )

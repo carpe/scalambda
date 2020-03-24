@@ -4,10 +4,10 @@ import _root_.io.carpe.scalambda.conf.ScalambdaFunction
 import _root_.io.carpe.scalambda.conf.function.FunctionNaming.WorkspaceBased
 import _root_.io.carpe.scalambda.conf.function.FunctionRoleSource.FromVariable
 import _root_.io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
-import _root_.io.carpe.scalambda.conf.function._
-import _root_.io.carpe.scalambda.conf.function.VpcConf
+import _root_.io.carpe.scalambda.conf.function.{VpcConf, _}
 import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
 import com.typesafe.sbt.GitVersioning
+import com.typesafe.sbt.SbtGit.GitKeys.{formattedDateVersion, gitHeadCommit}
 import sbt.Keys.{credentials, libraryDependencies, resolvers, target}
 import sbt._
 import sbtassembly.AssemblyKeys._
@@ -130,6 +130,7 @@ object ScalambdaPlugin extends AutoPlugin {
     scalambdaTerraformPath := target.value / "terraform",
     scalambdaTerraform := ScalambdaTerraform.writeTerraform(
       functions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty),
+      version = gitHeadCommit.value.getOrElse({ formattedDateVersion.value }),
       s3BucketName = s3BucketName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas"),
       projectSource = { packageScalambda.value },
       dependencies = { packageScalambdaDependencies.value },
