@@ -3,7 +3,7 @@ package io.carpe.scalambda.terraform.ast.resources
 import io.carpe.scalambda.conf.utils.StringUtils
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TResourceRef, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TLiteral, TResourceRef, TString}
 
 /**
  * For now, this class exists solely to allow Scalambda to manage an alias that points to the latest version of the
@@ -32,5 +32,8 @@ case class LambdaFunctionAlias(function: LambdaFunction, aliasName: String) exte
     "description" -> TString("Managed by Scalambda"),
     "function_name" -> TResourceRef("aws_lambda_function", function.name, "function_name"),
     "function_version" -> TResourceRef("aws_lambda_function", function.name, "version"),
+    "depends_on" -> TArray(
+      TLiteral(s"aws_lambda_function.${function.name}")
+    )
   )
 }
