@@ -15,7 +15,8 @@ import io.carpe.scalambda.terraform.ast.resources._
 
 object ScalambdaTerraform {
 
-  def writeTerraform( functions: List[ScalambdaFunction],
+  def writeTerraform( projectName: String,
+                      functions: List[ScalambdaFunction],
                       version: String,
                       s3BucketName: String,
                       projectSource: File,
@@ -41,7 +42,7 @@ object ScalambdaTerraform {
     // create resource definitions for the lambda functions
     val versionAsAlias = StringUtils.toSnakeCase(version)
     val (lambdas, lambdaAliases, lambdaDependenciesLayer, lambdaVariables, lambdaOutputs) =
-      defineLambdaResources(projectFunctions, versionAsAlias, s3Bucket, projectBucketItem, dependenciesBucketItem)
+      defineLambdaResources(projectName, projectFunctions, versionAsAlias, s3Bucket, projectBucketItem, dependenciesBucketItem)
 
     // create resource definitions for an api gateway instance, if lambdas are configured for HTTP
     val (apiGateway, swaggerTemplate, lambdaPermissions, apiGatewayDeployment, apiDomainName, apiPathMapping, apiVariables) =
@@ -70,6 +71,7 @@ object ScalambdaTerraform {
   }
 
   def defineLambdaResources(
+    projectName: String,
     scalambdaFunctions: List[ProjectFunction],
     version: String,
     s3Bucket: S3Bucket,
@@ -78,7 +80,8 @@ object ScalambdaTerraform {
   ): (Seq[LambdaFunction], Seq[LambdaFunctionAlias], LambdaLayerVersion, Seq[Variable[_]], Seq[Output[_]]) = {
     // create a lambda layer that can be shared by all functions that contains the dependencies of said functions.
     // this will be used to speed up deployments
-    val lambdaDependenciesLayer = LambdaLayerVersion(dependenciesBucketItem)
+    val layerName = s"${StringUtils.toSnakeCase(projectName)}_assembled_dependencies"
+    val lambdaDependenciesLayer = LambdaLayerVersion(layerName, dependenciesBucketItem)
 
     // create resources for each of the lambda functions and the variables they require
     val (lambdaFunctions, lambdaAliases, lambdaVariables, outputs) =

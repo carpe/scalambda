@@ -130,12 +130,13 @@ object ScalambdaPlugin extends AutoPlugin {
 
     scalambdaTerraformPath := target.value / "terraform",
     scalambdaTerraform := ScalambdaTerraform.writeTerraform(
+      projectName = { sbt.Keys.name.value },
       functions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty),
       version = gitHeadCommit.value.getOrElse({ formattedDateVersion.value }),
       s3BucketName = s3BucketName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas"),
       projectSource = { packageScalambda.value },
       dependencies = { packageScalambdaDependencies.value },
-      apiName = apiName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas"),
+      apiName = apiName.?.value.getOrElse(s"${sbt.Keys.name.value}"),
       terraformOutput = scalambdaTerraformPath.value,
       maybeDomainName = domainName.?.value
     )
