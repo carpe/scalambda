@@ -4,10 +4,10 @@ import _root_.io.carpe.scalambda.conf.ScalambdaFunction
 import _root_.io.carpe.scalambda.conf.function.FunctionNaming.WorkspaceBased
 import _root_.io.carpe.scalambda.conf.function.FunctionRoleSource.FromVariable
 import _root_.io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
-import _root_.io.carpe.scalambda.conf.function._
-import _root_.io.carpe.scalambda.conf.function.VpcConf
+import _root_.io.carpe.scalambda.conf.function.{VpcConf, _}
 import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
 import com.typesafe.sbt.GitVersioning
+import com.typesafe.sbt.SbtGit.GitKeys.{formattedDateVersion, gitHeadCommit}
 import sbt.Keys.{credentials, libraryDependencies, resolvers, target}
 import sbt._
 import sbtassembly.AssemblyKeys._
@@ -30,8 +30,11 @@ object ScalambdaPlugin extends AutoPlugin {
   )
 
   object autoImport {
+    import _root_.io.carpe.scalambda.conf.keys.Keys
+
     lazy val apiName = settingKey[String]("Prefix for the name of the api. Defaults to project name")
     lazy val s3BucketName = settingKey[String]("Prefix for S3 bucket name to store lambda functions in. Defaults to project name.")
+    lazy val domainName = settingKey[String]("Domain name to be used in the terraform output")
     lazy val scalambdaFunctions = settingKey[Seq[ScalambdaFunction]]("List of Scalambda Functions")
 
     lazy val scalambdaTerraformPath = settingKey[File]("Path to where terraform should be written to.")
@@ -40,11 +43,12 @@ object ScalambdaPlugin extends AutoPlugin {
     lazy val packageScalambdaDependencies = taskKey[File]("Create a jar containing all the dependencies for your Lambda Function(s). This will be used as a Lambda Layer to support your function.")
     lazy val scalambdaTerraform = taskKey[Unit]("Produces a terraform module from the project's scalambda configuration.")
 
+    val ScalambdaKeys: Keys.type = Keys
+
     def functionNaming: FunctionNaming.type = FunctionNaming
     def iamRoleSource: FunctionRoleSource.type = FunctionRoleSource
     def functionSource: FunctionSource.type = FunctionSource
     def environmentVariable: EnvironmentVariable.type = EnvironmentVariable
-    val Endpoint: ApiGatewayConf.type = ApiGatewayConf
     val Vpc: VpcConf.type = VpcConf
     val Auth: AuthConf.type = AuthConf
 
@@ -126,12 +130,15 @@ object ScalambdaPlugin extends AutoPlugin {
 
     scalambdaTerraformPath := target.value / "terraform",
     scalambdaTerraform := ScalambdaTerraform.writeTerraform(
+      projectName = { sbt.Keys.name.value },
       functions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty),
+      version = gitHeadCommit.value.getOrElse({ formattedDateVersion.value }),
       s3BucketName = s3BucketName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas"),
       projectSource = { packageScalambda.value },
       dependencies = { packageScalambdaDependencies.value },
-      apiName = apiName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas"),
-      terraformOutput = scalambdaTerraformPath.value
+      apiName = apiName.?.value.getOrElse(s"${sbt.Keys.name.value}"),
+      terraformOutput = scalambdaTerraformPath.value,
+      maybeDomainName = domainName.?.value
     )
   ) ++ LambdaLoggingSettings.loggingSettings
 

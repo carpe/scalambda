@@ -5,7 +5,7 @@ import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue.{TNone, TResourceRef, TString}
 
-case class LambdaPermission(lambda: ScalambdaFunction, apiGateway: ApiGateway) extends Resource {
+case class LambdaPermission(alias: LambdaFunctionAlias, apiGateway: ApiGateway) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    */
@@ -16,13 +16,10 @@ case class LambdaPermission(lambda: ScalambdaFunction, apiGateway: ApiGateway) e
    *
    * @return
    */
-  override def name: String = s"${lambda.terraformLambdaResourceName}_api_permission"
+  override def name: String = s"${alias.function.name}_api_permission"
 
-  val statementId: String = lambda match {
-    case function: ScalambdaFunction.ProjectFunction =>
-      "Allow${title(aws_lambda_function." + function.terraformLambdaResourceName + ".function_name)}InvokeBy${title(aws_api_gateway_rest_api." + apiGateway.name + ".name)}"
-    case ScalambdaFunction.ReferencedFunction(functionName, _, _, _) =>
-      functionName + "InvokeBy${title(aws_api_gateway_rest_api." + apiGateway.name + ".name)}"
+  val statementId: String = {
+    "Allow${title(aws_lambda_function." + alias.function.name + ".function_name)}InvokeBy${title(aws_api_gateway_rest_api." + apiGateway.name + ".name)}"
   }
 
   /**
@@ -31,22 +28,8 @@ case class LambdaPermission(lambda: ScalambdaFunction, apiGateway: ApiGateway) e
   override def body: Map[String, TValue] = Map(
     "statement_id" -> TString(statementId),
     "action" -> TString("lambda:InvokeFunction"),
-    "function_name" -> {
-      lambda match {
-        case function: ScalambdaFunction.ProjectFunction =>
-          TResourceRef("aws_lambda_function", lambda.terraformLambdaResourceName, "function_name")
-        case ScalambdaFunction.ReferencedFunction(functionName, _, _, _) =>
-          TString(functionName)
-      }
-    },
-    "qualifier" -> {
-      lambda match {
-        case function: ScalambdaFunction.ProjectFunction =>
-          TNone
-        case ScalambdaFunction.ReferencedFunction(functionName, qualifier, functionArn, apiGatewayConf) =>
-          TString(qualifier)
-      }
-    },
+    "function_name" -> TResourceRef("aws_lambda_function", alias.function.name, "function_name"),
+    "qualifier" -> TResourceRef("aws_lambda_alias", alias.name, "name"),
     "principal" -> TString("apigateway.amazonaws.com"),
     "source_arn" -> TString("${aws_api_gateway_rest_api." + apiGateway.name + ".execution_arn}/*/*")
   )

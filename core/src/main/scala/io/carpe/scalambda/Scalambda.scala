@@ -15,9 +15,6 @@ import scala.io.Source
 abstract class Scalambda[I, O](implicit val dec: Decoder[I], val enc: Encoder[O])
   extends LazyLogging {
 
-  private def invalidInput(circeError: circe.Error): ApiError =
-    InputError(circeError.getMessage)
-
   /**
    * This is the handler that will be called by AWS when executing the Lambda Function.
    *
@@ -39,7 +36,7 @@ abstract class Scalambda[I, O](implicit val dec: Decoder[I], val enc: Encoder[O]
         error =>
           {
             logger.error("Failed to decode input:", error)
-            Scalambda.encode[ApiError](invalidInput(error))
+            handleInvalidInput(error)
           },
         // if successful, run the defined handler function
         req => {
@@ -60,6 +57,18 @@ abstract class Scalambda[I, O](implicit val dec: Decoder[I], val enc: Encoder[O]
   }
 
   def handleRequest(input: I, context: Context): O
+
+
+  /**
+   * This is the function that Scalambda will call in the event of invalid input.
+   *
+   * You can override this to modify what is returned when invalid input is provided.
+   *
+   * @param decodeError produced by circe
+   * @return
+   */
+  protected def handleInvalidInput(decodeError: circe.Error): String = decodeError.getMessage
+
 }
 
 object Scalambda {

@@ -6,7 +6,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
 
   "LambdaFunction" should "be a serializable terraform resource" in {
-    val actual: String = LambdaFunction(driveCarFunction, s3Bucket = s3Bucket, s3BucketItem = sourcesBucketItem, dependenciesLayer = dependenciesLambdaLayer).toString
+    val actual: String = LambdaFunction(driveCarFunction, version = "42", s3Bucket = s3Bucket, s3BucketItem = sourcesBucketItem, dependenciesLayer = dependenciesLambdaLayer).toString
 
     val expected: String =
       """resource "aws_lambda_function" "drive_car_lambda" {
@@ -19,10 +19,12 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |  s3_key = aws_s3_bucket_object.sources.key
         |  memory_size = 1536
         |  source_code_hash = filebase64sha256(aws_s3_bucket_object.sources.source)
+        |  publish = true
         |  s3_object_version = aws_s3_bucket_object.sources.version_id
         |  environment {
         |    variables = {
         |      API = "www.google.com"
+        |      SCALAMBDA_VERSION = "42"
         |    }
         |  }
         |  timeout = 900
@@ -31,11 +33,11 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |}
         |""".stripMargin
 
-    assert(actual === expected)
+    assert(actual == expected)
   }
 
   it should "be a serializable terraform resource (when provided vpc_config)" in {
-    val actual: String = LambdaFunction(driveCarFunction, s3Bucket = s3Bucket, s3BucketItem = sourcesBucketItem, dependenciesLayer = dependenciesLambdaLayer).toString
+    val actual: String = LambdaFunction(driveCarFunction, version = "1337", s3Bucket = s3Bucket, s3BucketItem = sourcesBucketItem, dependenciesLayer = dependenciesLambdaLayer).toString
 
     val expected: String =
       """resource "aws_lambda_function" "drive_car_lambda" {
@@ -48,10 +50,12 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |  s3_key = aws_s3_bucket_object.sources.key
         |  memory_size = 1536
         |  source_code_hash = filebase64sha256(aws_s3_bucket_object.sources.source)
+        |  publish = true
         |  s3_object_version = aws_s3_bucket_object.sources.version_id
         |  environment {
         |    variables = {
         |      API = "www.google.com"
+        |      SCALAMBDA_VERSION = "1337"
         |    }
         |  }
         |  timeout = 900
@@ -60,6 +64,6 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |}
         |""".stripMargin
 
-    assert(actual === expected)
+    assert(actual == expected)
   }
 }

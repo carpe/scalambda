@@ -6,7 +6,7 @@ import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue._
 
-case class LambdaFunction(scalambdaFunction: ProjectFunction, s3Bucket: S3Bucket, s3BucketItem: S3BucketItem, dependenciesLayer: LambdaLayerVersion) extends Resource {
+case class LambdaFunction(scalambdaFunction: ProjectFunction, version: String, s3Bucket: S3Bucket, s3BucketItem: S3BucketItem, dependenciesLayer: LambdaLayerVersion) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    *
@@ -63,7 +63,9 @@ case class LambdaFunction(scalambdaFunction: ProjectFunction, s3Bucket: S3Bucket
 
     "timeout" -> TNumber(scalambdaFunction.functionConfig.timeout),
 
-    "environment" -> TBlock("variables" -> TObject(scalambdaFunction.environmentVariables.flatMap(envVariable => {
+    "environment" -> TBlock("variables" -> TObject({
+      scalambdaFunction.environmentVariables :+ (EnvironmentVariable.Static("SCALAMBDA_VERSION", version))
+    }.flatMap(envVariable => {
       envVariable match {
         case EnvironmentVariable.Static(key, value) =>
           Some(key -> TString(value))
@@ -75,7 +77,10 @@ case class LambdaFunction(scalambdaFunction: ProjectFunction, s3Bucket: S3Bucket
     "vpc_config" -> TBlock(
       "subnet_ids" -> TArray(scalambdaFunction.vpcConfig.subnetIds.map(TString): _*),
       "security_group_ids" -> TArray(scalambdaFunction.vpcConfig.securityGroupIds.map(TString): _*)
-    )
+    ),
+
+    // sets the lambda function to publish a new version for each change
+    "publish" -> TBool(true)
 
   )
 }
