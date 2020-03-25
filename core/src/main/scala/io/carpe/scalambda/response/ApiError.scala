@@ -41,7 +41,7 @@ object ApiError {
 
   val defaultEncoder: Encoder[ApiError] = Encoder[ApiError](a => {
     val requiredJson = Json.obj(
-      ("code", a.errorCode.map(x => Json.fromInt(x)).getOrElse(Json.Null)),
+      ("status", Json.fromInt(a.httpStatus)),
       ("message", Json.fromString(a.message))
     )
 
@@ -65,6 +65,7 @@ object ApiError {
    * @param msg explanation for the user
    */
   case class InputError(msg: String) extends ApiError {
+    override val httpStatus: Int = 422
     override val message: String = msg
   }
 
@@ -74,8 +75,8 @@ object ApiError {
    * @param msg explanation for the user
    */
   case class NotFoundError(msg: String) extends ApiError {
-    override val message: String = msg
     override val httpStatus: Int = 404
+    override val message: String = msg
   }
 }
 

@@ -72,11 +72,11 @@ sealed abstract class ApiResource[C <: ScalambdaApi, +I, RI <: APIGatewayProxyRe
    * @return
    */
   override protected def handleInvalidInput(decodeError: circe.Error): String = {
-    Scalambda.encode[ApiErrors](
-      ApiErrors(
-        InputError(decodeError.getMessage)
-      )
-    )(bootstrap.errorsEncoder)
+    val errorResponse = APIGatewayProxyResponse.WithError(defaultResponseHeaders, ApiErrors(
+      InputError(decodeError.getMessage)
+    ))
+
+    Scalambda.encode[APIGatewayProxyResponse[O]](errorResponse)
   }
 }
 
