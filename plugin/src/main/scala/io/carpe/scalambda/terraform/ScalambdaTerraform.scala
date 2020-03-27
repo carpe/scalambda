@@ -11,7 +11,8 @@ import io.carpe.scalambda.terraform.ast.Definition.{Output, Variable}
 import io.carpe.scalambda.terraform.ast.data.TemplateFile
 import io.carpe.scalambda.terraform.ast.module.ScalambdaModule
 import io.carpe.scalambda.terraform.ast.props.TValue.{TResourceRef, TString}
-import io.carpe.scalambda.terraform.ast.resources._
+import io.carpe.scalambda.terraform.ast.resources.{apigateway, _}
+import io.carpe.scalambda.terraform.ast.resources.apigateway.{ApiGateway, ApiGatewayBasePathMapping, ApiGatewayDeployment, ApiGatewayDomainName, ApiGatewayStage}
 
 object ScalambdaTerraform {
 
@@ -21,6 +22,7 @@ object ScalambdaTerraform {
                       s3BucketName: String,
                       projectSource: File,
                       dependencies: File,
+                      isXrayEnabled: Boolean,
                       apiName: String,
                       terraformOutput: File,
                       maybeDomainName: Option[String]
@@ -45,8 +47,8 @@ object ScalambdaTerraform {
       defineLambdaResources(projectName, projectFunctions, versionAsAlias, s3Bucket, projectBucketItem, dependenciesBucketItem)
 
     // create resource definitions for an api gateway instance, if lambdas are configured for HTTP
-    val (apiGateway, swaggerTemplate, lambdaPermissions, apiGatewayDeployment, apiDomainName, apiPathMapping, apiVariables) =
-      maybeDefineApiResources(apiName, lambdaAliases, terraformOutput, maybeDomainName)
+    val (apiGateway, swaggerTemplate, lambdaPermissions, apiGatewayDeployment, apiGatewayStage, apiDomainName, apiPathMapping, apiVariables) =
+      maybeDefineApiResources(isXrayEnabled, apiName, lambdaAliases, terraformOutput, maybeDomainName)
 
     // load resources into module
     val scalambdaModule = ScalambdaModule(
@@ -60,6 +62,7 @@ object ScalambdaTerraform {
       lambdaPermissions = lambdaPermissions,
       swaggerTemplate = swaggerTemplate,
       apiGatewayDeployment = apiGatewayDeployment,
+      apiGatewayStage = ???,
       apiGatewayDomainName = apiDomainName,
       apiGatewayBasePathMapping = apiPathMapping,
       variables = lambdaVariables ++ apiVariables,
@@ -203,16 +206,17 @@ object ScalambdaTerraform {
     (newBucket, sourceBucketItem, depsBucketItem)
   }
 
-  def maybeDefineApiResources( apiName: String,
-                               functionAliases: Seq[LambdaFunctionAlias],
-                               terraformOutput: File,
-                               maybeDomainName: Option[String]
-  ): (Option[ApiGateway], Option[TemplateFile], Seq[LambdaPermission], Option[ApiGatewayDeployment], Option[ApiGatewayDomainName], Option[ApiGatewayBasePathMapping], Seq[Variable[_]]) = {
+  def maybeDefineApiResources(isXrayEnabled: Boolean,
+                              apiName: String,
+                              functionAliases: Seq[LambdaFunctionAlias],
+                              terraformOutput: File,
+                              maybeDomainName: Option[String]
+  ): (Option[ApiGateway], Option[TemplateFile], Seq[LambdaPermission], Option[ApiGatewayDeployment], Option[ApiGatewayStage], Option[ApiGatewayDomainName], Option[ApiGatewayBasePathMapping], Seq[Variable[_]]) = {
 
     // if there are no functions that are configured to be exposed via api
     if (functionAliases.count(_.function.scalambdaFunction.apiGatewayConfig.isDefined) == 0) {
       // do an early return
-      return (None, None, Seq.empty, None, None, None, Seq.empty)
+      return (None, None, Seq.empty, None, None, None, None, Seq.empty)
     }
 
     def writeSwagger(apiName: String, aliases: Seq[LambdaFunctionAlias], rootTerraformPath: String): TemplateFile = {
@@ -241,11 +245,14 @@ object ScalambdaTerraform {
     // create deployment
     val apiGatewayDeployment = ApiGatewayDeployment(api, permissions)
 
+    // create stage
+    val apiGatewayStage = ApiGatewayStage(api, apiGatewayDeployment, isXrayEnabled)
+
     // create resources for domain mapping (if domain name was supplied)
     val maybeApiGatewayDomainName = maybeDomainName.map(domainName => ApiGatewayDomainName(domainName))
-    val maybeBasePathMapping = maybeApiGatewayDomainName.map(domainName => { ApiGatewayBasePathMapping(api, apiGatewayDeployment, domainName) })
+    val maybeBasePathMapping = maybeApiGatewayDomainName.map(domainName => { apigateway.ApiGatewayBasePathMapping(api, apiGatewayDeployment, domainName) })
     val certificateVariable = maybeDomainName.map(_ => Variable("certificate_arn", Some("Arn of AWS Certificate Manager certificate."), None)).toSeq
 
-    (Some(api), Some(swaggerTemplate), permissions, Some(apiGatewayDeployment), maybeApiGatewayDomainName, maybeBasePathMapping, certificateVariable)
+    (Some(api), Some(swaggerTemplate), permissions, Some(apiGatewayDeployment), Some(apiGatewayStage), maybeApiGatewayDomainName, maybeBasePathMapping, certificateVariable)
   }
 }

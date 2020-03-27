@@ -4,6 +4,7 @@ import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue.{TNone, TResourceRef, TString}
+import io.carpe.scalambda.terraform.ast.resources.apigateway.ApiGateway
 
 case class LambdaPermission(alias: LambdaFunctionAlias, apiGateway: ApiGateway) extends Resource {
   /**

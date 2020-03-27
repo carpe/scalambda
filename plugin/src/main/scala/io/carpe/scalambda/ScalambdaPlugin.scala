@@ -6,6 +6,7 @@ import _root_.io.carpe.scalambda.conf.function.FunctionRoleSource.FromVariable
 import _root_.io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import _root_.io.carpe.scalambda.conf.function.{VpcConf, _}
 import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
+import _root_.io.carpe.scalambda.conf.keys.ScalambaKeys
 import com.typesafe.sbt.GitVersioning
 import com.typesafe.sbt.SbtGit.GitKeys.{formattedDateVersion, gitHeadCommit}
 import sbt.Keys.{credentials, libraryDependencies, name, packageBin, packageOptions, resolvers, target, test, version}
@@ -31,8 +32,7 @@ object ScalambdaPlugin extends AutoPlugin {
     libraryDependencies += "io.carpe" %% "scalambda-testing" % currentScalambdaVersion % Test
   )
 
-  object autoImport {
-    import _root_.io.carpe.scalambda.conf.keys.Keys
+  object autoImport extends ScalambaKeys {
 
     lazy val apiName = settingKey[String]("Prefix for the name of the api. Defaults to project name")
 
@@ -40,6 +40,8 @@ object ScalambdaPlugin extends AutoPlugin {
       settingKey[String]("Prefix for S3 bucket name to store lambda functions in. Defaults to project name.")
     lazy val domainName = settingKey[String]("Domain name to be used in the terraform output")
     lazy val scalambdaFunctions = settingKey[Seq[ScalambdaFunction]]("List of Scalambda Functions")
+
+    lazy val enableXray = settingKey[Boolean]("Enables AWS X-Ray for any Lambda functions or Api Gateway stages generated with scalambdaTerraform.")
 
     lazy val scalambdaTerraformPath = settingKey[File]("Path to where terraform should be written to.")
 
@@ -49,15 +51,12 @@ object ScalambdaPlugin extends AutoPlugin {
 
     lazy val packageScalambdaDependenciesMergeStrat =
       settingKey[String => MergeStrategy]("mapping from archive member path to merge strategy")
-
     lazy val packageScalambdaDependencies = taskKey[File](
       "Create a jar containing all the dependencies for your Lambda Function(s). This will be used as a Lambda Layer to support your function."
     )
 
     lazy val scalambdaTerraform =
       taskKey[Unit]("Produces a terraform module from the project's scalambda configuration.")
-
-    val ScalambdaKeys: Keys.type = Keys
 
     def functionNaming: FunctionNaming.type = FunctionNaming
     def iamRoleSource: FunctionRoleSource.type = FunctionRoleSource
@@ -67,12 +66,12 @@ object ScalambdaPlugin extends AutoPlugin {
     val Auth: AuthConf.type = AuthConf
 
     def scalambda(
-      functionClasspath: String,
-      functionNaming: FunctionNaming = WorkspaceBased,
-      iamRoleSource: FunctionRoleSource = FromVariable,
-      functionConfig: FunctionConf = FunctionConf.carpeDefault,
-      vpcConfig: VpcConf = Vpc.withoutVpc,
-      environmentVariables: Seq[EnvironmentVariable] = List.empty
+                   functionClasspath: String,
+                   functionNaming: FunctionNaming = WorkspaceBased,
+                   iamRoleSource: FunctionRoleSource = FromVariable,
+                   functionConfig: FunctionConf = FunctionConf.default,
+                   vpcConfig: VpcConf = Vpc.withoutVpc,
+                   environmentVariables: Seq[EnvironmentVariable] = List.empty
     ): Seq[Def.Setting[_]] = {
 
       val awsLambdaProxyPluginConfig = Seq(
@@ -117,14 +116,13 @@ object ScalambdaPlugin extends AutoPlugin {
       awsLambdaProxyPluginConfig ++ scalambdaLibs
     }
 
-    def scalambdaEndpoint(
-      functionClasspath: String,
-      functionNaming: FunctionNaming = WorkspaceBased,
-      iamRoleSource: FunctionRoleSource = FromVariable,
-      functionConfig: FunctionConf = FunctionConf.carpeDefault,
-      environmentVariables: Seq[EnvironmentVariable] = List.empty,
-      vpcConfig: VpcConf = Vpc.withoutVpc,
-      apiConfig: ApiGatewayConf
+    def scalambdaEndpoint( functionClasspath: String,
+                           functionNaming: FunctionNaming = WorkspaceBased,
+                           iamRoleSource: FunctionRoleSource = FromVariable,
+                           functionConfig: FunctionConf = FunctionConf.apiDefault,
+                           environmentVariables: Seq[EnvironmentVariable] = List.empty,
+                           vpcConfig: VpcConf = Vpc.withoutVpc,
+                           apiConfig: ApiGatewayConf
     ): Seq[Def.Setting[_]] = {
 
       val awsLambdaProxyPluginConfig = Seq(
@@ -216,6 +214,7 @@ object ScalambdaPlugin extends AutoPlugin {
           s3BucketName = s3BucketName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas"),
           projectSource = { packageScalambda.value },
           dependencies = { packageScalambdaDependencies.value },
+          isXrayEnabled = enableXray.?.value.getOrElse(false),
           apiName = apiName.?.value.getOrElse(s"${sbt.Keys.name.value}"),
           terraformOutput = scalambdaTerraformPath.value,
           maybeDomainName = domainName.?.value

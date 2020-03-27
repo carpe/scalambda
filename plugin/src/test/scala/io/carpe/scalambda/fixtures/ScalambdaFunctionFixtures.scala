@@ -15,7 +15,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       Static("CarsIndex"), "io.cars.index.CarsIndex::handler",
       functionSource = IncludedInModule,
       iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
-      functionConfig = FunctionConf.carpeDefault,
+      functionConfig = FunctionConf.default,
       apiConfig = ApiGatewayConf(route = "/cars", method = Method.GET, authConf = CarpeAuthorizer),
       vpcConfig = VpcConf.withoutVpc,
       environmentVariables = List.empty
@@ -27,7 +27,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       Static("DriveCar"), "io.cars.lambda.DriveCar::handler",
       functionSource = IncludedInModule,
       iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
-      functionConfig = FunctionConf.carpeDefault,
+      functionConfig = FunctionConf.default,
       vpcConfig = VpcConf.withoutVpc,
       environmentVariables = List(
         EnvironmentVariable.Static("API", "www.google.com")
@@ -40,7 +40,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       Static("FlyPlane"), "io.plane.lambda.FlyPlane::handler",
       functionSource = IncludedInModule,
       iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
-      functionConfig = FunctionConf.carpeDefault.copy(memory = 256, timeout = 30),
+      functionConfig = FunctionConf.default.copy(memory = 256, timeout = 30),
       vpcConfig = VpcConf(
         subnetIds = Seq("subnet-12345678987654321"),
         securityGroupIds = Seq("sg-12345678987654321")

@@ -1,4 +1,4 @@
-package io.carpe.scalambda.terraform.ast.resources
+package io.carpe.scalambda.terraform.ast.resources.apigateway
 
 import io.carpe.scalambda.conf.utils.StringUtils
 import io.carpe.scalambda.terraform.ast.Definition.Resource
