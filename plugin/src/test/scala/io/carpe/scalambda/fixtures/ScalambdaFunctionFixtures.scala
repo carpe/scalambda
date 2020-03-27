@@ -52,7 +52,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
   lazy val s3Bucket: S3Bucket = S3Bucket("testing")
   lazy val sourcesBucketItem: S3BucketItem = S3BucketItem(s3Bucket, "sources", "sources.jar", "sources.jar", "sources.jar")
   lazy val dependenciesBucketItem: S3BucketItem = S3BucketItem(s3Bucket, "dependencies", "dependencies.zip", "dependencies.zip", "dependencies.jar")
-  lazy val dependenciesLambdaLayer: LambdaLayerVersion = LambdaLayerVersion(dependenciesBucketItem)
+  lazy val dependenciesLambdaLayer: LambdaLayerVersion = LambdaLayerVersion("testing", dependenciesBucketItem)
 
   def asLambdaFunction(scalambdaFunction: ProjectFunction): LambdaFunction = {
     LambdaFunction(scalambdaFunction, "1337", s3Bucket, sourcesBucketItem, dependenciesLambdaLayer)
