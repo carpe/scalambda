@@ -18,6 +18,7 @@ object ScalambdaFunction {
     def naming: FunctionNaming
     def handlerPath: String
     def vpcConfig: VpcConf
+    def provisionedConcurrency: Int
 
     /**
      * A relatively static string that should resemble the what the final function name will be. The actual function name
@@ -51,6 +52,7 @@ object ScalambdaFunction {
                       iamRole: FunctionRoleSource,
                       functionConfig: FunctionConf,
                       vpcConfig: VpcConf,
+                      provisionedConcurrency: Int,
                       environmentVariables: Seq[EnvironmentVariable]
                      ) extends ProjectFunction {
 
@@ -78,6 +80,7 @@ object ScalambdaFunction {
                                iamRole: FunctionRoleSource,
                                functionConfig: FunctionConf,
                                vpcConfig: VpcConf,
+                               provisionedConcurrency: Int,
                                apiConfig: ApiGatewayConf,
                                environmentVariables: Seq[EnvironmentVariable]
                               ) extends ProjectFunction {

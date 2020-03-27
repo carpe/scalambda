@@ -12,20 +12,24 @@ import io.carpe.scalambda.terraform.ast.data.TemplateFile
 import io.carpe.scalambda.terraform.ast.module.ScalambdaModule
 import io.carpe.scalambda.terraform.ast.props.TValue.{TResourceRef, TString}
 import io.carpe.scalambda.terraform.ast.resources.{apigateway, _}
-import io.carpe.scalambda.terraform.ast.resources.apigateway.{ApiGateway, ApiGatewayBasePathMapping, ApiGatewayDeployment, ApiGatewayDomainName, ApiGatewayStage}
+import io.carpe.scalambda.terraform.ast.resources.apigateway.{
+  ApiGateway, ApiGatewayBasePathMapping, ApiGatewayDeployment, ApiGatewayDomainName, ApiGatewayStage
+}
+import io.carpe.scalambda.terraform.ast.resources.lambda.ProvisionedConcurrency
 
 object ScalambdaTerraform {
 
-  def writeTerraform( projectName: String,
-                      functions: List[ScalambdaFunction],
-                      version: String,
-                      s3BucketName: String,
-                      projectSource: File,
-                      dependencies: File,
-                      isXrayEnabled: Boolean,
-                      apiName: String,
-                      terraformOutput: File,
-                      maybeDomainName: Option[String]
+  def writeTerraform(
+    projectName: String,
+    functions: List[ScalambdaFunction],
+    version: String,
+    s3BucketName: String,
+    projectSource: File,
+    dependencies: File,
+    isXrayEnabled: Boolean,
+    apiName: String,
+    terraformOutput: File,
+    maybeDomainName: Option[String]
   ): Unit = {
 
     // create archive file resources to use to zip the assembly output in TF
@@ -43,11 +47,28 @@ object ScalambdaTerraform {
 
     // create resource definitions for the lambda functions
     val versionAsAlias = StringUtils.toSnakeCase(version)
-    val (lambdas, lambdaAliases, lambdaDependenciesLayer, lambdaVariables, lambdaOutputs) =
-      defineLambdaResources(isXrayEnabled, projectName, projectFunctions, versionAsAlias, s3Bucket, projectBucketItem, dependenciesBucketItem)
+    val (lambdas, lambdaAliases, lambdaDependenciesLayer, lambdaConcurrencies, lambdaVariables, lambdaOutputs) =
+      defineLambdaResources(
+        isXrayEnabled,
+        projectName,
+        projectFunctions,
+        versionAsAlias,
+        s3Bucket,
+        projectBucketItem,
+        dependenciesBucketItem
+      )
 
     // create resource definitions for an api gateway instance, if lambdas are configured for HTTP
-    val (apiGateway, swaggerTemplate, lambdaPermissions, apiGatewayDeployment, apiGatewayStage, apiDomainName, apiPathMapping, apiVariables) =
+    val (
+      apiGateway,
+      swaggerTemplate,
+      lambdaPermissions,
+      apiGatewayDeployment,
+      apiGatewayStage,
+      apiDomainName,
+      apiPathMapping,
+      apiVariables
+    ) =
       maybeDefineApiResources(isXrayEnabled, apiName, lambdaAliases, terraformOutput, maybeDomainName)
 
     // load resources into module
@@ -55,6 +76,7 @@ object ScalambdaTerraform {
       lambdas,
       lambdaAliases,
       lambdaDependenciesLayer,
+      lambdaProvisionedCurrencies = lambdaConcurrencies,
       s3Buckets = Seq(s3Bucket),
       s3BucketItems = Seq(projectBucketItem, dependenciesBucketItem),
       sources = Seq(),
@@ -62,7 +84,7 @@ object ScalambdaTerraform {
       lambdaPermissions = lambdaPermissions,
       swaggerTemplate = swaggerTemplate,
       apiGatewayDeployment = apiGatewayDeployment,
-      apiGatewayStage = ???,
+      apiGatewayStage = apiGatewayStage,
       apiGatewayDomainName = apiDomainName,
       apiGatewayBasePathMapping = apiPathMapping,
       variables = lambdaVariables ++ apiVariables,
@@ -81,24 +103,52 @@ object ScalambdaTerraform {
     s3Bucket: S3Bucket,
     projectBucketItem: S3BucketItem,
     dependenciesBucketItem: S3BucketItem
-  ): (Seq[LambdaFunction], Seq[LambdaFunctionAlias], LambdaLayerVersion, Seq[Variable[_]], Seq[Output[_]]) = {
+  ): (
+    Seq[LambdaFunction],
+    Seq[LambdaFunctionAlias],
+    LambdaLayerVersion,
+    Seq[ProvisionedConcurrency],
+    Seq[Variable[_]],
+    Seq[Output[_]]
+  ) = {
     // create a lambda layer that can be shared by all functions that contains the dependencies of said functions.
     // this will be used to speed up deployments
     val layerName = s"${StringUtils.toSnakeCase(projectName)}_assembled_dependencies"
     val lambdaDependenciesLayer = LambdaLayerVersion(layerName, dependenciesBucketItem)
 
     // create resources for each of the lambda functions and the variables they require
-    val (lambdaFunctions, lambdaAliases, lambdaVariables, outputs) =
-      scalambdaFunctions.foldRight(Seq.empty[LambdaFunction], Seq.empty[LambdaFunctionAlias], Seq.empty[Variable[_]], Seq.empty[Output[_]])(
+    val (lambdaFunctions, lambdaAliases, lambdaConcurrencies, lambdaVariables, outputs) =
+      scalambdaFunctions.foldRight(
+        Seq.empty[LambdaFunction],
+        Seq.empty[LambdaFunctionAlias],
+        Seq.empty[ProvisionedConcurrency],
+        Seq.empty[Variable[_]],
+        Seq.empty[Output[_]]
+      )(
         (function: ProjectFunction, resources) => {
-          val (functionResources, functionAliases, variables, outputs) = resources
+          val (
+            functionResources,
+            functionAliases,
+            functionConcurrencies: Seq[ProvisionedConcurrency],
+            variables,
+            outputs
+          ) = resources
 
           /**
            * Define Terraform resources for function
            */
-          val functionResource = LambdaFunction(function, version, s3Bucket, projectBucketItem, lambdaDependenciesLayer, isXrayEnabled)
+          val functionResource =
+            LambdaFunction(function, version, s3Bucket, projectBucketItem, lambdaDependenciesLayer, isXrayEnabled)
 
           val functionAlias = LambdaFunctionAlias(functionResource, version)
+
+          val functionConcurrency: Seq[ProvisionedConcurrency] = {
+            if (function.provisionedConcurrency > 0) {
+              Seq(ProvisionedConcurrency(functionAlias, function.provisionedConcurrency))
+            } else {
+              Nil
+            }
+          }
 
           /**
            * Define Terraform variables for function
@@ -151,11 +201,17 @@ object ScalambdaTerraform {
             )
           )
 
-          (functionResources :+ functionResource, functionAliases :+ functionAlias, variables ++ functionVariables, outputs ++ functionOutputs)
+          (
+            functionResources :+ functionResource,
+            functionAliases :+ functionAlias,
+            (functionConcurrencies ++ functionConcurrency),
+            variables ++ functionVariables,
+            outputs ++ functionOutputs
+          )
         }
       )
 
-    (lambdaFunctions, lambdaAliases, lambdaDependenciesLayer, lambdaVariables.distinct, outputs)
+    (lambdaFunctions, lambdaAliases, lambdaDependenciesLayer, lambdaConcurrencies, lambdaVariables.distinct, outputs)
   }
 
   def createArchives(source: File, dependencies: File, output: String): Unit = {
@@ -207,12 +263,22 @@ object ScalambdaTerraform {
     (newBucket, sourceBucketItem, depsBucketItem)
   }
 
-  def maybeDefineApiResources(isXrayEnabled: Boolean,
-                              apiName: String,
-                              functionAliases: Seq[LambdaFunctionAlias],
-                              terraformOutput: File,
-                              maybeDomainName: Option[String]
-  ): (Option[ApiGateway], Option[TemplateFile], Seq[LambdaPermission], Option[ApiGatewayDeployment], Option[ApiGatewayStage], Option[ApiGatewayDomainName], Option[ApiGatewayBasePathMapping], Seq[Variable[_]]) = {
+  def maybeDefineApiResources(
+    isXrayEnabled: Boolean,
+    apiName: String,
+    functionAliases: Seq[LambdaFunctionAlias],
+    terraformOutput: File,
+    maybeDomainName: Option[String]
+  ): (
+    Option[ApiGateway],
+    Option[TemplateFile],
+    Seq[LambdaPermission],
+    Option[ApiGatewayDeployment],
+    Option[ApiGatewayStage],
+    Option[ApiGatewayDomainName],
+    Option[ApiGatewayBasePathMapping],
+    Seq[Variable[_]]
+  ) = {
 
     // if there are no functions that are configured to be exposed via api
     if (functionAliases.count(_.function.scalambdaFunction.apiGatewayConfig.isDefined) == 0) {
@@ -251,9 +317,22 @@ object ScalambdaTerraform {
 
     // create resources for domain mapping (if domain name was supplied)
     val maybeApiGatewayDomainName = maybeDomainName.map(domainName => ApiGatewayDomainName(domainName))
-    val maybeBasePathMapping = maybeApiGatewayDomainName.map(domainName => { apigateway.ApiGatewayBasePathMapping(api, apiGatewayDeployment, domainName) })
-    val certificateVariable = maybeDomainName.map(_ => Variable("certificate_arn", Some("Arn of AWS Certificate Manager certificate."), None)).toSeq
+    val maybeBasePathMapping = maybeApiGatewayDomainName.map(domainName => {
+      apigateway.ApiGatewayBasePathMapping(api, apiGatewayDeployment, domainName)
+    })
+    val certificateVariable = maybeDomainName
+      .map(_ => Variable("certificate_arn", Some("Arn of AWS Certificate Manager certificate."), None))
+      .toSeq
 
-    (Some(api), Some(swaggerTemplate), permissions, Some(apiGatewayDeployment), Some(apiGatewayStage), maybeApiGatewayDomainName, maybeBasePathMapping, certificateVariable)
+    (
+      Some(api),
+      Some(swaggerTemplate),
+      permissions,
+      Some(apiGatewayDeployment),
+      Some(apiGatewayStage),
+      maybeApiGatewayDomainName,
+      maybeBasePathMapping,
+      certificateVariable
+    )
   }
 }

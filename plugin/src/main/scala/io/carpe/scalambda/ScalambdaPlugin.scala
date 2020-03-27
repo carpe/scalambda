@@ -5,17 +5,14 @@ import _root_.io.carpe.scalambda.conf.function.FunctionNaming.WorkspaceBased
 import _root_.io.carpe.scalambda.conf.function.FunctionRoleSource.FromVariable
 import _root_.io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import _root_.io.carpe.scalambda.conf.function.{VpcConf, _}
-import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
 import _root_.io.carpe.scalambda.conf.keys.ScalambaKeys
+import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
 import com.typesafe.sbt.GitVersioning
 import com.typesafe.sbt.SbtGit.GitKeys.{formattedDateVersion, gitHeadCommit}
-import sbt.Keys.{credentials, libraryDependencies, name, packageBin, packageOptions, resolvers, target, test, version}
+import sbt.Keys._
 import sbt._
 import sbtassembly.AssemblyKeys._
-import sbtassembly.AssemblyPlugin.autoImport.{
-  assembleArtifact, assemblyDefaultJarName, assemblyJarName, assemblyOption, assemblyOutputPath,
-  assemblyPackageDependency
-}
+import sbtassembly.AssemblyPlugin.autoImport.{assemblyDefaultJarName, assemblyJarName, assemblyOption, assemblyOutputPath, assemblyPackageDependency}
 import sbtassembly._
 
 import scala.tools.nsc.Properties
@@ -65,11 +62,11 @@ object ScalambdaPlugin extends AutoPlugin {
     val Vpc: VpcConf.type = VpcConf
     val Auth: AuthConf.type = AuthConf
 
-    def scalambda(
-                   functionClasspath: String,
+    def scalambda( functionClasspath: String,
                    functionNaming: FunctionNaming = WorkspaceBased,
                    iamRoleSource: FunctionRoleSource = FromVariable,
                    functionConfig: FunctionConf = FunctionConf.default,
+                   provisionedConcurrency: Int = 0,
                    vpcConfig: VpcConf = Vpc.withoutVpc,
                    environmentVariables: Seq[EnvironmentVariable] = List.empty
     ): Seq[Def.Setting[_]] = {
@@ -83,6 +80,7 @@ object ScalambdaPlugin extends AutoPlugin {
             functionSource = IncludedInModule,
             iamRole = iamRoleSource,
             functionConfig = functionConfig,
+            provisionedConcurrency = provisionedConcurrency,
             vpcConfig = vpcConfig,
             environmentVariables = environmentVariables
           )
@@ -121,6 +119,7 @@ object ScalambdaPlugin extends AutoPlugin {
                            iamRoleSource: FunctionRoleSource = FromVariable,
                            functionConfig: FunctionConf = FunctionConf.apiDefault,
                            environmentVariables: Seq[EnvironmentVariable] = List.empty,
+                           provisionedConcurrency: Int = 0,
                            vpcConfig: VpcConf = Vpc.withoutVpc,
                            apiConfig: ApiGatewayConf
     ): Seq[Def.Setting[_]] = {
@@ -135,6 +134,7 @@ object ScalambdaPlugin extends AutoPlugin {
             iamRole = iamRoleSource,
             functionConfig = functionConfig,
             vpcConfig = vpcConfig,
+            provisionedConcurrency = provisionedConcurrency,
             apiConfig = apiConfig,
             environmentVariables = environmentVariables
           )
@@ -219,6 +219,9 @@ object ScalambdaPlugin extends AutoPlugin {
           terraformOutput = scalambdaTerraformPath.value,
           maybeDomainName = domainName.?.value
         )
+      },
+      libraryDependencies ++= {
+        XRaySettings.xrayLibs(isXrayEnabled = enableXray.value)
       }
     ) ++ LambdaLoggingSettings.loggingSettings
 

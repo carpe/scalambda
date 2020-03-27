@@ -22,13 +22,4 @@ object LambdaLoggingSettings {
 
     excludeDependencies += "org.slf4j.slf4j-simple"
   )
-
-  lazy val xrayRecorderVersion = "2.4.0"
-
-  lazy val xrayDependencies = Seq(
-    "com.amazonaws" % "aws-xray-recorder-sdk-core" % xrayRecorderVersion,
-    "com.amazonaws" % "aws-xray-recorder-sdk-aws-sdk-core" % xrayRecorderVersion,
-    "com.amazonaws" % "aws-xray-recorder-sdk-aws-sdk-v2" % xrayRecorderVersion,
-    "com.amazonaws" % "aws-xray-recorder-sdk-aws-sdk-v2-instrumentor" % xrayRecorderVersion
-  )
 }
