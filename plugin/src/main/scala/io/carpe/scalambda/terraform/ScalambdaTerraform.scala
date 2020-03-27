@@ -44,7 +44,7 @@ object ScalambdaTerraform {
     // create resource definitions for the lambda functions
     val versionAsAlias = StringUtils.toSnakeCase(version)
     val (lambdas, lambdaAliases, lambdaDependenciesLayer, lambdaVariables, lambdaOutputs) =
-      defineLambdaResources(projectName, projectFunctions, versionAsAlias, s3Bucket, projectBucketItem, dependenciesBucketItem)
+      defineLambdaResources(isXrayEnabled, projectName, projectFunctions, versionAsAlias, s3Bucket, projectBucketItem, dependenciesBucketItem)
 
     // create resource definitions for an api gateway instance, if lambdas are configured for HTTP
     val (apiGateway, swaggerTemplate, lambdaPermissions, apiGatewayDeployment, apiGatewayStage, apiDomainName, apiPathMapping, apiVariables) =
@@ -74,6 +74,7 @@ object ScalambdaTerraform {
   }
 
   def defineLambdaResources(
+    isXrayEnabled: Boolean,
     projectName: String,
     scalambdaFunctions: List[ProjectFunction],
     version: String,
@@ -95,7 +96,7 @@ object ScalambdaTerraform {
           /**
            * Define Terraform resources for function
            */
-          val functionResource = LambdaFunction(function, version, s3Bucket, projectBucketItem, lambdaDependenciesLayer)
+          val functionResource = LambdaFunction(function, version, s3Bucket, projectBucketItem, lambdaDependenciesLayer, isXrayEnabled)
 
           val functionAlias = LambdaFunctionAlias(functionResource, version)
 

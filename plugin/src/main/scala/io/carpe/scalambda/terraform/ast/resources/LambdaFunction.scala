@@ -6,7 +6,7 @@ import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue._
 
-case class LambdaFunction(scalambdaFunction: ProjectFunction, version: String, s3Bucket: S3Bucket, s3BucketItem: S3BucketItem, dependenciesLayer: LambdaLayerVersion) extends Resource {
+case class LambdaFunction(scalambdaFunction: ProjectFunction, version: String, s3Bucket: S3Bucket, s3BucketItem: S3BucketItem, dependenciesLayer: LambdaLayerVersion, isXrayEnabled: Boolean) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    *
@@ -80,7 +80,15 @@ case class LambdaFunction(scalambdaFunction: ProjectFunction, version: String, s
     ),
 
     // sets the lambda function to publish a new version for each change
-    "publish" -> TBool(true)
+    "publish" -> TBool(true),
+
+    "tracing_config" -> TBlock.optionally(
+      "mode" -> {
+        if (isXrayEnabled) {
+          Some(TString("PassThrough"))
+        } else None
+      }
+    )
 
   )
 }
