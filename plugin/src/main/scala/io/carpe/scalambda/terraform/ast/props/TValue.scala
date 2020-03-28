@@ -59,6 +59,14 @@ object TValue {
 
   case class TBlock(props: (String, TValue)*) extends TValue(usesAssignment = false) with TProperties
 
+  object TBlock {
+    def optionally(props: (String, Option[TValue])*): TBlock = {
+      new TBlock(props.toSeq.flatMap { case (key, maybeValue) => {
+        maybeValue.map(key -> _)
+      } }: _*)
+    }
+  }
+
   case class TObject(props: (String, TValue)*) extends TValue(usesAssignment = true) with TProperties
 
   case class TArray(values: TValue*) extends TValue {

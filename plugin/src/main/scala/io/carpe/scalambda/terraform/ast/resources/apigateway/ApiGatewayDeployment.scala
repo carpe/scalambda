@@ -1,8 +1,9 @@
-package io.carpe.scalambda.terraform.ast.resources
+package io.carpe.scalambda.terraform.ast.resources.apigateway
 
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TBlock, TBool, TLiteral, TResourceRef, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue._
+import io.carpe.scalambda.terraform.ast.resources.lambda.LambdaPermission
 
 case class ApiGatewayDeployment(apiGateway: ApiGateway, lambdaPermissions: Seq[LambdaPermission]) extends Resource {
   /**
@@ -31,14 +32,4 @@ case class ApiGatewayDeployment(apiGateway: ApiGateway, lambdaPermissions: Seq[L
     }): _*)
   )
 
-//  resource "aws_api_gateway_deployment" "deployment" {
-//    rest_api_id = aws_api_gateway_rest_api.api.id
-//    stage_name  = var.stage_name
-//
-//    lifecycle {
-//      create_before_destroy = true
-//    }
-//
-//    depends_on = ["aws_lambda_permission.api_gateway_lambdas_allowance"]
-//  }
 }

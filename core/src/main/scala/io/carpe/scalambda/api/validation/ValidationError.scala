@@ -20,9 +20,10 @@ trait ValidationError {
 
 
   def toApiError: ApiError = {
+    val validationMessage = message
     new ApiError {
       override val httpStatus: Int = 422
-      override val message: String = message
+      override val message: String = validationMessage
       override val additional: Option[Json] = pointer.map(p =>
         Json.obj("pointer" -> Json.fromString(p))
       )

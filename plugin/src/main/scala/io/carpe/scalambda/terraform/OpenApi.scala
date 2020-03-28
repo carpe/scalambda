@@ -19,9 +19,9 @@ object OpenApi {
   def forFunctions(scalambdaFunctions: Seq[ScalambdaFunction]): OpenApi = {
     val functionsByRoute: Map[String, Seq[(ApiGatewayConf, ScalambdaFunction)]] = scalambdaFunctions
         .flatMap(lambda => lambda match {
-          case ScalambdaFunction.Function(naming, handlerPath, functionSource, iamRole, functionConfig, vpcConfig, environmentVariables) =>
+          case ScalambdaFunction.Function(naming, handlerPath, functionSource, iamRole, functionConfig, vpcConfig, provisionedConcurrency, environmentVariables) =>
             None
-          case ScalambdaFunction.ApiFunction(naming, handlerPath, functionSource, iamRole, functionConfig, vpcConfig, apiConfig, environmentVariables) =>
+          case ScalambdaFunction.ApiFunction(naming, handlerPath, functionSource, iamRole, functionConfig, vpcConfig, provisionedConcurrency, apiConfig, environmentVariables) =>
             Some(apiConfig -> lambda)
           case ScalambdaFunction.ReferencedFunction(_, _, _, apiConfig) =>
             Some(apiConfig -> lambda)

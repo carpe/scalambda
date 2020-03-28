@@ -1,8 +1,9 @@
-package io.carpe.scalambda.terraform.ast.resources
+package io.carpe.scalambda.terraform.ast.resources.lambda
 
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TResourceRef, TString}
+import io.carpe.scalambda.terraform.ast.resources.S3BucketItem
 
 case class LambdaLayerVersion(layerName: String, s3BucketItem: S3BucketItem) extends Resource {
   /**
@@ -27,7 +28,8 @@ case class LambdaLayerVersion(layerName: String, s3BucketItem: S3BucketItem) ext
     "s3_key" -> TResourceRef("aws_s3_bucket_object", s3BucketItem.name, "key"),
     "s3_object_version" -> TResourceRef("aws_s3_bucket_object", s3BucketItem.name, "version_id"),
     "compatible_runtimes" -> TArray(
-      TString("java8")
+      TString("java8"),
+      TString("java11")
     )
   )
 }

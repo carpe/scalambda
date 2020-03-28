@@ -1,12 +1,22 @@
-package io.carpe.scalambda.terraform.ast.resources
+package io.carpe.scalambda.terraform.ast.resources.lambda
 
 import io.carpe.scalambda.conf.ScalambdaFunction.ProjectFunction
 import io.carpe.scalambda.conf.function.EnvironmentVariable
+import io.carpe.scalambda.conf.function.ScalambdaRuntime.{Java11, Java8}
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue._
+import io.carpe.scalambda.terraform.ast.resources.{S3Bucket, S3BucketItem}
 
-case class LambdaFunction(scalambdaFunction: ProjectFunction, version: String, s3Bucket: S3Bucket, s3BucketItem: S3BucketItem, dependenciesLayer: LambdaLayerVersion) extends Resource {
+case class LambdaFunction(
+  scalambdaFunction: ProjectFunction,
+  version: String,
+  s3Bucket: S3Bucket,
+  s3BucketItem: S3BucketItem,
+  dependenciesLayer: LambdaLayerVersion,
+  isXrayEnabled: Boolean
+) extends Resource {
+
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    *
@@ -40,29 +50,28 @@ case class LambdaFunction(scalambdaFunction: ProjectFunction, version: String, s
     "s3_key" -> TResourceRef("aws_s3_bucket_object", s3BucketItem.name, "key"),
     "s3_object_version" -> TResourceRef("aws_s3_bucket_object", s3BucketItem.name, "version_id"),
     "source_code_hash" -> TLiteral(s"filebase64sha256(aws_s3_bucket_object.${s3BucketItem.name}.source)"),
-
     // dependency layer
     "layers" -> TArray(
       TResourceRef("aws_lambda_layer_version", dependenciesLayer.name, "arn")
     ),
-
     // role for the lambda
     "role" -> scalambdaFunction.iamRole.asTFValue(scalambdaFunction),
-
     // name of the lambda
     "function_name" -> scalambdaFunction.naming.asTValue(scalambdaFunction),
-
     // path to the scalambda function that this function uses as an entrypoint to your code during execution
     "handler" -> TString(scalambdaFunction.handlerPath),
-
     // amount of memory, in MB, that the function can use at runtime
-    "memory_size" -> TNumber(scalambdaFunction.functionConfig.memory),
-
-    // TODO: evaluate amazon coretto 11
-    "runtime" -> TString("java8"),
-
-    "timeout" -> TNumber(scalambdaFunction.functionConfig.timeout),
-
+    "memory_size" -> TNumber(scalambdaFunction.runtimeConfig.memory),
+    // runtime for the function
+    "runtime" -> {
+      scalambdaFunction.runtimeConfig.runtime match {
+        case Java8  => TString("java8")
+        case Java11 => TString("java11")
+      }
+    },
+    // timeout for the function. should be 30 seconds max for api gateway lambdas
+    "timeout" -> TNumber(scalambdaFunction.runtimeConfig.timeout),
+    // environment variables to inject into the lambda
     "environment" -> TBlock("variables" -> TObject({
       scalambdaFunction.environmentVariables :+ (EnvironmentVariable.Static("SCALAMBDA_VERSION", version))
     }.flatMap(envVariable => {
@@ -73,14 +82,20 @@ case class LambdaFunction(scalambdaFunction: ProjectFunction, version: String, s
           Some(key -> TVariableRef(variableName))
       }
     }): _*)),
-
+    // vpc configuration for the lambda
     "vpc_config" -> TBlock(
       "subnet_ids" -> TArray(scalambdaFunction.vpcConfig.subnetIds.map(TString): _*),
       "security_group_ids" -> TArray(scalambdaFunction.vpcConfig.securityGroupIds.map(TString): _*)
     ),
-
     // sets the lambda function to publish a new version for each change
-    "publish" -> TBool(true)
-
+    "publish" -> TBool(true),
+    // xray configuration for the lambda
+    "tracing_config" -> TBlock.optionally(
+      "mode" -> {
+        if (isXrayEnabled) {
+          Some(TString("PassThrough"))
+        } else None
+      }
+    )
   )
 }

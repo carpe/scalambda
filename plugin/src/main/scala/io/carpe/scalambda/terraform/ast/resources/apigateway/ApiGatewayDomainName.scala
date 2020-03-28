@@ -1,4 +1,4 @@
-package io.carpe.scalambda.terraform.ast.resources
+package io.carpe.scalambda.terraform.ast.resources.apigateway
 
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue

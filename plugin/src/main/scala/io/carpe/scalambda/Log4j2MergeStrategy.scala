@@ -8,7 +8,7 @@ import sbtassembly.MergeStrategy
 import scala.collection.JavaConverters.asJavaEnumerationConverter
 
 object Log4j2MergeStrategy {
-  val plugincache: MergeStrategy = new MergeStrategy {
+  lazy val plugincache: MergeStrategy = new MergeStrategy {
     val name = "log4j2::plugincache"
     def apply(tempDir: File, path: String, files: Seq[File]): Either[String, Seq[(File, String)]] = {
       val file = MergeStrategy.createMergeTarget(tempDir, path)
