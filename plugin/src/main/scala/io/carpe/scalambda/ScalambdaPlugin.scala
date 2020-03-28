@@ -32,6 +32,7 @@ object ScalambdaPlugin extends AutoPlugin {
   object autoImport extends ScalambaKeys {
 
     lazy val apiName = settingKey[String]("Prefix for the name of the api. Defaults to project name")
+    lazy val apiAuthorizerArn = settingKey[String]("Arn for custom authorizer to use for ApiGateway")
 
     lazy val s3BucketName =
       settingKey[String]("Prefix for S3 bucket name to store lambda functions in. Defaults to project name.")
@@ -218,6 +219,7 @@ object ScalambdaPlugin extends AutoPlugin {
           dependencies = { packageScalambdaDependencies.value },
           isXrayEnabled = enableXray.?.value.getOrElse(false),
           apiName = apiName.?.value.getOrElse(s"${sbt.Keys.name.value}"),
+          authorizerArn = apiAuthorizerArn.?.value.getOrElse("arn:aws:lambda:us-west-2:120864075170:function:CarpeAuthorizerProd"),
           terraformOutput = scalambdaTerraformPath.value,
           maybeDomainName = domainName.?.value
         )

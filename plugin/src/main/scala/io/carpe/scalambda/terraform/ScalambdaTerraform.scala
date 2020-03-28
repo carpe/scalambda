@@ -26,6 +26,7 @@ object ScalambdaTerraform {
     dependencies: File,
     isXrayEnabled: Boolean,
     apiName: String,
+    authorizerArn: String,
     terraformOutput: File,
     maybeDomainName: Option[String]
   ): Unit = {
@@ -67,7 +68,7 @@ object ScalambdaTerraform {
       apiPathMapping,
       apiVariables
     ) =
-      maybeDefineApiResources(isXrayEnabled, apiName, lambdaAliases, terraformOutput, maybeDomainName)
+      maybeDefineApiResources(isXrayEnabled, apiName, authorizerArn, lambdaAliases, terraformOutput, maybeDomainName)
 
     // load resources into module
     val scalambdaModule = ScalambdaModule(
@@ -264,6 +265,7 @@ object ScalambdaTerraform {
   def maybeDefineApiResources(
     isXrayEnabled: Boolean,
     apiName: String,
+    authorizerArn: String,
     functionAliases: Seq[LambdaFunctionAlias],
     terraformOutput: File,
     maybeDomainName: Option[String]
@@ -285,7 +287,7 @@ object ScalambdaTerraform {
     }
 
     def writeSwagger(apiName: String, aliases: Seq[LambdaFunctionAlias], rootTerraformPath: String): TemplateFile = {
-      val openApi = OpenApi.forFunctions(aliases.map(_.function.scalambdaFunction))
+      val openApi = OpenApi.forFunctions(aliases.map(_.function.scalambdaFunction), authorizerArn)
 
       // convert the api to yaml
       val openApiDefinition = OpenApi.apiToYaml(openApi)

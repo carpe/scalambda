@@ -16,7 +16,7 @@ object OpenApi {
    * @param scalambdaFunctions functions to create api from
    * @return an OpenAPI that wraps the provided functions
    */
-  def forFunctions(scalambdaFunctions: Seq[ScalambdaFunction]): OpenApi = {
+  def forFunctions(scalambdaFunctions: Seq[ScalambdaFunction], authorizerArn: String): OpenApi = {
     val functionsByRoute: Map[String, Seq[(ApiGatewayConf, ScalambdaFunction)]] = scalambdaFunctions
         .flatMap(lambda => lambda match {
           case ScalambdaFunction.Function(naming, handlerPath, functionSource, iamRole, functionConfig, vpcConfig, provisionedConcurrency, environmentVariables) =>
@@ -43,7 +43,7 @@ object OpenApi {
         case CarpeAuthorizer =>
           Some(SecurityDefinition(
             authorizerName = Security.carpeAuthorizer.name,
-            authorizerArn = "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:120864075170:function:CarpeAuthorizer:prod/invocations",
+            authorizerArn = s"arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/${authorizerArn}/invocations",
             authorizerRole = "arn:aws:iam::120864075170:role/Auth0Integration"
           ))
         case AuthConf.Unauthorized =>
