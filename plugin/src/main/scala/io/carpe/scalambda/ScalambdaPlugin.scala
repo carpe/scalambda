@@ -62,13 +62,14 @@ object ScalambdaPlugin extends AutoPlugin {
     val Vpc: VpcConf.type = VpcConf
     val Auth: AuthConf.type = AuthConf
 
-    def scalambda( functionClasspath: String,
-                   functionNaming: FunctionNaming = WorkspaceBased,
-                   iamRoleSource: FunctionRoleSource = FromVariable,
-                   functionConfig: FunctionConf = FunctionConf.default,
-                   provisionedConcurrency: Int = 0,
-                   vpcConfig: VpcConf = Vpc.withoutVpc,
-                   environmentVariables: Seq[EnvironmentVariable] = List.empty
+    def scalambda(functionClasspath: String,
+                  functionNaming: FunctionNaming = WorkspaceBased,
+                  iamRoleSource: FunctionRoleSource = FromVariable,
+                  memory: Int = RuntimeConfig.default.memory,
+                  runtime: ScalambdaRuntime = RuntimeConfig.default.runtime,
+                  provisionedConcurrency: Int = 0,
+                  vpcConfig: VpcConf = Vpc.withoutVpc,
+                  environmentVariables: Seq[EnvironmentVariable] = List.empty
     ): Seq[Def.Setting[_]] = {
 
       val awsLambdaProxyPluginConfig = Seq(
@@ -79,7 +80,7 @@ object ScalambdaPlugin extends AutoPlugin {
             handlerPath = functionClasspath + "::handler",
             functionSource = IncludedInModule,
             iamRole = iamRoleSource,
-            functionConfig = functionConfig,
+            runtimeConfig = RuntimeConfig.default.copy(memory = memory, runtime = runtime),
             provisionedConcurrency = provisionedConcurrency,
             vpcConfig = vpcConfig,
             environmentVariables = environmentVariables
@@ -114,14 +115,15 @@ object ScalambdaPlugin extends AutoPlugin {
       awsLambdaProxyPluginConfig ++ scalambdaLibs
     }
 
-    def scalambdaEndpoint( functionClasspath: String,
-                           functionNaming: FunctionNaming = WorkspaceBased,
-                           iamRoleSource: FunctionRoleSource = FromVariable,
-                           functionConfig: FunctionConf = FunctionConf.apiDefault,
-                           environmentVariables: Seq[EnvironmentVariable] = List.empty,
-                           provisionedConcurrency: Int = 0,
-                           vpcConfig: VpcConf = Vpc.withoutVpc,
-                           apiConfig: ApiGatewayConf
+    def scalambdaEndpoint(functionClasspath: String,
+                          functionNaming: FunctionNaming = WorkspaceBased,
+                          iamRoleSource: FunctionRoleSource = FromVariable,
+                          memory: Int = RuntimeConfig.apiDefault.memory,
+                          runtime: ScalambdaRuntime = RuntimeConfig.apiDefault.runtime,
+                          environmentVariables: Seq[EnvironmentVariable] = List.empty,
+                          provisionedConcurrency: Int = 0,
+                          vpcConfig: VpcConf = Vpc.withoutVpc,
+                          apiConfig: ApiGatewayConf
     ): Seq[Def.Setting[_]] = {
 
       val awsLambdaProxyPluginConfig = Seq(
@@ -132,7 +134,7 @@ object ScalambdaPlugin extends AutoPlugin {
             handlerPath = functionClasspath + "::handler",
             functionSource = IncludedInModule,
             iamRole = iamRoleSource,
-            functionConfig = functionConfig,
+            runtimeConfig = RuntimeConfig.apiDefault.copy(memory = memory, runtime = runtime),
             vpcConfig = vpcConfig,
             provisionedConcurrency = provisionedConcurrency,
             apiConfig = apiConfig,

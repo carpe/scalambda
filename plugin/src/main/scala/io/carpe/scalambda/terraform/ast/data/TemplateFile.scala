@@ -4,7 +4,7 @@ import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.terraform.ast.Definition.Data
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue.{TLiteral, TObject, TResourceRef, TString}
-import io.carpe.scalambda.terraform.ast.resources.LambdaFunctionAlias
+import io.carpe.scalambda.terraform.ast.resources.lambda.LambdaFunctionAlias
 
 case class TemplateFile(filename: String, apiName: String, aliases: Seq[LambdaFunctionAlias]) extends Data {
 

@@ -2,8 +2,7 @@ package io.carpe.scalambda.terraform.ast.resources.lambda
 
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TBlock, TNumber, TResourceRef}
-import io.carpe.scalambda.terraform.ast.resources.LambdaFunctionAlias
+import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TBlock, TLiteral, TNumber, TResourceRef}
 
 case class ProvisionedConcurrency(functionAlias: LambdaFunctionAlias, desiredConcurrency: Int) extends Resource {
   /**
@@ -24,6 +23,9 @@ case class ProvisionedConcurrency(functionAlias: LambdaFunctionAlias, desiredCon
   override def body: Map[String, TValue] = Map(
     "function_name" -> TResourceRef("aws_lambda_alias", functionAlias.name, "function_name"),
     "provisioned_concurrent_executions" -> TNumber(desiredConcurrency),
-    "qualifier" -> TResourceRef("aws_lambda_alias", functionAlias.name, "name")
+    "qualifier" -> TResourceRef("aws_lambda_alias", functionAlias.name, "name"),
+    "depends_on" -> TArray(
+      TLiteral(s"aws_lambda_alias.${functionAlias.name}")
+    )
   )
 }

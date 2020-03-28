@@ -14,7 +14,7 @@ object ScalambdaFunction {
 
   sealed trait ProjectFunction extends ScalambdaFunction {
     def iamRole: FunctionRoleSource
-    def functionConfig: FunctionConf
+    def runtimeConfig: RuntimeConfig
     def naming: FunctionNaming
     def handlerPath: String
     def vpcConfig: VpcConf
@@ -50,7 +50,7 @@ object ScalambdaFunction {
                       handlerPath: String,
                       functionSource: FunctionSource,
                       iamRole: FunctionRoleSource,
-                      functionConfig: FunctionConf,
+                      runtimeConfig: RuntimeConfig,
                       vpcConfig: VpcConf,
                       provisionedConcurrency: Int,
                       environmentVariables: Seq[EnvironmentVariable]
@@ -75,14 +75,14 @@ object ScalambdaFunction {
   }
 
   case class ApiFunction(naming: FunctionNaming,
-                               handlerPath: String,
-                               functionSource: FunctionSource,
-                               iamRole: FunctionRoleSource,
-                               functionConfig: FunctionConf,
-                               vpcConfig: VpcConf,
-                               provisionedConcurrency: Int,
-                               apiConfig: ApiGatewayConf,
-                               environmentVariables: Seq[EnvironmentVariable]
+                         handlerPath: String,
+                         functionSource: FunctionSource,
+                         iamRole: FunctionRoleSource,
+                         runtimeConfig: RuntimeConfig,
+                         vpcConfig: VpcConf,
+                         provisionedConcurrency: Int,
+                         apiConfig: ApiGatewayConf,
+                         environmentVariables: Seq[EnvironmentVariable]
                               ) extends ProjectFunction {
 
     /**

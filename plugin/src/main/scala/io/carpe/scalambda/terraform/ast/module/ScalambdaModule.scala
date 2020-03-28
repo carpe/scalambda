@@ -5,7 +5,7 @@ import io.carpe.scalambda.terraform.ast.TerraformFile
 import io.carpe.scalambda.terraform.ast.data.{ArchiveFile, TemplateFile}
 import io.carpe.scalambda.terraform.ast.resources.apigateway.{ApiGateway, ApiGatewayBasePathMapping, ApiGatewayDeployment, ApiGatewayDomainName, ApiGatewayStage}
 import io.carpe.scalambda.terraform.ast.resources._
-import io.carpe.scalambda.terraform.ast.resources.lambda.ProvisionedConcurrency
+import io.carpe.scalambda.terraform.ast.resources.lambda.{LambdaFunction, LambdaFunctionAlias, LambdaLayerVersion, LambdaPermission, ProvisionedConcurrency}
 
 case class ScalambdaModule( // lambda resources
                             lambdas: Seq[LambdaFunction],

@@ -3,7 +3,7 @@ package io.carpe.scalambda.terraform.ast.resources.apigateway
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue._
-import io.carpe.scalambda.terraform.ast.resources.LambdaPermission
+import io.carpe.scalambda.terraform.ast.resources.lambda.LambdaPermission
 
 case class ApiGatewayDeployment(apiGateway: ApiGateway, lambdaPermissions: Seq[LambdaPermission]) extends Resource {
   /**

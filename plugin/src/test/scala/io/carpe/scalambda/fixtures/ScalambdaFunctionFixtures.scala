@@ -2,11 +2,12 @@ package io.carpe.scalambda.fixtures
 
 import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.conf.ScalambdaFunction.{ApiFunction, ProjectFunction}
-import io.carpe.scalambda.conf.function.AuthConf.{CarpeAuthorizer, Unauthorized}
+import io.carpe.scalambda.conf.function.AuthConf.CarpeAuthorizer
 import io.carpe.scalambda.conf.function.FunctionNaming.Static
 import io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import io.carpe.scalambda.conf.function._
-import io.carpe.scalambda.terraform.ast.resources.{LambdaFunction, LambdaLayerVersion, S3Bucket, S3BucketItem}
+import io.carpe.scalambda.terraform.ast.resources.lambda.{LambdaFunction, LambdaLayerVersion}
+import io.carpe.scalambda.terraform.ast.resources.{S3Bucket, S3BucketItem, lambda}
 import org.scalatest.flatspec.AnyFlatSpec
 
 trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
@@ -15,7 +16,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       Static("CarsIndex"), "io.cars.index.CarsIndex::handler",
       functionSource = IncludedInModule,
       iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
-      functionConfig = FunctionConf.default,
+      runtimeConfig = RuntimeConfig.default,
       apiConfig = ApiGatewayConf(route = "/cars", method = Method.GET, authConf = CarpeAuthorizer),
       vpcConfig = VpcConf.withoutVpc,
       provisionedConcurrency = 0,
@@ -28,7 +29,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       Static("DriveCar"), "io.cars.lambda.DriveCar::handler",
       functionSource = IncludedInModule,
       iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
-      functionConfig = FunctionConf.default,
+      runtimeConfig = RuntimeConfig.default,
       vpcConfig = VpcConf.withoutVpc,
       provisionedConcurrency = 0,
       environmentVariables = List(
@@ -42,7 +43,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       Static("FlyPlane"), "io.plane.lambda.FlyPlane::handler",
       functionSource = IncludedInModule,
       iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
-      functionConfig = FunctionConf.default.copy(memory = 256, timeout = 30),
+      runtimeConfig = RuntimeConfig.default.copy(memory = 256, timeout = 30),
       vpcConfig = VpcConf(
         subnetIds = Seq("subnet-12345678987654321"),
         securityGroupIds = Seq("sg-12345678987654321")
@@ -55,9 +56,9 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
   lazy val s3Bucket: S3Bucket = S3Bucket("testing")
   lazy val sourcesBucketItem: S3BucketItem = S3BucketItem(s3Bucket, "sources", "sources.jar", "sources.jar", "sources.jar")
   lazy val dependenciesBucketItem: S3BucketItem = S3BucketItem(s3Bucket, "dependencies", "dependencies.zip", "dependencies.zip", "dependencies.jar")
-  lazy val dependenciesLambdaLayer: LambdaLayerVersion = LambdaLayerVersion("testing", dependenciesBucketItem)
+  lazy val dependenciesLambdaLayer: LambdaLayerVersion = lambda.LambdaLayerVersion("testing", dependenciesBucketItem)
 
   def asLambdaFunction(scalambdaFunction: ProjectFunction): LambdaFunction = {
-    LambdaFunction(scalambdaFunction, "1337", s3Bucket, sourcesBucketItem, dependenciesLambdaLayer, isXrayEnabled = false)
+    lambda.LambdaFunction(scalambdaFunction, "1337", s3Bucket, sourcesBucketItem, dependenciesLambdaLayer, isXrayEnabled = false)
   }
 }

@@ -1,7 +1,7 @@
 package io.carpe.scalambda.terraform.ast
 
 import io.carpe.scalambda.fixtures.ScalambdaFunctionFixtures
-import io.carpe.scalambda.terraform.ast.resources.LambdaFunction
+import io.carpe.scalambda.terraform.ast.resources.lambda.LambdaFunction
 import org.scalatest.flatspec.AnyFlatSpec
 
 class TerraformFileSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {

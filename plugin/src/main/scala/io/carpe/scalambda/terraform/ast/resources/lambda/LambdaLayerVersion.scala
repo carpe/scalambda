@@ -1,8 +1,9 @@
-package io.carpe.scalambda.terraform.ast.resources
+package io.carpe.scalambda.terraform.ast.resources.lambda
 
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TResourceRef, TString}
+import io.carpe.scalambda.terraform.ast.resources.S3BucketItem
 
 case class LambdaLayerVersion(layerName: String, s3BucketItem: S3BucketItem) extends Resource {
   /**

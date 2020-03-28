@@ -11,11 +11,9 @@ import io.carpe.scalambda.terraform.ast.Definition.{Output, Variable}
 import io.carpe.scalambda.terraform.ast.data.TemplateFile
 import io.carpe.scalambda.terraform.ast.module.ScalambdaModule
 import io.carpe.scalambda.terraform.ast.props.TValue.{TResourceRef, TString}
-import io.carpe.scalambda.terraform.ast.resources.{apigateway, _}
-import io.carpe.scalambda.terraform.ast.resources.apigateway.{
-  ApiGateway, ApiGatewayBasePathMapping, ApiGatewayDeployment, ApiGatewayDomainName, ApiGatewayStage
-}
-import io.carpe.scalambda.terraform.ast.resources.lambda.ProvisionedConcurrency
+import io.carpe.scalambda.terraform.ast.resources.{apigateway, lambda, _}
+import io.carpe.scalambda.terraform.ast.resources.apigateway.{ApiGateway, ApiGatewayBasePathMapping, ApiGatewayDeployment, ApiGatewayDomainName, ApiGatewayStage}
+import io.carpe.scalambda.terraform.ast.resources.lambda.{LambdaFunction, LambdaFunctionAlias, LambdaLayerVersion, LambdaPermission, ProvisionedConcurrency}
 
 object ScalambdaTerraform {
 
@@ -114,7 +112,7 @@ object ScalambdaTerraform {
     // create a lambda layer that can be shared by all functions that contains the dependencies of said functions.
     // this will be used to speed up deployments
     val layerName = s"${StringUtils.toSnakeCase(projectName)}_assembled_dependencies"
-    val lambdaDependenciesLayer = LambdaLayerVersion(layerName, dependenciesBucketItem)
+    val lambdaDependenciesLayer = lambda.LambdaLayerVersion(layerName, dependenciesBucketItem)
 
     // create resources for each of the lambda functions and the variables they require
     val (lambdaFunctions, lambdaAliases, lambdaConcurrencies, lambdaVariables, outputs) =
@@ -138,7 +136,7 @@ object ScalambdaTerraform {
            * Define Terraform resources for function
            */
           val functionResource =
-            LambdaFunction(function, version, s3Bucket, projectBucketItem, lambdaDependenciesLayer, isXrayEnabled)
+            lambda.LambdaFunction(function, version, s3Bucket, projectBucketItem, lambdaDependenciesLayer, isXrayEnabled)
 
           val functionAlias = LambdaFunctionAlias(functionResource, version)
 
