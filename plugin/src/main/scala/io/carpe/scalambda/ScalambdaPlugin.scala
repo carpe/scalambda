@@ -223,7 +223,7 @@ object ScalambdaPlugin extends AutoPlugin {
         )
       },
       libraryDependencies ++= {
-        XRaySettings.xrayLibs(isXrayEnabled = enableXray.value)
+        XRaySettings.xrayLibs(isXrayEnabled = enableXray.?.value.getOrElse(false))
       }
     ) ++ LambdaLoggingSettings.loggingSettings
 
