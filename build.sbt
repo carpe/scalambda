@@ -2,6 +2,7 @@ import sbt._
 import sbt.Keys.libraryDependencies
 
 import scala.tools.nsc.Properties
+import sbtsonar.SonarPlugin.autoImport.sonarProperties
 
 //ThisBuild / crossScalaVersions := Seq("2.11.12", "2.12.10")
 ThisBuild / scalaVersion := "2.12.10"
@@ -12,7 +13,10 @@ ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 
 lazy val sonarSettings = Seq(
   sonarProperties ++= Map(
-    "sonar.modules" -> "core,testing,plugin"
+    "sonar.modules" -> "core,testing,plugin",
+    "core.sonar.projectName" -> "scalambda-core"
+    "testing.sonar.projectName" -> "scalambda-testin",
+    "plugin.sonar.projectName" -> "sbt-scalamda"
    ),
   //aggregate in sonarScan := false
 )
