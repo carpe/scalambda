@@ -23,7 +23,7 @@ object OpenApi {
             None
           case ScalambdaFunction.ApiFunction(naming, handlerPath, functionSource, iamRole, functionConfig, vpcConfig, provisionedConcurrency, apiConfig, environmentVariables) =>
             Some(apiConfig -> lambda)
-          case ScalambdaFunction.ReferencedFunction(_, _, _, apiConfig) =>
+          case ScalambdaFunction.ReferencedFunction(_, _, apiConfig) =>
             Some(apiConfig -> lambda)
         })
       .groupBy(_._1.route)

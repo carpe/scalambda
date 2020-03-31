@@ -1,12 +1,10 @@
 package io.carpe.scalambda.terraform.ast.data
 
-import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.terraform.ast.Definition.Data
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TLiteral, TObject, TResourceRef, TString}
-import io.carpe.scalambda.terraform.ast.resources.lambda.LambdaFunctionAlias
+import io.carpe.scalambda.terraform.ast.props.TValue.{TLiteral, TObject, TString}
 
-case class TemplateFile(filename: String, apiName: String, aliases: Seq[LambdaFunctionAlias]) extends Data {
+case class TemplateFile(filename: String, apiName: String, lambdaVars: Seq[(String, TValue)]) extends Data {
 
   /**
    * Examples: "aws_lambda_function" "template_file"
@@ -26,11 +24,6 @@ case class TemplateFile(filename: String, apiName: String, aliases: Seq[LambdaFu
    * Properties of the definition
    */
   override def body: Map[String, TValue] = {
-    val lambdaVars: Seq[(String, TValue)] = aliases.map(alias => {
-      val function = alias.function.scalambdaFunction
-      function.swaggerVariableName -> TResourceRef("aws_lambda_alias", function.terraformLambdaResourceName, "invoke_arn")
-    })
-
     Map(
       "template" -> TLiteral("file(\"${path.module}/swagger.yaml\")"),
       "vars" -> TObject(

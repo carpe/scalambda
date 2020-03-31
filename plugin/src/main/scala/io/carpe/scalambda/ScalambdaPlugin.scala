@@ -96,7 +96,6 @@ object ScalambdaPlugin extends AutoPlugin {
     def foreignEndpoint(
       functionName: String,
       qualifier: String,
-      invokeArn: String,
       apiConfig: ApiGatewayConf
     ): Seq[Def.Setting[_]] = {
 
@@ -106,7 +105,6 @@ object ScalambdaPlugin extends AutoPlugin {
           ScalambdaFunction.ReferencedFunction(
             functionName = functionName,
             qualifier = qualifier,
-            functionArn = invokeArn,
             apiGatewayConf = apiConfig
           )
         }

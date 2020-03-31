@@ -21,9 +21,9 @@ object Integration {
             "httpMethod" -> Json.fromString("POST"),
             "type" -> Json.fromString("aws_proxy")
           )
-        case ScalambdaFunction.ReferencedFunction(functionName, _, functionArn, apiGatewayConf) =>
+        case ScalambdaFunction.ReferencedFunction(functionName, _, apiGatewayConf) =>
           Json.obj(
-            "uri" -> Json.fromString(functionArn),
+            "uri" -> Json.fromString("""${""" + function.swaggerVariableName  + """}"""),
             "passthroughBehavior" -> Json.fromString("when_no_match"),
             "httpMethod" -> Json.fromString("POST"),
             "type" -> Json.fromString("aws_proxy")

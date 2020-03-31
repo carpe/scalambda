@@ -4,16 +4,22 @@ import java.io.{File, PrintWriter}
 import java.nio.file.Files
 
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.ScalambdaFunction.ProjectFunction
+import io.carpe.scalambda.conf.ScalambdaFunction.{ProjectFunction, ReferencedFunction}
 import io.carpe.scalambda.conf.function.{EnvironmentVariable, FunctionRoleSource}
 import io.carpe.scalambda.conf.utils.StringUtils
 import io.carpe.scalambda.terraform.ast.Definition.{Output, Variable}
 import io.carpe.scalambda.terraform.ast.data.TemplateFile
 import io.carpe.scalambda.terraform.ast.module.ScalambdaModule
-import io.carpe.scalambda.terraform.ast.props.TValue.{TResourceRef, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue
+import io.carpe.scalambda.terraform.ast.data.LambdaFunctionAlias._
+import io.carpe.scalambda.terraform.ast.props.TValue.{TDataRef, TResourceRef, TString}
 import io.carpe.scalambda.terraform.ast.resources.{apigateway, lambda, _}
-import io.carpe.scalambda.terraform.ast.resources.apigateway.{ApiGateway, ApiGatewayBasePathMapping, ApiGatewayDeployment, ApiGatewayDomainName, ApiGatewayStage}
-import io.carpe.scalambda.terraform.ast.resources.lambda.{LambdaFunction, LambdaFunctionAlias, LambdaLayerVersion, LambdaPermission, ProvisionedConcurrency}
+import io.carpe.scalambda.terraform.ast.resources.apigateway.{
+  ApiGateway, ApiGatewayBasePathMapping, ApiGatewayDeployment, ApiGatewayDomainName, ApiGatewayStage
+}
+import io.carpe.scalambda.terraform.ast.resources.lambda.{
+  LambdaFunction, LambdaFunctionAlias, LambdaLayerVersion, LambdaPermission, ProvisionedConcurrency
+}
 
 object ScalambdaTerraform {
 
@@ -40,8 +46,15 @@ object ScalambdaTerraform {
     val projectFunctions = functions.flatMap(_ match {
       case function: ProjectFunction =>
         Some(function)
-      case ScalambdaFunction.ReferencedFunction(functionName, _, functionArn, apiGatewayConf) =>
+      case ScalambdaFunction.ReferencedFunction(_, _, _) =>
         None
+    })
+
+    val referencedFunctionAliases = functions.flatMap(_ match {
+      case function: ProjectFunction =>
+        None
+      case referencedFunction: ScalambdaFunction.ReferencedFunction =>
+        Some(io.carpe.scalambda.terraform.ast.data.LambdaFunctionAlias(referencedFunction))
     })
 
     // create resource definitions for the lambda functions
@@ -68,12 +81,22 @@ object ScalambdaTerraform {
       apiPathMapping,
       apiVariables
     ) =
-      maybeDefineApiResources(isXrayEnabled, apiName, authorizerArn, lambdaAliases, terraformOutput, maybeDomainName)
+      maybeDefineApiResources(
+        isXrayEnabled,
+        apiName,
+        authorizerArn,
+        functions,
+        lambdaAliases,
+        referencedFunctionAliases,
+        terraformOutput,
+        maybeDomainName
+      )
 
     // load resources into module
     val scalambdaModule = ScalambdaModule(
       lambdas,
       lambdaAliases,
+      referencedFunctionAliases,
       lambdaDependenciesLayer,
       lambdaProvisionedCurrencies = lambdaConcurrencies,
       s3Buckets = Seq(s3Bucket),
@@ -137,7 +160,8 @@ object ScalambdaTerraform {
            * Define Terraform resources for function
            */
           val functionResource =
-            lambda.LambdaFunction(function, version, s3Bucket, projectBucketItem, lambdaDependenciesLayer, isXrayEnabled)
+            lambda
+              .LambdaFunction(function, version, s3Bucket, projectBucketItem, lambdaDependenciesLayer, isXrayEnabled)
 
           val functionAlias = LambdaFunctionAlias(functionResource, version)
 
@@ -266,7 +290,9 @@ object ScalambdaTerraform {
     isXrayEnabled: Boolean,
     apiName: String,
     authorizerArn: String,
+    functions: Seq[ScalambdaFunction],
     functionAliases: Seq[LambdaFunctionAlias],
+    referencedFunctionAliases: Seq[DataLambdaFunctionAlias],
     terraformOutput: File,
     maybeDomainName: Option[String]
   ): (
@@ -286,8 +312,14 @@ object ScalambdaTerraform {
       return (None, None, Seq.empty, None, None, None, None, Seq.empty)
     }
 
-    def writeSwagger(apiName: String, aliases: Seq[LambdaFunctionAlias], rootTerraformPath: String): TemplateFile = {
-      val openApi = OpenApi.forFunctions(aliases.map(_.function.scalambdaFunction), authorizerArn)
+    def writeSwagger(
+      apiName: String,
+      rootTerraformPath: String,
+      functions: Seq[ScalambdaFunction],
+      functionAliases: Seq[LambdaFunctionAlias],
+      referencedFunctionAliases: Seq[DataLambdaFunctionAlias]
+    ): TemplateFile = {
+      val openApi = OpenApi.forFunctions(functions, authorizerArn)
 
       // convert the api to yaml
       val openApiDefinition = OpenApi.apiToYaml(openApi)
@@ -296,18 +328,37 @@ object ScalambdaTerraform {
       val swaggerFilePath = rootTerraformPath + "/swagger.yaml"
       new PrintWriter(swaggerFilePath) { write(openApiDefinition); close() }
 
-      TemplateFile("swagger.yaml", apiName, aliases)
+      val lambdaVars: Seq[(String, TValue)] = functionAliases.map(alias => {
+        val function = alias.function.scalambdaFunction
+        function.swaggerVariableName -> TResourceRef(
+          "aws_lambda_alias",
+          function.terraformLambdaResourceName,
+          "invoke_arn"
+        )
+      }) ++ referencedFunctionAliases.map(alias => {
+        val function = alias.referencedFunction
+        function.swaggerVariableName -> TDataRef(alias, "invoke_arn")
+      })
+
+      TemplateFile("swagger.yaml", apiName, lambdaVars)
     }
-    val swaggerTemplate =
-      writeSwagger(apiName = apiName, rootTerraformPath = terraformOutput.getAbsolutePath, aliases = functionAliases)
+    val swaggerTemplate = {
+      writeSwagger(apiName = apiName, rootTerraformPath = terraformOutput.getAbsolutePath, functions = functions, functionAliases, referencedFunctionAliases)
+    }
 
     // define api gateway
     val api = ApiGateway(TString(apiName), None, swaggerTemplate)
 
     // define permissions for api gateway to invoke lambdas
     val permissions = functionAliases.map(alias => {
-      LambdaPermission(alias, api)
+      val statementId = "Allow${title(aws_lambda_function." + alias.function.name + ".function_name)}InvokeByApi"
+      val resourceName = alias.function.name
+      LambdaPermission(resourceName, statementId, TResourceRef("aws_lambda_function", alias.function.name, _), api)
+    }) ++ referencedFunctionAliases.map(alias => {
+      val statementId = "Allow${title(data.aws_lambda_alias." + alias.name + ".function_name)}InvokeByApi"
+      LambdaPermission(alias.name, statementId, TDataRef(alias, _), api)
     })
+
 
     // create deployment
     val apiGatewayDeployment = ApiGatewayDeployment(api, permissions)

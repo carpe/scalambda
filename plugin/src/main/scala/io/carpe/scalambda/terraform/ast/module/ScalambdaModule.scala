@@ -2,6 +2,7 @@ package io.carpe.scalambda.terraform.ast.module
 
 import io.carpe.scalambda.terraform.ast.Definition.{Output, Variable}
 import io.carpe.scalambda.terraform.ast.TerraformFile
+import io.carpe.scalambda.terraform.ast.data.LambdaFunctionAlias.DataLambdaFunctionAlias
 import io.carpe.scalambda.terraform.ast.data.{ArchiveFile, TemplateFile}
 import io.carpe.scalambda.terraform.ast.resources.apigateway.{ApiGateway, ApiGatewayBasePathMapping, ApiGatewayDeployment, ApiGatewayDomainName, ApiGatewayStage}
 import io.carpe.scalambda.terraform.ast.resources._
@@ -10,6 +11,7 @@ import io.carpe.scalambda.terraform.ast.resources.lambda.{LambdaFunction, Lambda
 case class ScalambdaModule( // lambda resources
                             lambdas: Seq[LambdaFunction],
                             lambdaAliases: Seq[LambdaFunctionAlias],
+                            referencedFunctionAliases: Seq[DataLambdaFunctionAlias],
                             lambdaDependencyLayer: LambdaLayerVersion,
                             lambdaProvisionedCurrencies: Seq[ProvisionedConcurrency],
                             s3Buckets: Seq[S3Bucket],
@@ -33,13 +35,13 @@ case class ScalambdaModule( // lambda resources
 object ScalambdaModule {
 
   def write(scalambdaModule: ScalambdaModule, rootPath: String): Unit = {
-    val lambdasFile = TerraformFile((scalambdaModule.lambdaDependencyLayer +: scalambdaModule.lambdas) ++ scalambdaModule.lambdaAliases ++ scalambdaModule.lambdaProvisionedCurrencies, "lambdas.tf")
+    val lambdasFile = TerraformFile((scalambdaModule.lambdaDependencyLayer +: scalambdaModule.lambdas) ++ scalambdaModule.lambdaAliases ++ scalambdaModule.referencedFunctionAliases ++ scalambdaModule.lambdaProvisionedCurrencies, "lambdas.tf")
     val s3File = TerraformFile(scalambdaModule.s3Buckets ++ scalambdaModule.sources ++ scalambdaModule.s3BucketItems, "s3.tf")
     val variablesAndOutputsFile = TerraformFile(scalambdaModule.variables ++ scalambdaModule.outputs, "io.tf")
     val coreLambdaFiles = Seq(lambdasFile, s3File, variablesAndOutputsFile)
 
     val apiFiles = scalambdaModule match {
-      case ScalambdaModule(_, _, _, _,_, _, _, Some(apiGateway), _, Some(swaggerTemplate), Some(apiGatewayDeployment), Some(apiGatewayStage), maybeDomainName, maybeBasePathMapping, _, _) =>
+      case ScalambdaModule(_, _, _, _, _, _, _, _, Some(apiGateway), _, Some(swaggerTemplate), Some(apiGatewayDeployment), Some(apiGatewayStage), maybeDomainName, maybeBasePathMapping, _, _) =>
         val domainResources = Seq(maybeDomainName, maybeBasePathMapping).flatten
         val apiResources = apiGateway +: swaggerTemplate +: apiGatewayDeployment +: apiGatewayStage +: scalambdaModule.lambdaPermissions
 
