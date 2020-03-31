@@ -8,11 +8,11 @@ ThisBuild / scalaVersion := "2.12.10"
 ThisBuild / organization := "io.carpe"
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
-ThisBuild / credentials += Credentials(new File(Properties.envOrElse("JENKINS_HOME", Properties.envOrElse("HOME", "")) + "/.sbt/.credentials"))
+//ThisBuild / credentials += Credentials(new File(Properties.envOrElse("JENKINS_HOME", Properties.envOrElse("HOME", "")) + "/.sbt/.credentials"))
 
 lazy val sonarSettings = Seq(
   sonarProperties ++= Map(
-    "sonar.modules" -> "core,testing,plugin"
+    "sonar.modules" -> "core"
    ),
   aggregate in sonarScan := false
 )
