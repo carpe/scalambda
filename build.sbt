@@ -18,7 +18,7 @@ lazy val sonarSettings = Seq(
     "testing.sonar.projectName" -> "scalambda-testin",
     "plugin.sonar.projectName" -> "sbt-scalamda"
    ),
-  //aggregate in sonarScan := false
+  aggregate in sonarScan := false
 )
 
 lazy val root = (project in file("."))
