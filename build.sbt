@@ -13,7 +13,7 @@ ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 
 lazy val sonarSettings = Seq(
   sonarProperties ++= Map(
-    "sonar.modules" -> "scalambda-core,scalambda-testing,scalambda-plugin",
+    "sonar.modules" -> "core,testing,plugin",
    ),
   aggregate in sonarScan := false
 )
