@@ -47,11 +47,6 @@ pipeline {
     }
     stages {
         // Unit Tests are MANDATORY
-        stage('Update'){
-          steps{
-            sh "sbt $SBT_OPTIONS update"
-          }
-        }
         stage('Unit Tests Not Found'){
           when { expression { UNIT_TESTS_FOUND == 'false' } }
           steps {
