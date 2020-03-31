@@ -14,6 +14,7 @@ ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 lazy val sonarSettings = Seq(
   sonarProperties ++= Map(
     "sonar.modules" -> "core,testing,plugin",
+    "sonar.scala.scoverage.reportPath" -> "target/scala-2.12/scoverage-report/scoverage.xml",
    ),
   aggregate in sonarScan := false
 )
