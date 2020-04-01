@@ -23,7 +23,7 @@ case class ApiGatewayDeployment(apiGateway: ApiGateway, lambdaPermissions: Seq[L
    */
   override def body: Map[String, TValue] = Map(
     "rest_api_id" -> TResourceRef("aws_api_gateway_rest_api", apiGateway.name, "id"),
-    "stage_name" -> TLiteral("terraform.workspace"),
+    "stage_name" -> TString("intermediate"),
     "lifecycle" -> TBlock(
       "create_before_destroy" -> TBool(true)
     ),

@@ -5,7 +5,7 @@ import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue.TString
 import io.carpe.scalambda.terraform.ast.resources.apigateway.ApiGateway
 
-case class LambdaPermission(lambdaResourceName: String, statementId: String, ref: String => TValue, apiGateway: ApiGateway) extends Resource {
+case class LambdaPermission(lambdaResourceName: String, statementId: String, functionName: TValue, qualifer: TValue, apiGateway: ApiGateway) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    */
@@ -23,8 +23,9 @@ case class LambdaPermission(lambdaResourceName: String, statementId: String, ref
   override def body: Map[String, TValue] = Map(
     "statement_id" -> TString(statementId),
     "action" -> TString("lambda:InvokeFunction"),
-    "function_name" -> ref("function_name"),
+    "function_name" -> functionName,
     "principal" -> TString("apigateway.amazonaws.com"),
+    "qualifier" -> qualifer,
     "source_arn" -> TString("${aws_api_gateway_rest_api." + apiGateway.name + ".execution_arn}/*/*")
   )
 }

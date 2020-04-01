@@ -353,10 +353,10 @@ object ScalambdaTerraform {
     val permissions = functionAliases.map(alias => {
       val statementId = "Allow${title(aws_lambda_function." + alias.function.name + ".function_name)}InvokeByApi"
       val resourceName = alias.function.name
-      LambdaPermission(resourceName, statementId, TResourceRef("aws_lambda_function", alias.function.name, _), api)
+      LambdaPermission(resourceName, statementId, TResourceRef("aws_lambda_function", alias.function.name, "function_name"), TResourceRef("aws_lambda_alias", alias.name, "name"), api)
     }) ++ referencedFunctionAliases.map(alias => {
       val statementId = "Allow${title(data.aws_lambda_alias." + alias.name + ".function_name)}InvokeByApi"
-      LambdaPermission(alias.name, statementId, TDataRef(alias, _), api)
+      LambdaPermission(alias.name, statementId, TDataRef(alias, "function_name"), TDataRef(alias, "name"), api)
     })
 
 
