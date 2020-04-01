@@ -11,12 +11,14 @@ ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 //ThisBuild / credentials += Credentials(new File(Properties.envOrElse("JENKINS_HOME", Properties.envOrElse("HOME", "")) + "/.sbt/.credentials"))
 ThisBuild / useCoursier := false
+import com.github.sbt.jacoco.JacocoPlugin.autoImport._
 
 lazy val sonarSettings = Seq(
   sonarProperties ++= Map(
-    "sonar.modules" -> "core,testing,plugin",
-    "sonar.scala.coverage.reportPaths" -> s"target/scala-${scalaBinaryVersion.value}/scoverage-report/scoverage.xml",
-   ),
+    //"sonar.modules" -> "core,testing,plugin",
+    //"sonar.scala.coverage.reportPaths" -> "target/scala-2.12/jacoco/report/aggregate/",
+    "sonar.coverage.jacoco.xmlReportPaths" -> "target/scala-2.12/jacoco/report/jacoco.xml"
+),
   aggregate in sonarScan := false
 )
 
@@ -24,6 +26,7 @@ lazy val root = (project in file("."))
   .settings(name := "scalambda")
   .aggregate(plugin, core, testing)
   .settings(sonarSettings)
+  .settings(jacocoReportSettings := JacocoReportSettings(title = "Report Title", formats = Seq(JacocoReportFormats.XML)))
   //.settings(sonarScan / skip := true)
   .settings(skip in publish := true, skip in publishLocal := true)
 

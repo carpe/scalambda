@@ -8,3 +8,5 @@ addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.9.0")
 resolvers += "Artifactory Realm" at "https://bin.carpe.io/artifactory/sbt-release"
 credentials += Credentials(new File(Properties.envOrElse("JENKINS_HOME", Properties.envOrElse("HOME", "")) + "/.sbt/.credentials"))
 addSbtPlugin("io.carpe" % "sbt-carpe" % "1.1.0")
+addSbtPlugin("com.github.sbt" % "sbt-jacoco" % "3.1.0")
+

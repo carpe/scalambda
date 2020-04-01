@@ -74,6 +74,7 @@ pipeline {
             steps {
                 sh "sbt ${SBT_OPTIONS} coverageReport"
                 sh "sbt ${SBT_OPTIONS} coverageAggregate"
+                sh "sbt ${SBT_OPTIONS} jacocoAggregate"
             }
         }
         stage('Sonarqube Analysis'){
