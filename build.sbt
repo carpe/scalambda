@@ -15,7 +15,7 @@ ThisBuild / useCoursier := false
 lazy val sonarSettings = Seq(
   sonarProperties ++= Map(
     "sonar.modules" -> "core,testing,plugin",
-    "sonar.scala.coverage.reportPaths" -> "target/scala-${scalaBinaryVersion.value}/scoverage-report/scoverage.xml",
+    "sonar.scala.coverage.reportPaths" -> s"target/scala-${scalaBinaryVersion.value}/scoverage-report/scoverage.xml",
    ),
   aggregate in sonarScan := false
 )
