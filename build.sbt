@@ -28,7 +28,7 @@ lazy val root = (project in file("."))
 lazy val core = project
   .settings(name := "scalambda-core")
   .enablePlugins(CarpeCorePlugin)
-  .settings(sonarSettings)
+  //.settings(sonarSettings)
   .settings(description := "Dependencies shared by both delegates and handlers. Includes things like Models and generic Lambda helpers.")
   .settings(
     // Circe is a serialization library that supports Scala's case classes much better than Jackson (and is also quite a bit faster)
@@ -56,7 +56,7 @@ lazy val core = project
 lazy val testing = project
   .settings(name := "scalambda-testing")
   .enablePlugins(CarpeCorePlugin)
-  .settings(sonarSettings)
+  //.settings(sonarSettings)
   .settings(description := "Utilities for testing Lambda Functions created with Scalambda.")
   .settings(
     // Testing
@@ -75,7 +75,7 @@ lazy val plugin = project
   .settings(name := "sbt-scalambda")
   .enablePlugins(SbtPlugin, BuildInfoPlugin)
   .enablePlugins(CarpeCorePlugin)
-  .settings(sonarSettings)
+  //.settings(sonarSettings)
   .settings(description := "Dependencies shared by both delegates and handlers. Includes things like Models and generic Lambda helpers.")
   .settings(
     // this allows the plugin see what the current version of scalambda is at runtime in order to
