@@ -79,7 +79,7 @@ pipeline {
         stage('Sonarqube Analysis'){
             steps {
                 withSonarQubeEnv(installationName:'carpe_sonarqube_server') {
-                    sh "sbt ${SBT_OPTIONS} -Dsonar.projectKey=carpe_${PROJECT_NAME} -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.organization=carpe -Dsonar.branch.name=${env.BRANCH_NAME} -Dsonar.verbose=true -Dsonar.login=${SONAR_AUTH_TOKEN} sonarScan "
+                    sh "sbt ${SBT_OPTIONS} -Dsonar.projectKey=carpe_${PROJECT_NAME} -Dsonar.organization=carpe -Dsonar.branch.name=${env.BRANCH_NAME} -Dsonar.verbose=true -Dsonar.login=${SONAR_AUTH_TOKEN} sonarScan "
                 }
             }
         }
