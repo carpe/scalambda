@@ -24,7 +24,7 @@ lazy val root = (project in file("."))
   .settings(name := "scalambda")
   .aggregate(plugin, core, testing)
   .settings(sonarSettings)
-  .settings(sonarScan / skip := true)
+  //.settings(sonarScan / skip := true)
   .settings(skip in publish := true, skip in publishLocal := true)
 
 lazy val core = project
