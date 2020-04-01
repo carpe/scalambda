@@ -15,7 +15,7 @@ import com.github.sbt.jacoco.JacocoPlugin.autoImport._
 
 lazy val sonarSettings = Seq(
   sonarProperties ++= Map(
-    //"sonar.modules" -> "core,testing,plugin",
+    "sonar.modules" -> "core,testing,plugin",
     //"sonar.scala.coverage.reportPaths" -> "target/scala-2.12/jacoco/report/aggregate/",
     "sonar.coverage.jacoco.xmlReportPaths" -> "target/scala-2.12/jacoco/report/jacoco.xml"
 ),
