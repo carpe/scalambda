@@ -10,14 +10,10 @@ ThisBuild / organization := "io.carpe"
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 //ThisBuild / credentials += Credentials(new File(Properties.envOrElse("JENKINS_HOME", Properties.envOrElse("HOME", "")) + "/.sbt/.credentials"))
-ThisBuild / useCoursier := false
-import com.github.sbt.jacoco.JacocoPlugin.autoImport._
 
 lazy val sonarSettings = Seq(
   sonarProperties ++= Map(
     "sonar.modules" -> "core,testing,plugin",
-    //"sonar.scala.coverage.reportPaths" -> "target/scala-2.12/jacoco/report/aggregate/",
-    "sonar.coverage.jacoco.xmlReportPaths" -> "target/scala-2.12/jacoco/report/jacoco.xml"
 ),
   aggregate in sonarScan := false
 )
