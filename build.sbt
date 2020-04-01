@@ -22,7 +22,6 @@ lazy val root = (project in file("."))
   .settings(name := "scalambda")
   .aggregate(plugin, core, testing)
   .settings(sonarSettings)
-  .settings(jacocoReportSettings := JacocoReportSettings(title = "Report Title", formats = Seq(JacocoReportFormats.XML)))
   //.settings(sonarScan / skip := true)
   .settings(skip in publish := true, skip in publishLocal := true)
 
