@@ -1,59 +1,97 @@
 package io.carpe.scalambda.terraform.ast.props
 
+import cats.data.Chain
 import io.carpe.scalambda.terraform.ast.Definition.{Data, Resource}
+import io.carpe.scalambda.terraform.ast.props.TLine.{TBlockLine, TEmptyLine, TInline}
 
 sealed abstract class TValue(val usesAssignment: Boolean = true) {
-  def indent(implicit level: Int): String = ("  " * level)
-  def serialize(implicit level: Int): String
+  def serialize(implicit level: Int): Chain[TLine]
 }
 
 object TValue {
 
+  /**
+   * Primitives
+   */
+
   case class TNumber(number: Long) extends TValue {
-    override def serialize(implicit level: Int): String = number.toString
+    override def serialize(implicit level: Int): Chain[TLine] = TLine(number.toString)
   }
 
   case class TString(string: String) extends TValue {
-    override def serialize(implicit level: Int): String = s""""${string.toString}""""
+    override def serialize(implicit level: Int): Chain[TLine] = {
+      TLine(s""""${string.toString}"""")
+    }
   }
 
   case class TBool(boolean: Boolean) extends TValue {
-    override def serialize(implicit level: Int): String = if (boolean) {
-      "true"
+    override def serialize(implicit level: Int): Chain[TLine] = if (boolean) {
+      TLine("true")
     } else {
-      "false"
+      TLine("false")
     }
   }
 
-  trait TProperties { this: TValue =>
-    def props: Seq[(String, TValue)]
 
-
-    override def serialize(implicit level: Int): String = {
-      val serializedProperties = serializeProperties(level + 1)
-
-      if (serializedProperties.trim.isEmpty) {
-        return ""
+  /**
+   * Used for String literals.
+   *
+   * For example:
+   * <<EOF
+   * hello
+   * world
+   * EOF
+   *
+   * @see [[https://www.terraform.io/docs/configuration/expressions.html#string-literals Terraform Docs]]
+   * @param fileContents to place inside the heredoc
+   */
+  case class THeredoc(fileContents: String) extends TValue {
+    override def serialize(implicit level: Int): Chain[TLine] = {
+      if (fileContents.isEmpty) {
+        return Chain.empty
       }
 
-      s"""{
-         |${serializedProperties}
-         |$indent}""".stripMargin
+      TInline("<<EOF") +: Chain.fromSeq(
+        fileContents.lines.toSeq
+          .map(line => TBlockLine(indentationLevel = 0, contents = line))
+      ) :+ TBlockLine(0, "EOF")
+    }
+  }
+
+  /**
+   * Objects
+   */
+
+  trait TProperties { this: TValue =>
+    def props: Seq[(String, TValue)]
+    lazy val propChain: Chain[(String, TValue)] = Chain.fromSeq(props)
+
+
+    override def serialize(implicit level: Int): Chain[TLine] = {
+      val serializedProperties = serializeProperties(level + 1)
+
+      if (serializedProperties.isEmpty) {
+        return Chain.empty
+      }
+
+      TInline("{") +: serializedProperties :+ TBlockLine(level, "}")
     }
 
-    def serializeProperties(implicit level: Int): String = {
-      props.flatMap({ case (propertyName, propertyValue: TValue) =>
+    def serializeProperties(implicit level: Int): Chain[TLine] = {
+      propChain.flatMap({ case (propertyName, propertyValue: TValue) =>
 
         // serialize the inner properties
-        val innerBlock = propertyValue.serialize
+        val propertyChain = propertyValue.serialize
 
         // if the inner properties are blank, remove this key altogether
-        if (innerBlock.trim.isEmpty) {
-          None
+        if (propertyChain.isEmpty) {
+          Chain.empty[TLine]
         } else {
-          Some(s"""$indent$propertyName${if (propertyValue.usesAssignment) " = " else " "}$innerBlock""")
+          val assignmentType = if (propertyValue.usesAssignment) " = " else " "
+          val assigment = TBlockLine(level, s"$propertyName$assignmentType")
+          assigment +: propertyChain
         }
-      }).mkString("\n")
+      })
     }
   }
 
@@ -69,21 +107,44 @@ object TValue {
 
   case class TObject(props: (String, TValue)*) extends TValue(usesAssignment = true) with TProperties
 
+  /**
+   * Collections
+   */
+
   case class TArray(values: TValue*) extends TValue {
-    override def serialize(implicit level: Int): String = {
-      val serializedValues = values.map(value => {
-        s"${indent(level + 1)}${value.serialize(level + 2)}"
+    lazy val valueChain: Chain[TValue] = Chain.fromSeq(values)
+
+    override def serialize(implicit level: Int): Chain[TLine] = {
+      val innerValueChains = valueChain.map(value => {
+        val innerArrayLevel = level + 1
+        val chain = value.serialize(innerArrayLevel)
+
+        chain.uncons.map {
+          case (TInline(contents), tail: Chain[TLine]) =>
+            Chain.concat(
+              Chain.one(TBlockLine(innerArrayLevel, contents)),
+              tail
+            )
+          case (TBlockLine(indentationLevel, contents), tail: Chain[TLine]) =>
+            chain
+          case (TEmptyLine, _) =>
+            chain
+        }.getOrElse(Chain.empty)
       })
 
-      if (values.isEmpty) {
-        return ""
-      }
-
-      s"""[
-        |${serializedValues.mkString(",\n")}
-        |$indent]""".stripMargin
+      innerValueChains.initLast.map({ case (initChains, lastChain) =>
+        // append a comma to each element except the last
+        (initChains.flatMap(innerValueChain => innerValueChain :+ TInline(",\n"))) ++ lastChain
+      }).map(innerValuesChain => {
+        // add array brackets
+        TInline("[") +: innerValuesChain :+ TBlockLine(level, "]")
+      }).getOrElse(Chain.empty)
     }
   }
+
+  /**
+   * References
+   */
 
 
   sealed trait TRef extends TValue {
@@ -105,7 +166,7 @@ object TValue {
    */
   case class TDataRef(data: Data, property: String) extends TRef {
     type A = TDataRef
-    override def serialize(implicit level: Int): String = s"data.${data.dataType}.${data.name}.${property}"
+    override def serialize(implicit level: Int): Chain[TLine] = TLine(s"data.${data.dataType}.${data.name}.${property}")
     override def overrideProperty(property: String): TDataRef = this.copy(property = property)
   }
 
@@ -117,7 +178,7 @@ object TValue {
    */
   case class TResourceRef(resource: Resource, property: String) extends TRef {
     type A = TResourceRef
-    override def serialize(implicit level: Int): String = s"${resource.resourceType}.${resource.name}.${property}"
+    override def serialize(implicit level: Int): Chain[TLine] = TLine(s"${resource.resourceType}.${resource.name}.${property}")
     override def overrideProperty(property: String): TResourceRef = this.copy(property = property)
   }
 
@@ -126,19 +187,23 @@ object TValue {
    * @param name of the referenced variable
    */
   case class TVariableRef(name: String) extends TValue {
-    override def serialize(implicit level: Int): String = s"var.${name}"
+    override def serialize(implicit level: Int): Chain[TLine] = TLine(s"var.${name}")
   }
+
+  /**
+   * Misc
+   */
 
   /**
    * Used for edge cases such as the `type` property on a terraform `variable`
    * @param literal type
    */
   case class TLiteral(literal: String) extends TValue {
-    override def serialize(implicit level: Int): String = literal
+    override def serialize(implicit level: Int): Chain[TLine] = TLine(literal)
   }
 
   case object TNone extends TValue {
-    override def serialize(implicit level: Int): String = ""
+    override def serialize(implicit level: Int): Chain[TLine] = Chain.empty
   }
 
 }

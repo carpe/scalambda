@@ -1,6 +1,8 @@
 package io.carpe.scalambda.terraform.ast
 
-import io.carpe.scalambda.terraform.ast.props.TValue
+import cats.data.Chain
+import io.carpe.scalambda.terraform.ast.props.TLine.TBlockLine
+import io.carpe.scalambda.terraform.ast.props.{TLine, TValue}
 import io.carpe.scalambda.terraform.ast.props.TValue.{TBlock, TBool, TLiteral, TNone, TNumber, TString}
 
 /**
@@ -30,13 +32,12 @@ trait Definition {
    */
   def body: Map[String, TValue]
 
-  override def toString: String = {
-    val serializedHeader = Seq(Some(definitionType), getResourceType.map(r => s""""$r""""), Some(s""""$name"""")).flatten.mkString(" ")
+  def serialize: Chain[TLine] = {
+    val headerContent = Seq(Some(definitionType), getResourceType.map(r => s""""$r""""), Some(s""""$name"""")).flatten.mkString(" ")
 
-    val serializedBody = TBlock(body.toSeq: _*).serialize(level = 0)
+    val bodyChain = TBlock(body.toSeq: _*).serialize(level = 0)
 
-    s"""${serializedHeader} ${serializedBody}
-       |""".stripMargin
+    TBlockLine(0, headerContent + " ") +: bodyChain
   }
 }
 

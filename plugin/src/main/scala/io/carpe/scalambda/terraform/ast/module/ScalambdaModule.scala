@@ -7,6 +7,7 @@ import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.{LambdaFu
 import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
 import io.carpe.scalambda.terraform.ast.providers.terraform.data.{ArchiveFile, TemplateFile}
 import io.carpe.scalambda.terraform.ast.providers.aws.apigateway._
+import io.carpe.scalambda.terraform.writer.TerraformPrinter
 
 case class ScalambdaModule( // lambda resources
                             lambdas: Seq[LambdaFunction],
@@ -51,7 +52,9 @@ object ScalambdaModule {
         Seq.empty
     }
 
-    TerraformFile.writeFiles(coreLambdaFiles ++ apiFiles, rootPath)
+    (coreLambdaFiles ++ apiFiles).foreach(file => {
+      TerraformPrinter.writeFile(rootPath, file)
+    })
 
     println(s"${coreLambdaFiles.map(_.definitions.size).sum} Terraform definitions were generated. They have been written to: ${rootPath}")
   }
