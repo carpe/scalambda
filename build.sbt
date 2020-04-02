@@ -10,16 +10,16 @@ ThisBuild / organization := "io.carpe"
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 
-lazy val sonarSettings = Seq(
-  sonarProperties ++= Map(
-    "sonar.modules" -> "core,testing,plugin",
-),
-  aggregate in sonarScan := false
-)
+//lazy val sonarSettings = Seq(
+//  sonarProperties ++= Map(
+//    "sonar.modules" -> "core,testing,plugin",
+//),
+//  aggregate in sonarScan := false
+//)
 
 lazy val root = (project in file("."))
   .settings(name := "scalambda")
-  .settings(sonarSettings)
+  //.settings(sonarSettings)
   .aggregate(plugin, core, testing)
     //.settings(sonarScan / skip := true)
   .settings(skip in publish := true, skip in publishLocal := true)
