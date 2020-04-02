@@ -115,9 +115,6 @@ pipeline {
             }
           }
         }
-        cleanup {
-          cleanWs()
-        }
    }
 }
 
