@@ -76,17 +76,20 @@ object Definition {
 
   case class Variable[T <: TValue](name: String, description: Option[String], defaultValue: Option[T])(implicit tag: TypeTag[T]) extends Definition {
     override def definitionType: String = "variable"
+
     override def getResourceType: Option[String] = None
+
+    def ref: T = TLiteral(s"var.${name}").asInstanceOf[T]
 
     /**
      * Properties of the definition
      */
     override def body: Map[String, TValue] = Map(
       "type" -> {
-
         typeOf[T] match {
           case t if t =:= typeOf[TNumber] => Some(TLiteral("string"))
           case t if t =:= typeOf[TNumber] => Some(TLiteral("number"))
+          case t if t =:= typeOf[TNumber] => Some(TLiteral("bool"))
           case _ => None
         }
       },

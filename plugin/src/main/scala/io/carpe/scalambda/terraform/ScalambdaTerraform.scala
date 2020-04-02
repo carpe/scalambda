@@ -54,7 +54,7 @@ object ScalambdaTerraform {
 
     // create resource definitions for the lambda functions
     val versionAsAlias = StringUtils.toSnakeCase(version)
-    val (lambdas, lambdaAliases, lambdaDependenciesLayer, lambdaConcurrencies, lambdaVariables, lambdaOutputs) =
+    val (lambdas, lambdaAliases, lambdaDependenciesLayer, lambdaWarming, lambdaVariables, lambdaOutputs) =
       LambdaComposer.defineLambdaResources(
         isXrayEnabled,
         projectName,
@@ -91,7 +91,7 @@ object ScalambdaTerraform {
       lambdas,
       lambdaAliases ++ referencedFunctionAliases,
       lambdaDependenciesLayer,
-      lambdaProvisionedCurrencies = lambdaConcurrencies,
+      lambdaWarmingResources = lambdaWarming,
       s3Buckets = Seq(s3Bucket),
       s3BucketItems = Seq(projectBucketItem, dependenciesBucketItem),
       sources = Seq(),

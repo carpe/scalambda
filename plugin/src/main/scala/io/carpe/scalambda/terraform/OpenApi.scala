@@ -1,8 +1,8 @@
 package io.carpe.scalambda.terraform
 
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.function.AuthConf.CarpeAuthorizer
-import io.carpe.scalambda.conf.function.{ApiGatewayConf, AuthConf}
+import io.carpe.scalambda.conf.function.AuthConfig.CarpeAuthorizer
+import io.carpe.scalambda.conf.function.{ApiGatewayConfig, AuthConfig}
 import io.carpe.scalambda.terraform.openapi.resourcemethod.Security
 import io.carpe.scalambda.terraform.openapi.{ResourceMethod, ResourcePath, SecurityDefinition}
 
@@ -17,7 +17,7 @@ object OpenApi {
    * @return an OpenAPI that wraps the provided functions
    */
   def forFunctions(scalambdaFunctions: Seq[ScalambdaFunction], authorizerArn: String): OpenApi = {
-    val functionsByRoute: Map[String, Seq[(ApiGatewayConf, ScalambdaFunction)]] = scalambdaFunctions
+    val functionsByRoute: Map[String, Seq[(ApiGatewayConfig, ScalambdaFunction)]] = scalambdaFunctions
         .flatMap(lambda => lambda match {
           case ScalambdaFunction.Function(naming, handlerPath, functionSource, iamRole, functionConfig, vpcConfig, provisionedConcurrency, environmentVariables) =>
             None
@@ -46,7 +46,7 @@ object OpenApi {
             authorizerArn = s"arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/${authorizerArn}/invocations",
             authorizerRole = "arn:aws:iam::120864075170:role/Auth0Integration"
           ))
-        case AuthConf.Unauthorized =>
+        case AuthConfig.Unauthorized =>
           None
       }
     }).toSeq

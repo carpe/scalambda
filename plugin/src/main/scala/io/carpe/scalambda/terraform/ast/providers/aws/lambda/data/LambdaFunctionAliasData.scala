@@ -34,4 +34,9 @@ case class LambdaFunctionAliasData(referencedFunction: ReferencedFunction) exten
   override def functionName: TValue.TRef = TDataRef(this, "function_name")
 
   override def qualifier: TValue.TRef = TDataRef(this, "name")
+
+  /**
+   * @return Example: MyFunctionName
+   */
+  override def approximateFunctionName: String = referencedFunction.functionName
 }

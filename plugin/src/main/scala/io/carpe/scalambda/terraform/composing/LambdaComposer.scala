@@ -1,43 +1,53 @@
 package io.carpe.scalambda.terraform.composing
 
 import io.carpe.scalambda.conf.ScalambdaFunction.ProjectFunction
-import io.carpe.scalambda.conf.function.{EnvironmentVariable, FunctionRoleSource}
+import io.carpe.scalambda.conf.function.WarmerConfig.NoOp
+import io.carpe.scalambda.conf.function.{EnvironmentVariable, FunctionRoleSource, WarmerConfig}
 import io.carpe.scalambda.conf.utils.StringUtils
+import io.carpe.scalambda.terraform.ast.Definition
 import io.carpe.scalambda.terraform.ast.Definition.{Output, Variable}
-import io.carpe.scalambda.terraform.ast.props.TValue.{TResourceRef, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TBool, TResourceRef, TString}
 import io.carpe.scalambda.terraform.ast.providers.aws
 import io.carpe.scalambda.terraform.ast.providers.aws.lambda.LambdaFunctionAlias
-import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.{LambdaFunction, LambdaLayerVersion, ProvisionedConcurrency}
+import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.{
+  LambdaFunction, LambdaLayerVersion, ProvisionedConcurrency
+}
 import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
 
 object LambdaComposer {
+
   def defineLambdaResources(
-                             isXrayEnabled: Boolean,
-                             projectName: String,
-                             scalambdaFunctions: List[ProjectFunction],
-                             version: String,
-                             s3Bucket: S3Bucket,
-                             projectBucketItem: S3BucketItem,
-                             dependenciesBucketItem: S3BucketItem
-                           ): (
+    isXrayEnabled: Boolean,
+    projectName: String,
+    scalambdaFunctions: List[ProjectFunction],
+    version: String,
+    s3Bucket: S3Bucket,
+    projectBucketItem: S3BucketItem,
+    dependenciesBucketItem: S3BucketItem
+  ): (
     Seq[LambdaFunction],
-      Seq[LambdaFunctionAlias],
-      LambdaLayerVersion,
-      Seq[ProvisionedConcurrency],
-      Seq[Variable[_]],
-      Seq[Output[_]]
-    ) = {
+    Seq[LambdaFunctionAlias],
+    LambdaLayerVersion,
+    Seq[Definition],
+    Seq[Variable[_]],
+    Seq[Output[_]]
+  ) = {
     // create a lambda layer that can be shared by all functions that contains the dependencies of said functions.
     // this will be used to speed up deployments
     val layerName = s"${StringUtils.toSnakeCase(projectName)}_assembled_dependencies"
     val lambdaDependenciesLayer = LambdaLayerVersion(layerName, dependenciesBucketItem)
+    val warmerVariable = Variable[TBool](
+      name = "enable_warmers",
+      description = Some("Whether to enable configured lambda warmers"),
+      defaultValue = Some(TBool(false))
+    )
 
     // create resources for each of the lambda functions and the variables they require
-    val (lambdaFunctions, lambdaAliases, lambdaConcurrencies, lambdaVariables, outputs) =
+    val (lambdaFunctions, lambdaAliases, lambdaWarmingResources, lambdaVariables, outputs) =
       scalambdaFunctions.foldRight(
         Seq.empty[LambdaFunction],
         Seq.empty[LambdaFunctionAlias],
-        Seq.empty[ProvisionedConcurrency],
+        Seq.empty[Definition],
         Seq.empty[Variable[_]],
         Seq.empty[Output[_]]
       )(
@@ -45,10 +55,10 @@ object LambdaComposer {
           val (
             functionResources,
             functionAliases,
-            functionConcurrencies: Seq[ProvisionedConcurrency],
+            functionWarmingResources,
             variables,
             outputs
-            ) = resources
+          ) = resources
 
           /**
            * Define Terraform resources for function
@@ -58,11 +68,16 @@ object LambdaComposer {
 
           val functionAlias = aws.lambda.resources.LambdaFunctionAliasResource(functionResource, version)
 
-          val functionConcurrency: Seq[ProvisionedConcurrency] = {
-            if (function.provisionedConcurrency > 0) {
-              Seq(ProvisionedConcurrency(functionAlias, function.provisionedConcurrency))
-            } else {
-              Nil
+          val functionWarming: Seq[Definition] = {
+            function.warmerConfig match {
+              case WarmerConfig.WithJson(json) =>
+                WarmerComposer.composeWarmer(functionAlias, warmerVariable, json).definitions
+              case WarmerConfig.NoOp =>
+                WarmerComposer.composeWarmer(functionAlias, warmerVariable, NoOp.json).definitions
+              case WarmerConfig.ProvisionedConcurrency(concurrency) =>
+                Seq(ProvisionedConcurrency(functionAlias, concurrency))
+              case WarmerConfig.Cold =>
+                Nil
             }
           }
 
@@ -126,13 +141,13 @@ object LambdaComposer {
           (
             functionResources :+ functionResource,
             functionAliases :+ functionAlias,
-            (functionConcurrencies ++ functionConcurrency),
+            functionWarmingResources ++ functionWarming,
             variables ++ functionVariables,
             outputs ++ functionOutputs
           )
         }
       )
 
-    (lambdaFunctions, lambdaAliases, lambdaDependenciesLayer, lambdaConcurrencies, lambdaVariables.distinct, outputs)
+    (lambdaFunctions, lambdaAliases, lambdaDependenciesLayer, lambdaWarmingResources, lambdaVariables.distinct, outputs)
   }
 }

@@ -1,16 +1,16 @@
 package io.carpe.scalambda.conf.function
 
-sealed trait AuthConf
+sealed trait AuthConfig
 
-object AuthConf {
+object AuthConfig {
 
 //  case class Authorized(authorizerName: String) extends AuthConf {
 //    lazy val tfVarName: String = s"${StringUtils.toSnakeCase(authorizerName)}_invoke_arn"
 //  }
 
-  case object CarpeAuthorizer extends AuthConf
+  case object CarpeAuthorizer extends AuthConfig
 
-  case object Unauthorized extends AuthConf
+  case object Unauthorized extends AuthConfig
 
 //  def authorized(authorizerName: String): Authorized = Authorized(authorizerName)
 

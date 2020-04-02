@@ -13,7 +13,7 @@ case class ScalambdaModule( // lambda resources
                             lambdas: Seq[LambdaFunction],
                             lambdaAliases: Seq[LambdaFunctionAlias],
                             lambdaDependencyLayer: LambdaLayerVersion,
-                            lambdaProvisionedCurrencies: Seq[ProvisionedConcurrency],
+                            lambdaWarmingResources: Seq[Definition],
                             s3Buckets: Seq[S3Bucket],
                             s3BucketItems: Seq[S3BucketItem],
                             sources: Seq[ArchiveFile],
@@ -35,10 +35,11 @@ case class ScalambdaModule( // lambda resources
 object ScalambdaModule {
 
   def write(scalambdaModule: ScalambdaModule, rootPath: String): Unit = {
-    val lambdasFile = TerraformFile((scalambdaModule.lambdaDependencyLayer +: scalambdaModule.lambdas) ++ scalambdaModule.lambdaAliases ++ scalambdaModule.lambdaProvisionedCurrencies, "lambdas.tf")
+    val lambdasFile = TerraformFile((scalambdaModule.lambdaDependencyLayer +: scalambdaModule.lambdas) ++ scalambdaModule.lambdaAliases, "lambdas.tf")
+    val warmersFile = TerraformFile(scalambdaModule.lambdaWarmingResources, "warming.tf")
     val s3File = TerraformFile(scalambdaModule.s3Buckets ++ scalambdaModule.sources ++ scalambdaModule.s3BucketItems, "s3.tf")
     val variablesAndOutputsFile = TerraformFile(scalambdaModule.variables ++ scalambdaModule.outputs, "io.tf")
-    val coreLambdaFiles = Seq(lambdasFile, s3File, variablesAndOutputsFile)
+    val coreLambdaFiles = Seq(lambdasFile, warmersFile, s3File, variablesAndOutputsFile)
 
     val apiFiles = scalambdaModule match {
       case ScalambdaModule(_, _, _, _, _, _, _, Some(apiGateway), _, Some(swaggerTemplate), Some(apiGatewayDeployment), Some(apiGatewayStage), maybeDomainName, maybeBasePathMapping, _, _) =>

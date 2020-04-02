@@ -2,7 +2,7 @@ package io.carpe.scalambda.fixtures
 
 import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.conf.ScalambdaFunction.{ApiFunction, ProjectFunction}
-import io.carpe.scalambda.conf.function.AuthConf.CarpeAuthorizer
+import io.carpe.scalambda.conf.function.AuthConfig.CarpeAuthorizer
 import io.carpe.scalambda.conf.function.FunctionNaming.Static
 import io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import io.carpe.scalambda.conf.function._
@@ -18,9 +18,9 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       functionSource = IncludedInModule,
       iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
       runtimeConfig = RuntimeConfig.default,
-      apiConfig = ApiGatewayConf(route = "/cars", method = Method.GET, authConf = CarpeAuthorizer),
+      apiConfig = ApiGatewayConfig(route = "/cars", method = Method.GET, authConf = CarpeAuthorizer),
       vpcConfig = VpcConf.withoutVpc,
-      provisionedConcurrency = 0,
+      warmerConfig = WarmerConfig.Cold,
       environmentVariables = List.empty
     )
   }
@@ -32,7 +32,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
       runtimeConfig = RuntimeConfig.default,
       vpcConfig = VpcConf.withoutVpc,
-      provisionedConcurrency = 0,
+      warmerConfig = WarmerConfig.Cold,
       environmentVariables = List(
         EnvironmentVariable.Static("API", "www.google.com")
       )
@@ -49,7 +49,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
         subnetIds = Seq("subnet-12345678987654321"),
         securityGroupIds = Seq("sg-12345678987654321")
       ),
-      provisionedConcurrency = 0,
+      warmerConfig = WarmerConfig.Cold,
       environmentVariables = List.empty
     )
   }

@@ -19,8 +19,13 @@ object TValue {
   }
 
   case class TString(string: String) extends TValue {
+    lazy val escapedString: String = {
+      import io.circe.syntax._
+      string.asJson.noSpaces
+    }
+
     override def serialize(implicit level: Int): Chain[TLine] = {
-      TLine(s""""${string.toString}"""")
+      TLine(escapedString)
     }
   }
 
@@ -151,11 +156,19 @@ object TValue {
     type A <: TRef
 
     /**
+     * @example data.aws_lambda_function.my_function.name
+     * @return String that can be used for interpolating strings.
+     */
+    def asInterpolatedRef: String
+
+    /**
      * Use this to override references to point to a different property.
      * @param property to change the reference to
      * @return
      */
     def overrideProperty(property: String): A
+
+    override def serialize(implicit level: Int): Chain[TLine] = TLine(asInterpolatedRef)
   }
 
   /**
@@ -166,7 +179,8 @@ object TValue {
    */
   case class TDataRef(data: Data, property: String) extends TRef {
     type A = TDataRef
-    override def serialize(implicit level: Int): Chain[TLine] = TLine(s"data.${data.dataType}.${data.name}.${property}")
+
+    override def asInterpolatedRef: String = s"data.${data.dataType}.${data.name}.${property}"
     override def overrideProperty(property: String): TDataRef = this.copy(property = property)
   }
 
@@ -178,7 +192,7 @@ object TValue {
    */
   case class TResourceRef(resource: Resource, property: String) extends TRef {
     type A = TResourceRef
-    override def serialize(implicit level: Int): Chain[TLine] = TLine(s"${resource.resourceType}.${resource.name}.${property}")
+    override def asInterpolatedRef: String = s"${resource.resourceType}.${resource.name}.${property}"
     override def overrideProperty(property: String): TResourceRef = this.copy(property = property)
   }
 

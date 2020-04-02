@@ -49,7 +49,9 @@ object ApiGatewayComposer {
     val permissions = functionAliases.map(alias => {
       val statementId = "Allow${title(" + alias.functionName.toString + ")}InvokeByApi"
       val resourceName = alias.name
-      LambdaPermission(resourceName, statementId, alias.functionName, alias.qualifier, api)
+      val apiArn = TString("${aws_api_gateway_rest_api." + api.name + ".execution_arn}/*/*")
+      val principal = "apigateway.amazonaws.com"
+      LambdaPermission(resourceName, statementId, principal, alias.functionName, alias.qualifier, apiArn)
     })
 
 

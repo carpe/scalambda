@@ -27,6 +27,11 @@ object TerraformPrinter {
   }
 
   def writeFile(rootPath: String, file: TerraformFile): Unit = {
+    if (file.definitions.isEmpty) {
+      // refuse to write files that are empty
+      return
+    }
+
     Files.createDirectories(new File(rootPath).toPath)
 
     val filePath = rootPath + "/" + file.fileName
