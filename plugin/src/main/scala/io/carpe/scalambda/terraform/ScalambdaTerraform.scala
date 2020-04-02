@@ -74,6 +74,7 @@ object ScalambdaTerraform {
       apiGatewayStage,
       apiDomainName,
       apiPathMapping,
+      apiRoute53Alias,
       apiVariables
     ) =
       ApiGatewayComposer.maybeDefineApiResources(
@@ -100,8 +101,7 @@ object ScalambdaTerraform {
       swaggerTemplate = swaggerTemplate,
       apiGatewayDeployment = apiGatewayDeployment,
       apiGatewayStage = apiGatewayStage,
-      apiGatewayDomainName = apiDomainName,
-      apiGatewayBasePathMapping = apiPathMapping,
+      domainResources = Seq(apiDomainName, apiPathMapping, apiRoute53Alias).flatten,
       variables = lambdaVariables ++ apiVariables,
       outputs = lambdaOutputs
     )
@@ -137,7 +137,7 @@ object ScalambdaTerraform {
 
     // create bucket items (to be placed into that bucket) that are pointed to the sources of each lambda function
     val sourceBucketItem =
-      S3BucketItem(newBucket, name = "sources", key = "sources.jar", source = "sources.jar", etag = TLiteral("""filemd5(${path.module}/sources.jar)"""))
+      S3BucketItem(newBucket, name = "sources", key = "sources.jar", source = "sources.jar", etag = TString("""filemd5(${path.module}/sources.jar)"""))
     val depsBucketItem = S3BucketItem(
       newBucket,
       name = "dependencies",

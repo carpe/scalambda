@@ -8,7 +8,8 @@ trait WarmerKeys {
 
   /**
    * Uses provisioned concurrency to keep your function slightly warmer. Not recommended for most use cases, as a
-   * cloudwatch event (which you can create via [[WarmerConfig.WithJson]]) is a little more straight-forward.
+   * cloudwatch event (which you can create via [[WarmerConfig.Invocation]]) is a little more straight-forward.
+   *
    * @param concurrency to provision
    */
   def ProvisionedConcurrency(concurrency: Int): WarmerConfig.ProvisionedConcurrency = function.WarmerConfig.ProvisionedConcurrency(concurrency)
@@ -17,7 +18,7 @@ trait WarmerKeys {
    * Invokes your lambda function with the supplied json as input on a set interval in order to keep it warm.
    * @param json to send to function
    */
-  def WithJson(json: Json): WarmerConfig.WithJson = function.WarmerConfig.WithJson(json)
+  def Invocation(json: Json): WarmerConfig.Invocation = function.WarmerConfig.Invocation(json)
 
   /**
    * Uses Scalambda's built in Warmer handler, which will simply initialize your Function's handler class, without

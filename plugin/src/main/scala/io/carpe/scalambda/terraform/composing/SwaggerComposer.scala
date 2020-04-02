@@ -26,7 +26,7 @@ object SwaggerComposer {
     new PrintWriter(swaggerFilePath) { write(openApiDefinition); close() }
 
     val lambdaVars: Seq[(String, TValue)] = functionAliases.map(alias => {
-      alias.name -> alias.invokeArn
+      alias.swaggerVariableName -> alias.invokeArn
     })
 
     TemplateFile("swagger.yaml", apiName, lambdaVars)

@@ -43,8 +43,12 @@ case class LambdaFunctionAliasResource(function: LambdaFunction, aliasName: Stri
 
   override def qualifier: TValue.TRef = TResourceRef(this, "name")
 
+  override def qualifiedArn: TValue = TString("${" + TResourceRef(function, "arn").asInterpolatedRef + s"}:${aliasName}")
+
   /**
    * @return Example: MyFunctionName
    */
   override def approximateFunctionName: String = function.scalambdaFunction.approximateFunctionName
+
+  override def swaggerVariableName: String = function.swaggerVariableName
 }

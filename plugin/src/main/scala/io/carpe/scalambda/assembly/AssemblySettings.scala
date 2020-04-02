@@ -30,7 +30,7 @@ object AssemblySettings {
       .or(assemblyDefaultJarName in packageScalambda)
       .value,
     assemblyDefaultJarName in packageScalambda := { name.value + "-assembly-" + version.value + ".jar" },
-    assemblyOutputPath in packageScalambda := { target.value / "terraform" / "source.jar" }
+    assemblyOutputPath in packageScalambda := { target.value / "terraform" / "sources.jar" }
   )
 
   lazy val dependencyAssemblySettings: Seq[Setting[_]] = Seq(

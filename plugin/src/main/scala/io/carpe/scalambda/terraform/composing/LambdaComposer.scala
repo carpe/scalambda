@@ -38,7 +38,7 @@ object LambdaComposer {
     val lambdaDependenciesLayer = LambdaLayerVersion(layerName, dependenciesBucketItem)
     val warmerVariable = Variable[TBool](
       name = "enable_warmers",
-      description = Some("Whether to enable configured lambda warmers"),
+      description = Some("If set to true, this will enable configured lambda warmers. Be wary of the extra cost this incurs."),
       defaultValue = Some(TBool(false))
     )
 
@@ -68,16 +68,16 @@ object LambdaComposer {
 
           val functionAlias = aws.lambda.resources.LambdaFunctionAliasResource(functionResource, version)
 
-          val functionWarming: Seq[Definition] = {
+          val (warmingVariables: Seq[Variable[TBool]], functionWarming: Seq[Definition]) = {
             function.warmerConfig match {
-              case WarmerConfig.WithJson(json) =>
-                WarmerComposer.composeWarmer(functionAlias, warmerVariable, json).definitions
+              case WarmerConfig.Invocation(json) =>
+                (Seq(warmerVariable), WarmerComposer.composeWarmer(functionAlias, warmerVariable, json).definitions)
               case WarmerConfig.NoOp =>
-                WarmerComposer.composeWarmer(functionAlias, warmerVariable, NoOp.json).definitions
+                (Seq(warmerVariable), WarmerComposer.composeWarmer(functionAlias, warmerVariable, NoOp.json).definitions)
               case WarmerConfig.ProvisionedConcurrency(concurrency) =>
-                Seq(ProvisionedConcurrency(functionAlias, concurrency))
+                (Nil, Seq(ProvisionedConcurrency(functionAlias, concurrency)))
               case WarmerConfig.Cold =>
-                Nil
+                (Nil, Nil)
             }
           }
 
@@ -118,7 +118,7 @@ object LambdaComposer {
                 )
             )
 
-          val functionVariables = functionRoleVariables ++ functionEnvVariables
+          val functionVariables = functionRoleVariables ++ functionEnvVariables ++ warmingVariables
 
           /**
            * Define Terraform outputs for function

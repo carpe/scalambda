@@ -7,6 +7,8 @@ import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.LambdaFun
 
 trait LambdaFunctionAlias extends Definition {
 
+  def swaggerVariableName: String
+
   /**
    * @return Example: MyFunctionName
    */
@@ -18,10 +20,14 @@ trait LambdaFunctionAlias extends Definition {
   def functionName: TRef
 
   /**
-   *
    * @return Terraform reference to function invoke arn
    */
   def invokeArn: TRef
+
+  /**
+   * @return Terraform reference to function qualified arn
+   */
+  def qualifiedArn: TValue
 
   /**
    * @return Terraform reference to the qualifier for this alias

@@ -6,7 +6,7 @@ sealed trait WarmerConfig
 
 object WarmerConfig {
 
-  case class WithJson(json: Json) extends WarmerConfig
+  case class Invocation(json: Json) extends WarmerConfig
 
   /**
    * Uses Scalambda's built in Warmer handler, which will simply initialize your Function's handler class, without
@@ -23,7 +23,8 @@ object WarmerConfig {
 
   /**
    * Uses provisioned concurrency to keep your function slightly warmer. Not recommended for most use cases, as a
-   * cloudwatch event (which you can create via [[WarmerConfig.WithJson]]) is a little more straight-forward.
+   * cloudwatch event (which you can create via [[WarmerConfig.Invocation]]) is a little more straight-forward.
+ *
    * @param concurrency to provision
    */
   case class ProvisionedConcurrency(concurrency: Int) extends WarmerConfig

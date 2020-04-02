@@ -24,8 +24,7 @@ case class ScalambdaModule( // lambda resources
                             swaggerTemplate: Option[TemplateFile],
                             apiGatewayDeployment: Option[ApiGatewayDeployment],
                             apiGatewayStage: Option[ApiGatewayStage],
-                            apiGatewayDomainName: Option[ApiGatewayDomainName],
-                            apiGatewayBasePathMapping: Option[ApiGatewayBasePathMapping],
+                            domainResources: Seq[Definition],
 
                             // other
                             variables: Seq[Variable[_]],
@@ -42,8 +41,7 @@ object ScalambdaModule {
     val coreLambdaFiles = Seq(lambdasFile, warmersFile, s3File, variablesAndOutputsFile)
 
     val apiFiles = scalambdaModule match {
-      case ScalambdaModule(_, _, _, _, _, _, _, Some(apiGateway), _, Some(swaggerTemplate), Some(apiGatewayDeployment), Some(apiGatewayStage), maybeDomainName, maybeBasePathMapping, _, _) =>
-        val domainResources = Seq(maybeDomainName, maybeBasePathMapping).flatten
+      case ScalambdaModule(_, _, _, _, _, _, _, Some(apiGateway), _, Some(swaggerTemplate), Some(apiGatewayDeployment), Some(apiGatewayStage), domainResources, _, _) =>
         val apiResources: Seq[Definition] = apiGateway +: swaggerTemplate +: apiGatewayDeployment +: (apiGatewayStage +: scalambdaModule.lambdaPermissions)
 
         Seq(

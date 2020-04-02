@@ -1,10 +1,10 @@
 package io.carpe.scalambda.terraform.ast.providers.aws.apigateway
 
-import io.carpe.scalambda.terraform.ast.Definition.Resource
+import io.carpe.scalambda.terraform.ast.Definition.{Resource, Variable}
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.TResourceRef
+import io.carpe.scalambda.terraform.ast.props.TValue.{TBool, TLiteral, TResourceRef}
 
-case class ApiGatewayBasePathMapping(api: ApiGateway, apiGatewayDeployment: ApiGatewayDeployment, domainName: ApiGatewayDomainName) extends Resource {
+case class ApiGatewayBasePathMapping(api: ApiGateway, apiGatewayDeployment: ApiGatewayDeployment, domainName: ApiGatewayDomainName, toggle: Variable[TBool]) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    */
@@ -21,6 +21,7 @@ case class ApiGatewayBasePathMapping(api: ApiGateway, apiGatewayDeployment: ApiG
    * Properties of the definition
    */
   override def body: Map[String, TValue] = Map(
+    "count" -> TLiteral(s"var.${toggle.name} ? 1 : 0"),
     "domain_name" -> TResourceRef(domainName, "domain_name"),
     "stage_name" -> TResourceRef(apiGatewayDeployment, "stage_name"),
     "api_id" -> TResourceRef(api, "id")

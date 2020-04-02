@@ -6,7 +6,7 @@ import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue.{THeredoc, TResourceRef, TString}
 import io.circe.Json
 
-case class EventTarget(namePrefix: String, rule: EventRule, functionName: TValue, invokeArn: TValue, json: Json) extends Resource {
+case class EventTarget(namePrefix: String, rule: EventRule, functionName: TValue, qualifiedArn: TValue, json: Json) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    *
@@ -27,7 +27,7 @@ case class EventTarget(namePrefix: String, rule: EventRule, functionName: TValue
   override def body: Map[String, TValue] = Map(
     "rule" -> TResourceRef(rule, "name"),
     "target_id" -> functionName,
-    "arn" -> invokeArn,
+    "arn" -> qualifiedArn,
     "input" -> THeredoc(json.noSpaces)
   )
 }

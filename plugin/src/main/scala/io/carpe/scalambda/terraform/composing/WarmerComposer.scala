@@ -56,14 +56,14 @@ object WarmerComposer {
       namePrefix = lambdaAlias.approximateFunctionName,
       rule = eventRule,
       functionName = lambdaAlias.functionName,
-      lambdaAlias.invokeArn,
+      qualifiedArn = lambdaAlias.qualifiedArn,
       json
     )
 
     val lambdaPermission = LambdaPermission(
-      lambdaResourceName = lambdaAlias.name,
+      lambdaResourceName = s"${lambdaAlias.name}_warmer",
       statementId = "Allow${title(" + lambdaAlias.functionName.asInterpolatedRef + ")}InvokeByWarmer",
-      principal = "apigateway.amazonaws.com",
+      principal = "events.amazonaws.com",
       functionName = lambdaAlias.functionName,
       qualifer = lambdaAlias.qualifier,
       sourceArn = TResourceRef(eventRule, "arn")

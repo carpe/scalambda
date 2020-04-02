@@ -1,19 +1,17 @@
 package io.carpe.scalambda
 
+import _root_.io.carpe.scalambda.assembly.AssemblySettings
 import _root_.io.carpe.scalambda.conf.ScalambdaFunction
 import _root_.io.carpe.scalambda.conf.function.FunctionNaming.WorkspaceBased
 import _root_.io.carpe.scalambda.conf.function.FunctionRoleSource.FromVariable
 import _root_.io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import _root_.io.carpe.scalambda.conf.function.{VpcConf, _}
 import _root_.io.carpe.scalambda.conf.keys.ScalambaKeys
-import _root_.io.carpe.scalambda.assembly.AssemblySettings
 import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
 import com.typesafe.sbt.GitVersioning
 import com.typesafe.sbt.SbtGit.GitKeys.{formattedDateVersion, gitHeadCommit}
 import sbt.Keys._
 import sbt._
-import sbtassembly.AssemblyKeys._
-import sbtassembly.AssemblyPlugin.autoImport.{assemblyDefaultJarName, assemblyJarName, assemblyOption, assemblyOutputPath, assemblyPackageDependency}
 import sbtassembly._
 
 import scala.tools.nsc.Properties

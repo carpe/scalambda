@@ -3,7 +3,7 @@ package io.carpe.scalambda.terraform.ast
 import cats.data.Chain
 import io.carpe.scalambda.terraform.ast.props.TLine.TBlockLine
 import io.carpe.scalambda.terraform.ast.props.{TLine, TValue}
-import io.carpe.scalambda.terraform.ast.props.TValue.{TBlock, TBool, TLiteral, TNone, TNumber, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TBlock, TBool, TLiteral, TNone, TNumber, TString, TVariableRef}
 
 /**
  * A single piece of HCL configuration. Such as a [[io.carpe.scalambda.terraform.ast.Definition.Resource]].
@@ -79,7 +79,7 @@ object Definition {
 
     override def getResourceType: Option[String] = None
 
-    def ref: T = TLiteral(s"var.${name}").asInstanceOf[T]
+    def ref: TVariableRef = TVariableRef(name)
 
     /**
      * Properties of the definition

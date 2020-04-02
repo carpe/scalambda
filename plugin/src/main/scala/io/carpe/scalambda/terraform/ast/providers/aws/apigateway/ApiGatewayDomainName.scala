@@ -1,26 +1,20 @@
 package io.carpe.scalambda.terraform.ast.providers.aws.apigateway
 
-import io.carpe.scalambda.terraform.ast.Definition.Resource
+import io.carpe.scalambda.terraform.ast.Definition.{Resource, Variable}
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TString, TVariableRef}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TBool, TLiteral, TString, TVariableRef}
 
-case class ApiGatewayDomainName(domainName: String) extends Resource {
+case class ApiGatewayDomainName(name: String, domainName: String, toggle: Variable[TBool]) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    */
   override lazy val resourceType: String = "aws_api_gateway_domain_name"
 
   /**
-   * Examples: "my_lambda_function" "my_iam_role"
-   *
-   * @return
-   */
-  override def name: String = "api_domain"
-
-  /**
    * Properties of the definition
    */
   override def body: Map[String, TValue] = Map(
+    "count" -> TLiteral(s"var.${toggle.name} ? 1 : 0"),
     "domain_name" -> TString(domainName),
     "certificate_arn" -> TVariableRef("certificate_arn")
   )
