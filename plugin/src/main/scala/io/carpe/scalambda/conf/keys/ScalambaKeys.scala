@@ -6,3 +6,4 @@ trait ScalambaKeys
     with VpcConfigKeys
     with ApiGatewayKeys
     with RuntimeKeys
+    with WarmerKeys
