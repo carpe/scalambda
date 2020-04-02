@@ -7,4 +7,5 @@ addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.9.0")
 // CarpeData's shared project configuration plugin to jumpstart your projects
 resolvers += "Artifactory Realm" at "https://bin.carpe.io/artifactory/sbt-release"
 credentials += Credentials(new File(Properties.envOrElse("JENKINS_HOME", Properties.envOrElse("HOME", "")) + "/.sbt/.credentials"))
-addSbtPlugin("io.carpe" % "sbt-carpe" % "0.8.0")
+addSbtPlugin("io.carpe" % "sbt-carpe" % "1.1.0")
+
