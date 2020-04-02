@@ -59,7 +59,7 @@ pipeline {
         stage('Unit Tests') {
             steps {
               retry(3){
-                sh "sbt $SBT_OPTIONS  coverage test"
+                sh "sbt $SBT_OPTIONS clean  coverage test"
               }
             }
         }
