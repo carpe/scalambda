@@ -1,11 +1,12 @@
-package io.carpe.scalambda.terraform.ast.data
+package io.carpe.scalambda.terraform.ast.providers.aws.lambda.data
 
 import io.carpe.scalambda.conf.ScalambdaFunction.ReferencedFunction
 import io.carpe.scalambda.terraform.ast.Definition.Data
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.TString
+import io.carpe.scalambda.terraform.ast.props.TValue.{TDataRef, TString}
+import io.carpe.scalambda.terraform.ast.providers.aws.lambda.LambdaFunctionAlias
 
-case class LambdaFunctionAlias(referencedFunction: ReferencedFunction) extends Data {
+case class LambdaFunctionAliasData(referencedFunction: ReferencedFunction) extends Data with LambdaFunctionAlias {
   /**
    * Examples: "aws_lambda_function" "template_file"
    *
@@ -27,8 +28,10 @@ case class LambdaFunctionAlias(referencedFunction: ReferencedFunction) extends D
     "function_name" -> TString(referencedFunction.functionName),
     "name" -> TString(referencedFunction.qualifier),
   )
-}
 
-object LambdaFunctionAlias {
-  type DataLambdaFunctionAlias = LambdaFunctionAlias
+  override def invokeArn: TDataRef = TDataRef(this, "invoke_arn")
+
+  override def functionName: TValue.TRef = TDataRef(this, "function_name")
+
+  override def qualifier: TValue.TRef = TDataRef(this, "name")
 }

@@ -3,13 +3,14 @@ package io.carpe.scalambda.terraform.ast.resources
 import io.carpe.scalambda.conf.function.RuntimeConfig
 import io.carpe.scalambda.conf.function.ScalambdaRuntime.Java11
 import io.carpe.scalambda.fixtures.ScalambdaFunctionFixtures
-import io.carpe.scalambda.terraform.ast.resources.lambda.LambdaFunction
+import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources
+import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.LambdaFunction
 import org.scalatest.flatspec.AnyFlatSpec
 
 class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
 
   "LambdaFunction" should "be a serializable terraform resource" in {
-    val actual: String = LambdaFunction(driveCarFunction.copy(runtimeConfig = RuntimeConfig.default.copy(runtime = Java11)), version = "42", s3Bucket = s3Bucket, s3BucketItem = sourcesBucketItem, dependenciesLayer = dependenciesLambdaLayer, isXrayEnabled = false).toString
+    val actual: String = resources.LambdaFunction(driveCarFunction.copy(runtimeConfig = RuntimeConfig.default.copy(runtime = Java11)), version = "42", s3Bucket = s3Bucket, s3BucketItem = sourcesBucketItem, dependenciesLayer = dependenciesLambdaLayer, isXrayEnabled = false).toString
 
     val expected: String =
       """resource "aws_lambda_function" "drive_car_lambda" {
@@ -40,7 +41,7 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
   }
 
   it should "be a serializable terraform resource (when provided vpc_config)" in {
-    val actual: String = lambda.LambdaFunction(driveCarFunction, version = "1337", s3Bucket = s3Bucket, s3BucketItem = sourcesBucketItem, dependenciesLayer = dependenciesLambdaLayer, isXrayEnabled = false).toString
+    val actual: String = resources.LambdaFunction(driveCarFunction, version = "1337", s3Bucket = s3Bucket, s3BucketItem = sourcesBucketItem, dependenciesLayer = dependenciesLambdaLayer, isXrayEnabled = false).toString
 
     val expected: String =
       """resource "aws_lambda_function" "drive_car_lambda" {

@@ -1,5 +1,6 @@
 package io.carpe.scalambda.terraform.ast.resources
 
+import io.carpe.scalambda.terraform.ast.providers.aws.s3.S3Bucket
 import org.scalatest.flatspec.AnyFlatSpec
 
 class S3BucketSpec extends AnyFlatSpec {

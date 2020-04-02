@@ -6,8 +6,9 @@ import io.carpe.scalambda.conf.function.AuthConf.CarpeAuthorizer
 import io.carpe.scalambda.conf.function.FunctionNaming.Static
 import io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import io.carpe.scalambda.conf.function._
-import io.carpe.scalambda.terraform.ast.resources.lambda.{LambdaFunction, LambdaLayerVersion}
-import io.carpe.scalambda.terraform.ast.resources.{S3Bucket, S3BucketItem, lambda}
+import io.carpe.scalambda.terraform.ast.props.TValue.TString
+import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.{LambdaFunction, LambdaLayerVersion}
+import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
 import org.scalatest.flatspec.AnyFlatSpec
 
 trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
@@ -54,11 +55,11 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
   }
 
   lazy val s3Bucket: S3Bucket = S3Bucket("testing")
-  lazy val sourcesBucketItem: S3BucketItem = S3BucketItem(s3Bucket, "sources", "sources.jar", "sources.jar", "sources.jar")
-  lazy val dependenciesBucketItem: S3BucketItem = S3BucketItem(s3Bucket, "dependencies", "dependencies.zip", "dependencies.zip", "dependencies.jar")
-  lazy val dependenciesLambdaLayer: LambdaLayerVersion = lambda.LambdaLayerVersion("testing", dependenciesBucketItem)
+  lazy val sourcesBucketItem: S3BucketItem = S3BucketItem(s3Bucket, "sources", "sources.jar", "sources.jar", TString("sources.jar"))
+  lazy val dependenciesBucketItem: S3BucketItem = S3BucketItem(s3Bucket, "dependencies", "dependencies.zip", "dependencies.zip", TString("dependencies.jar"))
+  lazy val dependenciesLambdaLayer: LambdaLayerVersion = LambdaLayerVersion("testing", dependenciesBucketItem)
 
   def asLambdaFunction(scalambdaFunction: ProjectFunction): LambdaFunction = {
-    lambda.LambdaFunction(scalambdaFunction, "1337", s3Bucket, sourcesBucketItem, dependenciesLambdaLayer, isXrayEnabled = false)
+    LambdaFunction(scalambdaFunction, "1337", s3Bucket, sourcesBucketItem, dependenciesLambdaLayer, isXrayEnabled = false)
   }
 }

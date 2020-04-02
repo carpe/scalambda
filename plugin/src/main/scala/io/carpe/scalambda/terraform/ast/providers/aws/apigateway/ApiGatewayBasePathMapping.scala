@@ -1,4 +1,4 @@
-package io.carpe.scalambda.terraform.ast.resources.apigateway
+package io.carpe.scalambda.terraform.ast.providers.aws.apigateway
 
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
@@ -8,7 +8,7 @@ case class ApiGatewayBasePathMapping(api: ApiGateway, apiGatewayDeployment: ApiG
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    */
-  override def resourceType: Option[String] = Some("aws_api_gateway_base_path_mapping")
+  override lazy val resourceType: String = "aws_api_gateway_base_path_mapping"
 
   /**
    * Examples: "my_lambda_function" "my_iam_role"
@@ -21,8 +21,8 @@ case class ApiGatewayBasePathMapping(api: ApiGateway, apiGatewayDeployment: ApiG
    * Properties of the definition
    */
   override def body: Map[String, TValue] = Map(
-    "domain_name" -> TResourceRef("aws_api_gateway_domain_name", domainName.name, "domain_name"),
-    "stage_name" -> TResourceRef("aws_api_gateway_deployment", apiGatewayDeployment.name, "stage_name"),
-    "api_id" -> TResourceRef("aws_api_gateway_rest_api", api.name, "id")
+    "domain_name" -> TResourceRef(domainName, "domain_name"),
+    "stage_name" -> TResourceRef(apiGatewayDeployment, "stage_name"),
+    "api_id" -> TResourceRef(api, "id")
   )
 }

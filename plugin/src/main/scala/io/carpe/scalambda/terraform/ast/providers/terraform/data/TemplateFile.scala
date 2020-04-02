@@ -1,4 +1,4 @@
-package io.carpe.scalambda.terraform.ast.data
+package io.carpe.scalambda.terraform.ast.providers.terraform.data
 
 import io.carpe.scalambda.terraform.ast.Definition.Data
 import io.carpe.scalambda.terraform.ast.props.TValue

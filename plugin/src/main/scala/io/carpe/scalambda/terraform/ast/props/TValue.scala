@@ -1,6 +1,6 @@
 package io.carpe.scalambda.terraform.ast.props
 
-import io.carpe.scalambda.terraform.ast.Definition.Data
+import io.carpe.scalambda.terraform.ast.Definition.{Data, Resource}
 
 sealed abstract class TValue(val usesAssignment: Boolean = true) {
   def indent(implicit level: Int): String = ("  " * level)
@@ -85,25 +85,40 @@ object TValue {
     }
   }
 
+
+  sealed trait TRef extends TValue {
+    type A <: TRef
+
+    /**
+     * Use this to override references to point to a different property.
+     * @param property to change the reference to
+     * @return
+     */
+    def overrideProperty(property: String): A
+  }
+
   /**
    * Reference to property on a [[io.carpe.scalambda.terraform.ast.Definition.Data]]
    *
    * @param data that is being referenced
    * @param property name of the property on the data resource type that is being referred to
    */
-  case class TDataRef(data: Data, property: String) extends TValue {
+  case class TDataRef(data: Data, property: String) extends TRef {
+    type A = TDataRef
     override def serialize(implicit level: Int): String = s"data.${data.dataType}.${data.name}.${property}"
+    override def overrideProperty(property: String): TDataRef = this.copy(property = property)
   }
 
   /**
    * Reference to property on a [[io.carpe.scalambda.terraform.ast.Definition.Resource]]
    *
-   * @param resourceType type or resource (i.e. "aws_iam_role")
-   * @param name name of the resource (i.e. "my_personal_iam_role")
-   * @param property name of the property on the resource type that is being referred to
+   * @param resource the resource that is being referred to
+   * @param property name of the property on the resource that is being referred to
    */
-  case class TResourceRef(resourceType: String, name: String, property: String) extends TValue {
-    override def serialize(implicit level: Int): String = s"${resourceType}.${name}.${property}"
+  case class TResourceRef(resource: Resource, property: String) extends TRef {
+    type A = TResourceRef
+    override def serialize(implicit level: Int): String = s"${resource.resourceType}.${resource.name}.${property}"
+    override def overrideProperty(property: String): TResourceRef = this.copy(property = property)
   }
 
   /**

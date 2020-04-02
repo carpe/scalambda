@@ -1,4 +1,4 @@
-package io.carpe.scalambda.terraform.ast.resources.apigateway
+package io.carpe.scalambda.terraform.ast.providers.aws.apigateway
 
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
@@ -8,7 +8,7 @@ case class ApiGatewayDomainName(domainName: String) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    */
-  override def resourceType: Option[String] = Some("aws_api_gateway_domain_name")
+  override lazy val resourceType: String = "aws_api_gateway_domain_name"
 
   /**
    * Examples: "my_lambda_function" "my_iam_role"

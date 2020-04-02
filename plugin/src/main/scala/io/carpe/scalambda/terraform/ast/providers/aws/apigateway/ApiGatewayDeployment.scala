@@ -1,15 +1,15 @@
-package io.carpe.scalambda.terraform.ast.resources.apigateway
+package io.carpe.scalambda.terraform.ast.providers.aws.apigateway
 
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue._
-import io.carpe.scalambda.terraform.ast.resources.lambda.LambdaPermission
+import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.LambdaPermission
 
 case class ApiGatewayDeployment(apiGateway: ApiGateway, lambdaPermissions: Seq[LambdaPermission]) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    */
-  override def resourceType: Option[String] = Some("aws_api_gateway_deployment")
+  override lazy val resourceType: String = "aws_api_gateway_deployment"
 
   /**
    * Examples: "my_lambda_function" "my_iam_role"
@@ -22,7 +22,7 @@ case class ApiGatewayDeployment(apiGateway: ApiGateway, lambdaPermissions: Seq[L
    * Properties of the definition
    */
   override def body: Map[String, TValue] = Map(
-    "rest_api_id" -> TResourceRef("aws_api_gateway_rest_api", apiGateway.name, "id"),
+    "rest_api_id" -> TResourceRef(apiGateway, "id"),
     "stage_name" -> TString("intermediate"),
     "lifecycle" -> TBlock(
       "create_before_destroy" -> TBool(true)

@@ -1,4 +1,4 @@
-package io.carpe.scalambda.terraform.ast.resources.lambda
+package io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources
 
 import io.carpe.scalambda.conf.ScalambdaFunction.ProjectFunction
 import io.carpe.scalambda.conf.function.EnvironmentVariable
@@ -6,7 +6,7 @@ import io.carpe.scalambda.conf.function.ScalambdaRuntime.{Java11, Java8}
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue._
-import io.carpe.scalambda.terraform.ast.resources.{S3Bucket, S3BucketItem}
+import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
 
 case class LambdaFunction(
   scalambdaFunction: ProjectFunction,
@@ -22,7 +22,7 @@ case class LambdaFunction(
    *
    * Can be null in the case of terraform modules!
    */
-  override def resourceType: Option[String] = Some("aws_lambda_function")
+  override lazy val resourceType: String = "aws_lambda_function"
 
   /**
    * Examples: "my_lambda_function" "my_iam_role"
@@ -46,13 +46,13 @@ case class LambdaFunction(
    */
   override def body: Map[String, TValue] = Map(
     // sources for the code this lambda runs
-    "s3_bucket" -> TResourceRef("aws_s3_bucket", s3Bucket.name, "id"),
-    "s3_key" -> TResourceRef("aws_s3_bucket_object", s3BucketItem.name, "key"),
-    "s3_object_version" -> TResourceRef("aws_s3_bucket_object", s3BucketItem.name, "version_id"),
+    "s3_bucket" -> TResourceRef(s3Bucket, "id"),
+    "s3_key" -> TResourceRef(s3BucketItem, "key"),
+    "s3_object_version" -> TResourceRef(s3BucketItem, "version_id"),
     "source_code_hash" -> TLiteral(s"filebase64sha256(aws_s3_bucket_object.${s3BucketItem.name}.source)"),
     // dependency layer
     "layers" -> TArray(
-      TResourceRef("aws_lambda_layer_version", dependenciesLayer.name, "arn")
+      TResourceRef(dependenciesLayer, "arn")
     ),
     // role for the lambda
     "role" -> scalambdaFunction.iamRole.asTFValue(scalambdaFunction),

@@ -1,15 +1,15 @@
-package io.carpe.scalambda.terraform.ast.resources.lambda
+package io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources
 
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue.TString
-import io.carpe.scalambda.terraform.ast.resources.apigateway.ApiGateway
+import io.carpe.scalambda.terraform.ast.providers.aws.apigateway.ApiGateway
 
 case class LambdaPermission(lambdaResourceName: String, statementId: String, functionName: TValue, qualifer: TValue, apiGateway: ApiGateway) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    */
-  override def resourceType: Option[String] = Some("aws_lambda_permission")
+  override lazy val resourceType: String = "aws_lambda_permission"
 
   /**
    * Examples: "my_lambda_function" "my_iam_role"

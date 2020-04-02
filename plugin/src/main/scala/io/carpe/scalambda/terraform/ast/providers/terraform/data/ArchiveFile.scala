@@ -1,9 +1,9 @@
-package io.carpe.scalambda.terraform.ast.data
+package io.carpe.scalambda.terraform.ast.providers.terraform.data
 
 import io.carpe.scalambda.terraform.ast.Definition.Data
-import io.carpe.scalambda.terraform.ast.data.ArchiveFile.ArchiveSource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue.TString
+import io.carpe.scalambda.terraform.ast.providers.terraform.data.ArchiveFile.ArchiveSource
 
 case class ArchiveFile(name: String, source: ArchiveSource, output: String) extends Data {
 

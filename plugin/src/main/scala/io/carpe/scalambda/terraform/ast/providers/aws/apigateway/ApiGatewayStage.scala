@@ -1,4 +1,4 @@
-package io.carpe.scalambda.terraform.ast.resources.apigateway
+package io.carpe.scalambda.terraform.ast.providers.aws.apigateway
 
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
@@ -8,7 +8,7 @@ case class ApiGatewayStage(restApi: ApiGateway, apiGatewayDeployment: ApiGateway
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    */
-  override def resourceType: Option[String] = Some("aws_api_gateway_stage")
+  override lazy val resourceType: String = "aws_api_gateway_stage"
 
   /**
    * Examples: "my_lambda_function" "my_iam_role"
@@ -22,8 +22,8 @@ case class ApiGatewayStage(restApi: ApiGateway, apiGatewayDeployment: ApiGateway
    */
   override def body: Map[String, TValue] = Map(
     "stage_name" -> TLiteral("terraform.workspace"),
-    "rest_api_id" -> TResourceRef("aws_api_gateway_rest_api", restApi.name, "id"),
-    "deployment_id" -> TResourceRef("aws_api_gateway_deployment", apiGatewayDeployment.name, "id"),
+    "rest_api_id" -> TResourceRef(restApi, "id"),
+    "deployment_id" -> TResourceRef(apiGatewayDeployment, "id"),
     "xray_tracing_enabled" -> TBool(isXrayEnabled)
   )
 }
