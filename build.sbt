@@ -56,7 +56,6 @@ lazy val core = project
 lazy val testing = project
   .settings(name := "scalambda-testing")
   .enablePlugins(CarpeCorePlugin)
-  //.settings(sonarSettings)
   .settings(description := "Utilities for testing Lambda Functions created with Scalambda.")
   .settings(
     // Testing
@@ -75,7 +74,6 @@ lazy val plugin = project
   .settings(name := "sbt-scalambda")
   .enablePlugins(SbtPlugin, BuildInfoPlugin)
   .enablePlugins(CarpeCorePlugin)
-  //.settings(sonarSettings)
   .settings(description := "Dependencies shared by both delegates and handlers. Includes things like Models and generic Lambda helpers.")
   .settings(
     // this allows the plugin see what the current version of scalambda is at runtime in order to
