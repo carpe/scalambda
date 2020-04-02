@@ -46,6 +46,11 @@ pipeline {
         
     }
     stages {
+        stage('Cleaning'){
+          steps{
+            sh "sbt $SBT_OPTIONS clean"
+          }
+        }
         // Unit Tests are MANDATORY
         stage('Unit Tests Not Found'){
           when { expression { UNIT_TESTS_FOUND == 'false' } }
@@ -58,9 +63,7 @@ pipeline {
         }
         stage('Unit Tests') {
             steps {
-              retry(3){
-                sh "sbt $SBT_OPTIONS clean  coverage +test"
-              }
+                sh "sbt $SBT_OPTIONS  coverage +test"
             }
         }
         stage('Integration Tests') {
