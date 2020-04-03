@@ -61,16 +61,21 @@ pipeline {
             error("No Unit Tests run and they are MANDATORY")
           }
         }
+        stage('Static Code Analysis'){
+          steps {
+            sh "sbt $SBT_OPTIONS +scapegoat"
+          }
+        }       
         stage('Unit Tests') {
-            steps {
-                sh "sbt $SBT_OPTIONS  coverage +test"
-            }
+          steps {
+            sh "sbt $SBT_OPTIONS  coverage +test"
+          }
         }
         stage('Integration Tests') {
         // Integration Tests are OPTIONAL
-         when { expression { IT_TESTS_FOUND == 'true' } }
+          when { expression { IT_TESTS_FOUND == 'true' } }
             steps{
-                sh "sbt $SBT_OPTIONS coverage +it:test"
+              sh "sbt $SBT_OPTIONS coverage +it:test"
             }
         }
         stage('Compute Code Coverage') {
