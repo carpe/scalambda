@@ -137,13 +137,13 @@ object ScalambdaTerraform {
 
     // create bucket items (to be placed into that bucket) that are pointed to the sources of each lambda function
     val sourceBucketItem =
-      S3BucketItem(newBucket, name = "sources", key = "sources.jar", source = "sources.jar", etag = TString("""filemd5(${path.module}/sources.jar)"""))
+      S3BucketItem(newBucket, name = "sources", key = "sources.jar", source = "sources.jar", etag = TLiteral("""filemd5("${path.module}/sources.jar")"""))
     val depsBucketItem = S3BucketItem(
       newBucket,
       name = "dependencies",
       key = "dependencies.zip",
       source = "dependencies.zip",
-      etag = TString(dependenciesPathWithContentHash)
+      etag = TLiteral("""filemd5("${path.module}/dependencies.zip")""")
     )
 
     (newBucket, sourceBucketItem, depsBucketItem)

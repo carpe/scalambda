@@ -37,7 +37,7 @@ case class LambdaFunctionAliasResource(function: LambdaFunction, aliasName: Stri
     )
   )
 
-  override def invokeArn: TValue.TRef = TResourceRef(function, "invoke_arn")
+  override def invokeArn: TValue.TRef = TResourceRef(this, "invoke_arn")
 
   override def functionName: TValue.TRef = TResourceRef(this, "function_name")
 

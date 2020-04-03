@@ -96,6 +96,9 @@ case class LambdaFunction(
           Some(TString("PassThrough"))
         } else None
       }
+    ),
+    "depends_on" -> TArray(
+      TLiteral(s"${dependenciesLayer.resourceType}.${dependenciesLayer.name}")
     )
   )
 }

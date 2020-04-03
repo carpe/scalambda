@@ -55,7 +55,7 @@ object ApiGatewayComposer {
 
     // define permissions for api gateway to invoke lambdas
     val permissions = functionAliases.map(alias => {
-      val statementId = s"Allow${alias.approximateFunctionName}InvokeByApi"
+      val statementId = s"Allow${alias.approximateFunctionName}InvokeByApi" + "${title(terraform.workspace)}"
       val resourceName = alias.name
       val apiArn = TString("${aws_api_gateway_rest_api." + api.name + ".execution_arn}/*/*")
       val principal = "apigateway.amazonaws.com"

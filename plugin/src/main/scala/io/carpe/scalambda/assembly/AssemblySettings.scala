@@ -39,6 +39,7 @@ object AssemblySettings {
       case PathList(ps @ _*) if ps.last == "Log4j2Plugins.dat" => Log4j2MergeStrategy.plugincache
       case PathList("META-INF", "MANIFEST.MF")                 => MergeStrategy.discard
       case "log4j2.xml"                                        => MergeStrategy.discard
+      case "reference.conf"                                    => MergeStrategy.concat
       case _ =>
         MergeStrategy.last
     },
