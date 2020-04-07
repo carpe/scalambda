@@ -19,6 +19,7 @@ pipeline {
         // PROJECT
         PROJECT_NAME = "${JOB_NAME.split('/')[0]}"
         CURRENT_VERSION = readFile("${env.WORKSPACE}/version.sbt").split(":=")[1].replace("\"","").trim()
+        ORGANIZATION = "carpe"
         //DEFAULT_SCALA_VERSION = sh(script:"sbt -Dsbt.log.noformat=true $SBT_OPTIONS \"show scalaBinaryVersion\" | tail -1 | awk '{print \$(NF)}' | tr -d '\n'", returnStdout: true)
         DEFAULT_SCALA_VERSION = CI_PROPERTIES.get('DEFAULT_SCALA_VERSION')
         
@@ -33,7 +34,8 @@ pipeline {
         // GIT 
         CUSTOM_BRANCH_BANE = "${BRANCH_NAME}".replace('/','-')
         SHORT_GIT_COMMIT_SHA = sh(script: "git rev-parse --short ${env.GIT_COMMIT}", returnStdout: true).replace("\n","").trim()
-        
+        IS_PR=false
+        PR_NUMBER=-1
         // SBT 
         SBT_VERSION = "1.3.8"
         SBT_OPTIONS = "-Dsbt.version=${SBT_VERSION} -Dsbt.ci=true -Dsbt.global.base=.sbt -Dsbt.boot.directory=.sbt -Dsbt.ivy.home=.ivy2 -Dsbt.coursier.home=.coursier"
@@ -43,6 +45,11 @@ pipeline {
         
         // SNAPSHOT_RELEASE 
         SNAPSHOT_VERSION_TO_RELEASE = "${SHORT_GIT_COMMIT_SHA}-${CURRENT_VERSION}"
+        // GITHUB
+        GITHUB_TOKEN = credentials('GITHUB_RELEASE_TOKEN')
+        GITHUB_API_URL = "https://api.github.com/repos/${ORGANIZATION}/${PROJECT_NAME}" 
+        // SONARQUBORGANIZATIONE
+        SONARQUBE_OPTIONS="-Dsonar.organization=${ORGANIZATION} -Dsonar.projectKey=carpe_${PROJECT_NAME} -Dsonar.verbose=true"
         
     }
     stages {
@@ -61,16 +68,21 @@ pipeline {
             error("No Unit Tests run and they are MANDATORY")
           }
         }
+        stage('Static Code Analysis'){
+          steps {
+            sh "sbt $SBT_OPTIONS +scapegoat"
+          }
+        }       
         stage('Unit Tests') {
-            steps {
-                sh "sbt $SBT_OPTIONS  coverage +test"
-            }
+          steps {
+            sh "sbt $SBT_OPTIONS  coverage +test"
+          }
         }
         stage('Integration Tests') {
         // Integration Tests are OPTIONAL
-         when { expression { IT_TESTS_FOUND == 'true' } }
+          when { expression { IT_TESTS_FOUND == 'true' } }
             steps{
-                sh "sbt $SBT_OPTIONS coverage +it:test"
+              sh "sbt $SBT_OPTIONS coverage +it:test"
             }
         }
         stage('Compute Code Coverage') {
@@ -81,9 +93,25 @@ pipeline {
         }
         stage('Sonarqube Analysis'){
             steps {
-                withSonarQubeEnv(installationName:'carpe_sonarqube_server') {
-                    sh "sbt ${SBT_OPTIONS} -Dsonar.projectKey=carpe_${PROJECT_NAME} -Dsonar.organization=carpe -Dsonar.branch.name=${env.BRANCH_NAME} -Dsonar.verbose=true -Dsonar.login=${SONAR_AUTH_TOKEN} sonarScan "
-                }
+              script {
+                def response=httpRequest customHeaders:[[name:'authorization', value:"Bearer ${GITHUB_TOKEN}"]], url:"${GITHUB_API_URL}/pulls"
+                def responseJSON=readJSON text: response.content
+
+                 PR_NUMBER=responseJSON.find{pr -> pr.head.ref == BRANCH_NAME}?.number
+
+                IS_PR = PR_NUMBER != null 
+
+                println("IS_PR = ${IS_PR}")
+
+                if(IS_PR){
+                  SONARQUBE_OPTIONS = SONARQUBE_OPTIONS + " -Dsonar.pullrequest.github.repository=${GIT_URL} -Dsonar.pullrequest.branch=${BRANCH_NAME} -Dsonar.pullrequest.key=${PR_NUMBER}" 
+                }else{
+                  SONARQUBE_OPTIONS = SONARQUBE_OPTIONS + " -Dsonar.branch.name=${env.BRANCH_NAME}"
+                }     
+              }
+              withSonarQubeEnv(installationName:'carpe_sonarqube_server') {
+                sh "sbt ${SBT_OPTIONS} ${SONARQUBE_OPTIONS} -Dsonar.login=${SONAR_AUTH_TOKEN} sonarScan"
+              }
             }
         }
         stage('Snapshot Release'){
