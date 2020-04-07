@@ -10,7 +10,7 @@ class OpenApiSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
       carsIndexFunction
     )
 
-    val testApi = OpenApi.forFunctions(functions, "arn:aws:lambda:us-west-2:123456:function:MyAuthorizer:prod")
+    val testApi = OpenApi.forFunctions(functions)
 
     val expectedOutput =
       """swagger: '2.0'
@@ -76,7 +76,7 @@ class OpenApiSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |    in: header
         |    x-amazon-apigateway-authtype: custom
         |    x-amazon-apigateway-authorizer:
-        |      authorizerUri: arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:123456:function:MyAuthorizer:prod/invocations
+        |      authorizerUri: arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:120864075170:function:CarpeAuthorizerProd/invocations
         |      authorizerCredentials: arn:aws:iam::120864075170:role/Auth0Integration
         |      authorizerResultTtlInSeconds: 300
         |      identityValidationExpression: ^Bearer [-0-9a-zA-z\.]*$

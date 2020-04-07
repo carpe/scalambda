@@ -5,7 +5,7 @@ import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue.{TBlock, TBool, TLiteral, TObject, TResourceRef, TString}
 import io.carpe.scalambda.terraform.ast.providers.aws.apigateway.ApiGatewayDomainName
 
-case class Route53Record(name: String, apiGatewayDomainName: ApiGatewayDomainName, toggle: Variable[TBool]) extends Resource {
+case class Route53Record(name: String, apiGatewayDomainName: ApiGatewayDomainName, zoneId: TValue, toggle: Variable[TBool]) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    *
@@ -18,7 +18,7 @@ case class Route53Record(name: String, apiGatewayDomainName: ApiGatewayDomainNam
    */
   override def body: Map[String, TValue] = Map(
     "count" -> TLiteral(s"var.${toggle.name} ? 1 : 0"),
-    "zone_id" -> TResourceRef(apiGatewayDomainName, "regional_zone_id"),
+    "zone_id" -> zoneId,
     "name" -> TResourceRef(apiGatewayDomainName, "domain_name"),
     "type" -> TString("A"),
     "alias" -> TBlock(

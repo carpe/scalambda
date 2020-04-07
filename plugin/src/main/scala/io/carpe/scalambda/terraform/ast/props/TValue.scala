@@ -4,6 +4,14 @@ import cats.data.Chain
 import io.carpe.scalambda.terraform.ast.Definition.{Data, Resource}
 import io.carpe.scalambda.terraform.ast.props.TLine.{TBlockLine, TEmptyLine, TInline}
 
+/**
+ * Represents a node in the Terraform AST. Specifically a value that is assigned to some definition.
+ *
+ * A Node can be composed into a [[TLine]], which can then be used by a
+ * [[io.carpe.scalambda.terraform.writer.TerraformPrinter]] to write a String representation of the AST to a file.
+ *
+ * @param usesAssignment whether or not the node should be assigned with an `=`. Blocks, for example, cannot be assigned.
+ */
 sealed abstract class TValue(val usesAssignment: Boolean = true) {
   def serialize(implicit level: Int): Chain[TLine]
 }

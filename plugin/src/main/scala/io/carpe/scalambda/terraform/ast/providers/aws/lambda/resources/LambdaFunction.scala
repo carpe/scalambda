@@ -74,14 +74,12 @@ case class LambdaFunction(
     // environment variables to inject into the lambda
     "environment" -> TBlock("variables" -> TObject({
       scalambdaFunction.environmentVariables :+ (EnvironmentVariable.Static("SCALAMBDA_VERSION", version))
-    }.flatMap(envVariable => {
-      envVariable match {
-        case EnvironmentVariable.Static(key, value) =>
-          Some(key -> TString(value))
-        case EnvironmentVariable.Variable(key, variableName) =>
-          Some(key -> TVariableRef(variableName))
-      }
-    }): _*)),
+    }.map {
+      case EnvironmentVariable.Static(key, value) =>
+        key -> TString(value)
+      case EnvironmentVariable.Variable(key, variableName) =>
+        key -> TVariableRef(variableName)
+    }: _*)),
     // vpc configuration for the lambda
     "vpc_config" -> TBlock(
       "subnet_ids" -> TArray(scalambdaFunction.vpcConfig.subnetIds.map(TString): _*),
@@ -90,15 +88,22 @@ case class LambdaFunction(
     // sets the lambda function to publish a new version for each change
     "publish" -> TBool(true),
     // xray configuration for the lambda
-    "tracing_config" -> TBlock.optionally(
+    "tracing_config" -> TBlock(
       "mode" -> {
         if (isXrayEnabled) {
-          Some(TString("PassThrough"))
-        } else None
+          TString("PassThrough")
+        } else TNone
       }
     ),
     "depends_on" -> TArray(
       TLiteral(s"${dependenciesLayer.resourceType}.${dependenciesLayer.name}")
-    )
+    ),
+    "reserved_concurrent_executions" -> {
+      if (scalambdaFunction.runtimeConfig.reservedConcurrency < 0) {
+        TNone
+      } else {
+        TNumber(scalambdaFunction.runtimeConfig.reservedConcurrency)
+      }
+    }
   )
 }

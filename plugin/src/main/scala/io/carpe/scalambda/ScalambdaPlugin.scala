@@ -67,6 +67,7 @@ object ScalambdaPlugin extends AutoPlugin {
                   iamRoleSource: FunctionRoleSource = FromVariable,
                   memory: Int = RuntimeConfig.default.memory,
                   runtime: ScalambdaRuntime = RuntimeConfig.default.runtime,
+                  concurrencyLimit: Int = RuntimeConfig.default.reservedConcurrency,
                   warmWith: WarmerConfig = WarmerConfig.Cold,
                   vpcConfig: VpcConf = Vpc.withoutVpc,
                   environmentVariables: Seq[EnvironmentVariable] = List.empty,
@@ -80,7 +81,7 @@ object ScalambdaPlugin extends AutoPlugin {
             handlerPath = functionClasspath + "::handler",
             functionSource = IncludedInModule,
             iamRole = iamRoleSource,
-            runtimeConfig = RuntimeConfig.default.copy(memory = memory, runtime = runtime),
+            runtimeConfig = RuntimeConfig.default.copy(memory = memory, runtime = runtime, reservedConcurrency = concurrencyLimit),
             warmerConfig = warmWith,
             vpcConfig = vpcConfig,
             environmentVariables = environmentVariables
@@ -118,6 +119,7 @@ object ScalambdaPlugin extends AutoPlugin {
                           iamRoleSource: FunctionRoleSource = FromVariable,
                           memory: Int = RuntimeConfig.apiDefault.memory,
                           runtime: ScalambdaRuntime = RuntimeConfig.apiDefault.runtime,
+                          concurrencyLimit: Int = RuntimeConfig.apiDefault.reservedConcurrency,
                           environmentVariables: Seq[EnvironmentVariable] = List.empty,
                           warmWith: WarmerConfig = WarmerConfig.Cold,
                           vpcConfig: VpcConf = Vpc.withoutVpc,
@@ -132,7 +134,7 @@ object ScalambdaPlugin extends AutoPlugin {
             handlerPath = functionClasspath + "::handler",
             functionSource = IncludedInModule,
             iamRole = iamRoleSource,
-            runtimeConfig = RuntimeConfig.apiDefault.copy(memory = memory, runtime = runtime),
+            runtimeConfig = RuntimeConfig.apiDefault.copy(memory = memory, runtime = runtime, reservedConcurrency = concurrencyLimit),
             vpcConfig = vpcConfig,
             warmerConfig = warmWith,
             apiConfig = apiConfig,
@@ -165,7 +167,6 @@ object ScalambdaPlugin extends AutoPlugin {
           dependencies = { packageScalambdaDependencies.value },
           isXrayEnabled = enableXray.?.value.getOrElse(false),
           apiName = apiName.?.value.getOrElse(s"${sbt.Keys.name.value}"),
-          authorizerArn = apiAuthorizerArn.?.value.getOrElse("arn:aws:lambda:us-west-2:120864075170:function:CarpeAuthorizerProd"),
           terraformOutput = scalambdaTerraformPath.value,
           maybeDomainName = domainName.?.value
         )

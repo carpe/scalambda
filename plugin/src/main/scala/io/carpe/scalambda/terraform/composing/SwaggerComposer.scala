@@ -13,10 +13,9 @@ object SwaggerComposer {
   def writeSwagger( apiName: String,
                     rootTerraformPath: String,
                     functions: Seq[ScalambdaFunction],
-                    functionAliases: Seq[LambdaFunctionAlias],
-                    authorizerArn: String
+                    functionAliases: Seq[LambdaFunctionAlias]
                   ): TemplateFile = {
-    val openApi = OpenApi.forFunctions(functions, authorizerArn)
+    val openApi = OpenApi.forFunctions(functions)
 
     // convert the api to yaml
     val openApiDefinition = OpenApi.apiToYaml(openApi)

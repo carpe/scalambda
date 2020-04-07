@@ -23,7 +23,6 @@ object ScalambdaTerraform {
     dependencies: File,
     isXrayEnabled: Boolean,
     apiName: String,
-    authorizerArn: String,
     terraformOutput: File,
     maybeDomainName: Option[String]
   ): Unit = {
@@ -80,7 +79,6 @@ object ScalambdaTerraform {
       ApiGatewayComposer.maybeDefineApiResources(
         isXrayEnabled,
         apiName,
-        authorizerArn,
         functions,
         lambdaAliases ++ referencedFunctionAliases,
         terraformOutput,
