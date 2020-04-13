@@ -1,8 +1,8 @@
 package io.carpe.scalambda.terraform
 
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.function.AuthConf.CarpeAuthorizer
-import io.carpe.scalambda.conf.function.{ApiGatewayConf, AuthConf}
+import io.carpe.scalambda.conf.function.AuthConfig.CarpeAuthorizer
+import io.carpe.scalambda.conf.function.{ApiGatewayConfig, AuthConfig}
 import io.carpe.scalambda.terraform.openapi.resourcemethod.Security
 import io.carpe.scalambda.terraform.openapi.{ResourceMethod, ResourcePath, SecurityDefinition}
 
@@ -16,8 +16,8 @@ object OpenApi {
    * @param scalambdaFunctions functions to create api from
    * @return an OpenAPI that wraps the provided functions
    */
-  def forFunctions(scalambdaFunctions: Seq[ScalambdaFunction], authorizerArn: String): OpenApi = {
-    val functionsByRoute: Map[String, Seq[(ApiGatewayConf, ScalambdaFunction)]] = scalambdaFunctions
+  def forFunctions(scalambdaFunctions: Seq[ScalambdaFunction]): OpenApi = {
+    val functionsByRoute: Map[String, Seq[(ApiGatewayConfig, ScalambdaFunction)]] = scalambdaFunctions
         .flatMap(lambda => lambda match {
           case ScalambdaFunction.Function(naming, handlerPath, functionSource, iamRole, functionConfig, vpcConfig, provisionedConcurrency, environmentVariables) =>
             None
@@ -38,18 +38,7 @@ object OpenApi {
       })
     }).toList
 
-    val securityDefinitions = functionsByRoute.flatMap(_._2.map(_._1.authConf)).flatMap(authConf => {
-      authConf match {
-        case CarpeAuthorizer =>
-          Some(SecurityDefinition(
-            authorizerName = Security.carpeAuthorizer.name,
-            authorizerArn = s"arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/${authorizerArn}/invocations",
-            authorizerRole = "arn:aws:iam::120864075170:role/Auth0Integration"
-          ))
-        case AuthConf.Unauthorized =>
-          None
-      }
-    }).toSeq
+    val securityDefinitions = functionsByRoute.flatMap(_._2.flatMap(_._1.authConf.authorizer)).toSeq
 
     OpenApi(resourcePaths, securityDefinitions)
   }
@@ -57,28 +46,28 @@ object OpenApi {
   import io.circe._
 
   lazy implicit val encoder: Encoder[OpenApi] = (api: OpenApi) => Json.obj(
-    ("swagger", Json.fromString("2.0")),
-    ("info", Json.fromJsonObject(JsonObject.fromMap(
+    "swagger" -> Json.fromString("2.0"),
+    "info" -> Json.fromJsonObject(JsonObject.fromMap(
       Map(
         "version" -> Json.fromString("latest"),
         "title" -> Json.fromString("${api_name}")
       )
-    ))),
-    ("schemes", Json.fromValues(
+    )),
+    "schemes" -> Json.fromValues(
       List(
         Json.fromString("https")
       )
-    )),
-    ("paths", Json.obj(
+    ),
+    "paths" -> Json.obj(
       api.paths.map(path => {
         path.name -> ResourcePath.encoder.apply(path)
       }): _*
-    )),
-    ("securityDefinitions", Json.obj(
+    ),
+    "securityDefinitions" -> Json.obj(
       api.securityDefinitions.map(securityDefinition => {
         securityDefinition.authorizerName -> SecurityDefinition.encoder.apply(securityDefinition)
       }): _*
-    ))
+    )
   )
 
   lazy val printer: yaml.Printer =  io.circe.yaml.Printer(preserveOrder = true, dropNullKeys = true)

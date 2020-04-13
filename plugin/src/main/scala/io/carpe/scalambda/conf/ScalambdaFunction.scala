@@ -6,7 +6,7 @@ import io.carpe.scalambda.conf.utils.StringUtils
 
 sealed trait ScalambdaFunction {
   def environmentVariables: Seq[EnvironmentVariable]
-  def apiGatewayConfig: Option[ApiGatewayConf]
+  def apiGatewayConfig: Option[ApiGatewayConfig]
   def terraformLambdaResourceName: String
 
   /**
@@ -28,7 +28,7 @@ object ScalambdaFunction {
     def naming: FunctionNaming
     def handlerPath: String
     def vpcConfig: VpcConf
-    def provisionedConcurrency: Int
+    def warmerConfig: WarmerConfig
 
     /**
      * A relatively static string that should resemble the what the final function name will be. The actual function name
@@ -51,7 +51,7 @@ object ScalambdaFunction {
                       iamRole: FunctionRoleSource,
                       runtimeConfig: RuntimeConfig,
                       vpcConfig: VpcConf,
-                      provisionedConcurrency: Int,
+                      warmerConfig: WarmerConfig,
                       environmentVariables: Seq[EnvironmentVariable]
                      ) extends ProjectFunction {
 
@@ -70,7 +70,7 @@ object ScalambdaFunction {
       s"${StringUtils.toSnakeCase(approximateFunctionName)}_code"
     }
 
-    override def apiGatewayConfig: Option[ApiGatewayConf] = None
+    override def apiGatewayConfig: Option[ApiGatewayConfig] = None
   }
 
   case class ApiFunction(naming: FunctionNaming,
@@ -79,8 +79,8 @@ object ScalambdaFunction {
                          iamRole: FunctionRoleSource,
                          runtimeConfig: RuntimeConfig,
                          vpcConfig: VpcConf,
-                         provisionedConcurrency: Int,
-                         apiConfig: ApiGatewayConf,
+                         warmerConfig: WarmerConfig,
+                         apiConfig: ApiGatewayConfig,
                          environmentVariables: Seq[EnvironmentVariable]
                               ) extends ProjectFunction {
 
@@ -99,7 +99,7 @@ object ScalambdaFunction {
       s"${StringUtils.toSnakeCase(approximateFunctionName)}_code"
     }
 
-    override def apiGatewayConfig: Option[ApiGatewayConf] = Some(apiConfig)
+    override def apiGatewayConfig: Option[ApiGatewayConfig] = Some(apiConfig)
   }
 
 
@@ -108,10 +108,10 @@ object ScalambdaFunction {
    *
    * @param apiGatewayConf api gateway configuration
    */
-  case class ReferencedFunction(functionName: String, qualifier: String, apiGatewayConf: ApiGatewayConf) extends ScalambdaFunction {
+  case class ReferencedFunction(functionName: String, qualifier: String, apiGatewayConf: ApiGatewayConfig) extends ScalambdaFunction {
     override def environmentVariables: Seq[EnvironmentVariable] = Seq.empty
 
-    override def apiGatewayConfig: Option[ApiGatewayConf] = Some(apiGatewayConf)
+    override def apiGatewayConfig: Option[ApiGatewayConfig] = Some(apiGatewayConf)
 
     override def terraformLambdaResourceName: String = StringUtils.toSnakeCase(functionName)
   }

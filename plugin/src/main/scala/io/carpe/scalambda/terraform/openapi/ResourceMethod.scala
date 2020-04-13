@@ -31,9 +31,8 @@ object ResourceMethod {
       List.empty,
       description = "TBD",
       consumes = List("application/json"),
-      security = List(
-        Security.carpeAuthorizer
-      ),
+      security = lambda.apiGatewayConfig.flatMap(_.authConf.authorizer)
+        .map(_.authorizerName).toList.map(Security(_)),
       responses = List(
         MethodResponse(200, "Request completed without errors!", List.empty)
       ),

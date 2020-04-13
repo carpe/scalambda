@@ -1,5 +1,6 @@
 package io.carpe.scalambda
 
+import _root_.io.carpe.scalambda.assembly.AssemblySettings
 import _root_.io.carpe.scalambda.conf.ScalambdaFunction
 import _root_.io.carpe.scalambda.conf.function.FunctionNaming.WorkspaceBased
 import _root_.io.carpe.scalambda.conf.function.FunctionRoleSource.FromVariable
@@ -11,8 +12,6 @@ import com.typesafe.sbt.GitVersioning
 import com.typesafe.sbt.SbtGit.GitKeys.{formattedDateVersion, gitHeadCommit}
 import sbt.Keys._
 import sbt._
-import sbtassembly.AssemblyKeys._
-import sbtassembly.AssemblyPlugin.autoImport.{assemblyDefaultJarName, assemblyJarName, assemblyOption, assemblyOutputPath, assemblyPackageDependency}
 import sbtassembly._
 
 import scala.tools.nsc.Properties
@@ -61,16 +60,17 @@ object ScalambdaPlugin extends AutoPlugin {
     def functionSource: FunctionSource.type = FunctionSource
     def environmentVariable: EnvironmentVariable.type = EnvironmentVariable
     val Vpc: VpcConf.type = VpcConf
-    val Auth: AuthConf.type = AuthConf
+    val Auth: AuthConfig.type = AuthConfig
 
     def scalambda(functionClasspath: String,
                   functionNaming: FunctionNaming = WorkspaceBased,
                   iamRoleSource: FunctionRoleSource = FromVariable,
                   memory: Int = RuntimeConfig.default.memory,
                   runtime: ScalambdaRuntime = RuntimeConfig.default.runtime,
-                  provisionedConcurrency: Int = 0,
+                  concurrencyLimit: Int = RuntimeConfig.default.reservedConcurrency,
+                  warmWith: WarmerConfig = WarmerConfig.Cold,
                   vpcConfig: VpcConf = Vpc.withoutVpc,
-                  environmentVariables: Seq[EnvironmentVariable] = List.empty
+                  environmentVariables: Seq[EnvironmentVariable] = List.empty,
     ): Seq[Def.Setting[_]] = {
 
       val awsLambdaProxyPluginConfig = Seq(
@@ -81,8 +81,8 @@ object ScalambdaPlugin extends AutoPlugin {
             handlerPath = functionClasspath + "::handler",
             functionSource = IncludedInModule,
             iamRole = iamRoleSource,
-            runtimeConfig = RuntimeConfig.default.copy(memory = memory, runtime = runtime),
-            provisionedConcurrency = provisionedConcurrency,
+            runtimeConfig = RuntimeConfig.default.copy(memory = memory, runtime = runtime, reservedConcurrency = concurrencyLimit),
+            warmerConfig = warmWith,
             vpcConfig = vpcConfig,
             environmentVariables = environmentVariables
           )
@@ -96,7 +96,7 @@ object ScalambdaPlugin extends AutoPlugin {
     def foreignEndpoint(
       functionName: String,
       qualifier: String,
-      apiConfig: ApiGatewayConf
+      apiConfig: ApiGatewayConfig
     ): Seq[Def.Setting[_]] = {
 
       val awsLambdaProxyPluginConfig = Seq(
@@ -119,10 +119,11 @@ object ScalambdaPlugin extends AutoPlugin {
                           iamRoleSource: FunctionRoleSource = FromVariable,
                           memory: Int = RuntimeConfig.apiDefault.memory,
                           runtime: ScalambdaRuntime = RuntimeConfig.apiDefault.runtime,
+                          concurrencyLimit: Int = RuntimeConfig.apiDefault.reservedConcurrency,
                           environmentVariables: Seq[EnvironmentVariable] = List.empty,
-                          provisionedConcurrency: Int = 0,
+                          warmWith: WarmerConfig = WarmerConfig.Cold,
                           vpcConfig: VpcConf = Vpc.withoutVpc,
-                          apiConfig: ApiGatewayConf
+                          apiConfig: ApiGatewayConfig
     ): Seq[Def.Setting[_]] = {
 
       val awsLambdaProxyPluginConfig = Seq(
@@ -133,9 +134,9 @@ object ScalambdaPlugin extends AutoPlugin {
             handlerPath = functionClasspath + "::handler",
             functionSource = IncludedInModule,
             iamRole = iamRoleSource,
-            runtimeConfig = RuntimeConfig.apiDefault.copy(memory = memory, runtime = runtime),
+            runtimeConfig = RuntimeConfig.apiDefault.copy(memory = memory, runtime = runtime, reservedConcurrency = concurrencyLimit),
             vpcConfig = vpcConfig,
-            provisionedConcurrency = provisionedConcurrency,
+            warmerConfig = warmWith,
             apiConfig = apiConfig,
             environmentVariables = environmentVariables
           )
@@ -152,60 +153,9 @@ object ScalambdaPlugin extends AutoPlugin {
   override def requires: Plugins = AssemblyPlugin && GitVersioning
 
   override def projectSettings: Seq[Def.Setting[_]] =
-    Seq(
+    AssemblySettings.sourceJarAssemblySettings ++ AssemblySettings.dependencyAssemblySettings ++ Seq(
       // set scalambda functions to empty list initially. lambda functions can then be added by users
       scalambdaFunctions := List.empty,
-      // builds the lambda function jar without dependencies (so we can bake them in as a separate lambda layer)
-      packageScalambdaMergeStrat := {
-        case _ => MergeStrategy.last
-      },
-      packageScalambda := Assembly.assemblyTask(packageScalambda).value,
-      assembledMappings in packageScalambda := Assembly.assembledMappingsTask(packageScalambda).value,
-      test in packageScalambda := (test in Test).value,
-      assemblyOption in packageScalambda := {
-        val ao = (assemblyOption in assembly).value
-        ao.copy(includeScala = false, includeDependency = false, mergeStrategy = packageScalambdaMergeStrat.value)
-      },
-      packageOptions in packageScalambda := (packageOptions in (Compile, packageBin)).value,
-      assemblyOutputPath in packageScalambda := {
-        (target in assembly).value / (assemblyJarName in packageScalambda).value
-      },
-      assemblyJarName in packageScalambda := (assemblyJarName in packageScalambda)
-        .or(assemblyDefaultJarName in packageScalambda)
-        .value,
-      assemblyDefaultJarName in packageScalambda := { name.value + "-assembly-" + version.value + ".jar" },
-      // builds the dependencies of the lambda version. these will be baked into a lambda layer to improve deployment times
-      packageScalambdaDependenciesMergeStrat := {
-        case PathList(ps @ _*) if ps.last == "Log4j2Plugins.dat" => Log4j2MergeStrategy.plugincache
-        case PathList("META-INF", "MANIFEST.MF")                 => MergeStrategy.discard
-        case "log4j2.xml"                                        => MergeStrategy.discard
-        case _ =>
-          MergeStrategy.last
-      },
-      packageScalambdaDependencies := Assembly.assemblyTask(packageScalambdaDependencies).value,
-      assembledMappings in packageScalambdaDependencies := Assembly
-        .assembledMappingsTask(packageScalambdaDependencies)
-        .value,
-      test in packageScalambdaDependencies := (test in packageScalambda).value,
-      assemblyOption in packageScalambdaDependencies := {
-        val ao = (assemblyOption in assemblyPackageDependency).value
-        ao.copy(
-          includeBin = false,
-          includeScala = true,
-          includeDependency = true,
-          mergeStrategy = packageScalambdaDependenciesMergeStrat.value
-        )
-      },
-      packageOptions in packageScalambdaDependencies := (packageOptions in (Compile, packageBin)).value,
-      assemblyOutputPath in packageScalambdaDependencies := {
-        (target in assembly).value / (assemblyJarName in packageScalambdaDependencies).value
-      },
-      assemblyJarName in packageScalambdaDependencies := (assemblyJarName in packageScalambdaDependencies)
-        .or(assemblyDefaultJarName in packageScalambdaDependencies)
-        .value,
-      assemblyDefaultJarName in packageScalambdaDependencies := {
-        name.value + "-assembly-" + version.value + "-deps.jar"
-      },
       scalambdaTerraformPath := target.value / "terraform",
       scalambdaTerraform := {
         ScalambdaTerraform.writeTerraform(
@@ -217,7 +167,6 @@ object ScalambdaPlugin extends AutoPlugin {
           dependencies = { packageScalambdaDependencies.value },
           isXrayEnabled = enableXray.?.value.getOrElse(false),
           apiName = apiName.?.value.getOrElse(s"${sbt.Keys.name.value}"),
-          authorizerArn = apiAuthorizerArn.?.value.getOrElse("arn:aws:lambda:us-west-2:120864075170:function:CarpeAuthorizerProd"),
           terraformOutput = scalambdaTerraformPath.value,
           maybeDomainName = domainName.?.value
         )

@@ -2,12 +2,13 @@ package io.carpe.scalambda.fixtures
 
 import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.conf.ScalambdaFunction.{ApiFunction, ProjectFunction}
-import io.carpe.scalambda.conf.function.AuthConf.CarpeAuthorizer
+import io.carpe.scalambda.conf.function.AuthConfig.CarpeAuthorizer
 import io.carpe.scalambda.conf.function.FunctionNaming.Static
 import io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import io.carpe.scalambda.conf.function._
-import io.carpe.scalambda.terraform.ast.resources.lambda.{LambdaFunction, LambdaLayerVersion}
-import io.carpe.scalambda.terraform.ast.resources.{S3Bucket, S3BucketItem, lambda}
+import io.carpe.scalambda.terraform.ast.props.TValue.TString
+import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.{LambdaFunction, LambdaLayerVersion}
+import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
 import org.scalatest.flatspec.AnyFlatSpec
 
 trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
@@ -17,9 +18,9 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       functionSource = IncludedInModule,
       iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
       runtimeConfig = RuntimeConfig.default,
-      apiConfig = ApiGatewayConf(route = "/cars", method = Method.GET, authConf = CarpeAuthorizer),
+      apiConfig = ApiGatewayConfig(route = "/cars", method = Method.GET, authConf = CarpeAuthorizer),
       vpcConfig = VpcConf.withoutVpc,
-      provisionedConcurrency = 0,
+      warmerConfig = WarmerConfig.Cold,
       environmentVariables = List.empty
     )
   }
@@ -31,7 +32,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
       runtimeConfig = RuntimeConfig.default,
       vpcConfig = VpcConf.withoutVpc,
-      provisionedConcurrency = 0,
+      warmerConfig = WarmerConfig.Cold,
       environmentVariables = List(
         EnvironmentVariable.Static("API", "www.google.com")
       )
@@ -48,17 +49,17 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
         subnetIds = Seq("subnet-12345678987654321"),
         securityGroupIds = Seq("sg-12345678987654321")
       ),
-      provisionedConcurrency = 0,
+      warmerConfig = WarmerConfig.Cold,
       environmentVariables = List.empty
     )
   }
 
   lazy val s3Bucket: S3Bucket = S3Bucket("testing")
-  lazy val sourcesBucketItem: S3BucketItem = S3BucketItem(s3Bucket, "sources", "sources.jar", "sources.jar", "sources.jar")
-  lazy val dependenciesBucketItem: S3BucketItem = S3BucketItem(s3Bucket, "dependencies", "dependencies.zip", "dependencies.zip", "dependencies.jar")
-  lazy val dependenciesLambdaLayer: LambdaLayerVersion = lambda.LambdaLayerVersion("testing", dependenciesBucketItem)
+  lazy val sourcesBucketItem: S3BucketItem = S3BucketItem(s3Bucket, "sources", "sources.jar", "sources.jar", TString("sources.jar"))
+  lazy val dependenciesBucketItem: S3BucketItem = S3BucketItem(s3Bucket, "dependencies", "dependencies.zip", "dependencies.zip", TString("dependencies.jar"))
+  lazy val dependenciesLambdaLayer: LambdaLayerVersion = LambdaLayerVersion("testing", dependenciesBucketItem)
 
   def asLambdaFunction(scalambdaFunction: ProjectFunction): LambdaFunction = {
-    lambda.LambdaFunction(scalambdaFunction, "1337", s3Bucket, sourcesBucketItem, dependenciesLambdaLayer, isXrayEnabled = false)
+    LambdaFunction(scalambdaFunction, "1337", s3Bucket, sourcesBucketItem, dependenciesLambdaLayer, isXrayEnabled = false)
   }
 }

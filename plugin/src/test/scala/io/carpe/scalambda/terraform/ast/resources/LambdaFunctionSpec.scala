@@ -2,16 +2,22 @@ package io.carpe.scalambda.terraform.ast.resources
 
 import io.carpe.scalambda.conf.function.RuntimeConfig
 import io.carpe.scalambda.conf.function.ScalambdaRuntime.Java11
-import io.carpe.scalambda.fixtures.ScalambdaFunctionFixtures
-import io.carpe.scalambda.terraform.ast.resources.lambda.LambdaFunction
+import io.carpe.scalambda.fixtures.{ScalambdaFunctionFixtures, TerraformBehaviors}
+import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.LambdaFunction
 import org.scalatest.flatspec.AnyFlatSpec
 
-class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
+class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with TerraformBehaviors {
 
-  "LambdaFunction" should "be a serializable terraform resource" in {
-    val actual: String = LambdaFunction(driveCarFunction.copy(runtimeConfig = RuntimeConfig.default.copy(runtime = Java11)), version = "42", s3Bucket = s3Bucket, s3BucketItem = sourcesBucketItem, dependenciesLayer = dependenciesLambdaLayer, isXrayEnabled = false).toString
-
-    val expected: String =
+  ("LambdaFunction" should behave).like(
+    printableTerraform(
+      LambdaFunction(
+        driveCarFunction.copy(runtimeConfig = RuntimeConfig.default.copy(runtime = Java11)),
+        version = "42",
+        s3Bucket = s3Bucket,
+        s3BucketItem = sourcesBucketItem,
+        dependenciesLayer = dependenciesLambdaLayer,
+        isXrayEnabled = false
+      ),
       """resource "aws_lambda_function" "drive_car_lambda" {
         |  layers = [
         |    aws_lambda_layer_version.dependency_layer.arn
@@ -20,6 +26,9 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |  s3_bucket = aws_s3_bucket.testing.id
         |  role = "arn:aws:iam::12345678900:role/lambda_basic_execution"
         |  s3_key = aws_s3_bucket_object.sources.key
+        |  depends_on = [
+        |    aws_lambda_layer_version.dependency_layer
+        |  ]
         |  memory_size = 1536
         |  source_code_hash = filebase64sha256(aws_s3_bucket_object.sources.source)
         |  publish = true
@@ -33,16 +42,20 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |  timeout = 900
         |  handler = "io.cars.lambda.DriveCar::handler"
         |  runtime = "java11"
-        |}
-        |""".stripMargin
+        |}""".stripMargin
+    )
+  )
 
-    assert(actual == expected)
-  }
-
-  it should "be a serializable terraform resource (when provided vpc_config)" in {
-    val actual: String = lambda.LambdaFunction(driveCarFunction, version = "1337", s3Bucket = s3Bucket, s3BucketItem = sourcesBucketItem, dependenciesLayer = dependenciesLambdaLayer, isXrayEnabled = false).toString
-
-    val expected: String =
+  ("LambdaFunction (when provided vpc_config)" should behave).like(
+    printableTerraform(
+      LambdaFunction(
+        driveCarFunction,
+        version = "1337",
+        s3Bucket = s3Bucket,
+        s3BucketItem = sourcesBucketItem,
+        dependenciesLayer = dependenciesLambdaLayer,
+        isXrayEnabled = false
+      ),
       """resource "aws_lambda_function" "drive_car_lambda" {
         |  layers = [
         |    aws_lambda_layer_version.dependency_layer.arn
@@ -51,6 +64,9 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |  s3_bucket = aws_s3_bucket.testing.id
         |  role = "arn:aws:iam::12345678900:role/lambda_basic_execution"
         |  s3_key = aws_s3_bucket_object.sources.key
+        |  depends_on = [
+        |    aws_lambda_layer_version.dependency_layer
+        |  ]
         |  memory_size = 1536
         |  source_code_hash = filebase64sha256(aws_s3_bucket_object.sources.source)
         |  publish = true
@@ -64,9 +80,8 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |  timeout = 900
         |  handler = "io.cars.lambda.DriveCar::handler"
         |  runtime = "java8"
-        |}
-        |""".stripMargin
+        |}""".stripMargin
+    )
+  )
 
-    assert(actual == expected)
-  }
 }

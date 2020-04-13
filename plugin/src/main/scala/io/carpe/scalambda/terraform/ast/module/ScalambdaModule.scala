@@ -1,19 +1,19 @@
 package io.carpe.scalambda.terraform.ast.module
 
 import io.carpe.scalambda.terraform.ast.Definition.{Output, Variable}
-import io.carpe.scalambda.terraform.ast.TerraformFile
-import io.carpe.scalambda.terraform.ast.data.LambdaFunctionAlias.DataLambdaFunctionAlias
-import io.carpe.scalambda.terraform.ast.data.{ArchiveFile, TemplateFile}
-import io.carpe.scalambda.terraform.ast.resources.apigateway.{ApiGateway, ApiGatewayBasePathMapping, ApiGatewayDeployment, ApiGatewayDomainName, ApiGatewayStage}
-import io.carpe.scalambda.terraform.ast.resources._
-import io.carpe.scalambda.terraform.ast.resources.lambda.{LambdaFunction, LambdaFunctionAlias, LambdaLayerVersion, LambdaPermission, ProvisionedConcurrency}
+import io.carpe.scalambda.terraform.ast.{Definition, TerraformFile}
+import io.carpe.scalambda.terraform.ast.providers.aws.lambda.LambdaFunctionAlias
+import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.{LambdaFunction, LambdaLayerVersion, LambdaPermission, ProvisionedConcurrency}
+import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
+import io.carpe.scalambda.terraform.ast.providers.terraform.data.{ArchiveFile, TemplateFile}
+import io.carpe.scalambda.terraform.ast.providers.aws.apigateway._
+import io.carpe.scalambda.terraform.writer.TerraformPrinter
 
 case class ScalambdaModule( // lambda resources
                             lambdas: Seq[LambdaFunction],
                             lambdaAliases: Seq[LambdaFunctionAlias],
-                            referencedFunctionAliases: Seq[DataLambdaFunctionAlias],
                             lambdaDependencyLayer: LambdaLayerVersion,
-                            lambdaProvisionedCurrencies: Seq[ProvisionedConcurrency],
+                            lambdaWarmingResources: Seq[Definition],
                             s3Buckets: Seq[S3Bucket],
                             s3BucketItems: Seq[S3BucketItem],
                             sources: Seq[ArchiveFile],
@@ -24,8 +24,7 @@ case class ScalambdaModule( // lambda resources
                             swaggerTemplate: Option[TemplateFile],
                             apiGatewayDeployment: Option[ApiGatewayDeployment],
                             apiGatewayStage: Option[ApiGatewayStage],
-                            apiGatewayDomainName: Option[ApiGatewayDomainName],
-                            apiGatewayBasePathMapping: Option[ApiGatewayBasePathMapping],
+                            domainResources: Seq[Definition],
 
                             // other
                             variables: Seq[Variable[_]],
@@ -35,15 +34,15 @@ case class ScalambdaModule( // lambda resources
 object ScalambdaModule {
 
   def write(scalambdaModule: ScalambdaModule, rootPath: String): Unit = {
-    val lambdasFile = TerraformFile((scalambdaModule.lambdaDependencyLayer +: scalambdaModule.lambdas) ++ scalambdaModule.lambdaAliases ++ scalambdaModule.referencedFunctionAliases ++ scalambdaModule.lambdaProvisionedCurrencies, "lambdas.tf")
+    val lambdasFile = TerraformFile((scalambdaModule.lambdaDependencyLayer +: scalambdaModule.lambdas) ++ scalambdaModule.lambdaAliases, "lambdas.tf")
+    val warmersFile = TerraformFile(scalambdaModule.lambdaWarmingResources, "warming.tf")
     val s3File = TerraformFile(scalambdaModule.s3Buckets ++ scalambdaModule.sources ++ scalambdaModule.s3BucketItems, "s3.tf")
     val variablesAndOutputsFile = TerraformFile(scalambdaModule.variables ++ scalambdaModule.outputs, "io.tf")
-    val coreLambdaFiles = Seq(lambdasFile, s3File, variablesAndOutputsFile)
+    val coreLambdaFiles = Seq(lambdasFile, warmersFile, s3File, variablesAndOutputsFile)
 
     val apiFiles = scalambdaModule match {
-      case ScalambdaModule(_, _, _, _, _, _, _, _, Some(apiGateway), _, Some(swaggerTemplate), Some(apiGatewayDeployment), Some(apiGatewayStage), maybeDomainName, maybeBasePathMapping, _, _) =>
-        val domainResources = Seq(maybeDomainName, maybeBasePathMapping).flatten
-        val apiResources = apiGateway +: swaggerTemplate +: apiGatewayDeployment +: apiGatewayStage +: scalambdaModule.lambdaPermissions
+      case ScalambdaModule(_, _, _, _, _, _, _, Some(apiGateway), _, Some(swaggerTemplate), Some(apiGatewayDeployment), Some(apiGatewayStage), domainResources, _, _) =>
+        val apiResources: Seq[Definition] = apiGateway +: swaggerTemplate +: apiGatewayDeployment +: (apiGatewayStage +: scalambdaModule.lambdaPermissions)
 
         Seq(
           TerraformFile(domainResources ++ apiResources, "api.tf")
@@ -52,7 +51,9 @@ object ScalambdaModule {
         Seq.empty
     }
 
-    TerraformFile.writeFiles(coreLambdaFiles ++ apiFiles, rootPath)
+    (coreLambdaFiles ++ apiFiles).foreach(file => {
+      TerraformPrinter.writeFile(rootPath, file)
+    })
 
     println(s"${coreLambdaFiles.map(_.definitions.size).sum} Terraform definitions were generated. They have been written to: ${rootPath}")
   }
