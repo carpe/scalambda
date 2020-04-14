@@ -87,9 +87,9 @@ object Definition {
     override def body: Map[String, TValue] = Map(
       "type" -> {
         typeOf[T] match {
-          case t if t =:= typeOf[TNumber] => Some(TLiteral("string"))
+          case t if t =:= typeOf[TString] => Some(TLiteral("string"))
           case t if t =:= typeOf[TNumber] => Some(TLiteral("number"))
-          case t if t =:= typeOf[TNumber] => Some(TLiteral("bool"))
+          case t if t =:= typeOf[TBool] => Some(TLiteral("bool"))
           case _ => None
         }
       },

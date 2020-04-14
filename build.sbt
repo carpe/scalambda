@@ -101,3 +101,39 @@ lazy val plugin = project
     libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test,
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")
   )
+
+/**
+ * Publishing information
+ */
+
+ThisBuild / organization := "io.carpe"
+ThisBuild / organizationName := "CarpeData"
+ThisBuild / organizationHomepage := Some(url("https://carpe.io/"))
+
+ThisBuild / scmInfo := Some(
+  ScmInfo(
+    url("https://github.com/carpe/scalambda"),
+    "scm:git@github.com:carpe/scalambda.git"
+  )
+)
+ThisBuild / developers := List(
+  Developer(
+    id    = "SwiftEngineer",
+    name  = "Taylor Brooks",
+    email = "taylor.brooks@carpe.io",
+    url   = url("https://github.com/SwiftEngineer")
+  )
+)
+
+ThisBuild / description := " Tools for building scala lambdas"
+ThisBuild / licenses := List("Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"))
+ThisBuild / homepage := Some(url("https://github.com/carpe/scalambda"))
+
+// Remove all additional repository other than Maven Central from POM
+ThisBuild / pomIncludeRepository := { _ => false }
+ThisBuild / publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
+  else Some("releases" at nexus + "service/local/staging/deploy/maven2")
+}
+ThisBuild / publishMavenStyle := true
