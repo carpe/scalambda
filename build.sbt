@@ -1,6 +1,7 @@
 import sbt.Keys.libraryDependencies
 import sbt._
 import versions._
+import sonar._
 
 scapegoatVersion in ThisBuild := "1.4.1"
 ThisBuild / scalaVersion := "2.12.10"
@@ -12,6 +13,8 @@ lazy val root = (project in file("."))
   .settings(name := "scalambda")
   .aggregate(plugin, core, testing)
   .settings(skip in publish := true, skip in publishLocal := true, sonarScan := {})
+
+lazy val commonSettings = sonarSettings
 
 lazy val core = project
   .settings(name := "scalambda-core")
