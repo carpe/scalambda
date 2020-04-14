@@ -1,5 +1,6 @@
 package io.carpe.scalambda.testing.api.resourcehandlers
 
+import cats.data.{Chain, NonEmptyChain}
 import com.amazonaws.services.lambda.runtime.Context
 import io.carpe.scalambda.api.ApiResource
 import io.carpe.scalambda.api.conf.ScalambdaApi
@@ -84,7 +85,7 @@ trait ApiResourceHandling[C <: ScalambdaApi] {
             {
               case Left(responseErrs) =>
                 // build proper response from parsed error
-                val apiErrorSeq = responseErrs.errors.map(responseErr => {
+                val apiErrorSeq: Seq[ApiError] = responseErrs.errors.map(responseErr => {
                   new ApiError {
                     override val httpStatus: Int = intermediary.statusCode
                     override val headers: Map[String, String] = intermediary.headers
@@ -94,7 +95,11 @@ trait ApiResourceHandling[C <: ScalambdaApi] {
                   }
                 })
 
-                val apiErrors = ApiErrors(apiErrorSeq.head, apiErrorSeq.tail: _*)
+                val apiErrors = NonEmptyChain.fromChain[ApiError](Chain.fromSeq(apiErrorSeq)).map(safeChain => {
+                  ApiErrors(safeChain)
+                }).getOrElse(fail("Empty errors object. This shouldn't be possible"))
+
+
 
                 APIGatewayProxyResponse.WithError(intermediary.headers, apiErrors, intermediary.isBase64Encoded)
               case Right(responseBody) =>

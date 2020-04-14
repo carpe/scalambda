@@ -48,7 +48,7 @@ trait ApiResourceBehaviors[C <: ScalambdaApi] extends ApiScalambdaFixtures[C] wi
               case CreateTestCase.Success(input, expectedOutput, caseDescription) =>
                 assert(body === expectedOutput)
               case _: CreateTestCase.Fail[R] =>
-                fail(s"Expected failure but the handler completed successfully.")
+                fail("Expected failure but the handler completed successfully.")
             }
         }
       }
@@ -87,7 +87,7 @@ trait ApiResourceBehaviors[C <: ScalambdaApi] extends ApiScalambdaFixtures[C] wi
               case IndexTestCase.Success(queryParameters, expectedOutput, caseDescription) =>
                 assert(body === expectedOutput)
               case _: IndexTestCase.Fail =>
-                fail(s"Expected failure but the handler completed successfully.")
+                fail("Expected failure but the handler completed successfully.")
             }
         }
       }
@@ -126,7 +126,7 @@ trait ApiResourceBehaviors[C <: ScalambdaApi] extends ApiScalambdaFixtures[C] wi
               case ShowTestCase.Success(id, expectedOutput, caseDescription) =>
                 assert(body === expectedOutput)
               case _: ShowTestCase.Fail =>
-                fail(s"Expected failure but the handler completed successfully.")
+                fail("Expected failure but the handler completed successfully.")
             }
         }
       }
@@ -165,7 +165,7 @@ trait ApiResourceBehaviors[C <: ScalambdaApi] extends ApiScalambdaFixtures[C] wi
               case UpdateTestCase.Success(id, input, expectedOutput, caseDescription) =>
                 assert(body === expectedOutput)
               case _: UpdateTestCase.Fail[R] =>
-                fail(s"Expected failure but the handler completed successfully.")
+                fail("Expected failure but the handler completed successfully.")
             }
         }
       }

@@ -52,7 +52,7 @@ object RequestContext {
                                  ) {
       def asContext: RequestContext = {
         if (authorizer.exists(_.nonEmpty)) {
-          return Authenticated(path, accountId, resourceId, stage, requestId, identity, resourcePath, httpMethod, apiId, authorizer.get)
+          return Authenticated(path, accountId, resourceId, stage, requestId, identity, resourcePath, httpMethod, apiId, authorizer.getOrElse(Map.empty))
         }
         Unauthenticated(path, accountId, resourceId, stage, requestId, identity, resourcePath, httpMethod, apiId)
       }
