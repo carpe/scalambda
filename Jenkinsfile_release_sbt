@@ -11,7 +11,7 @@ pipeline {
         choice(name: 'RELEASE_TYPE', choices: ['PATCH', 'MINOR', 'MAJOR'], description: 'The version to which you want to release ')
     }
     options {
-        buildDiscarder(logRotator(daysToKeepStr: '1',numToKeepStr: '5'))
+        buildDiscarder(logRotator(daysToKeepStr: '15',numToKeepStr: '30'))
         ansiColor('xterm')
         disableConcurrentBuilds()
         timeout(time: 190, unit: 'MINUTES')
