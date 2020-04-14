@@ -1,121 +1,96 @@
 # Scalambda
-###### Tools for building Scala-based Lambda Functions
+###### Toolkit for building/deploying Lambda Functions with Terraform
 
-Scalambda is composed of two separate libraries. One is an SBT plugin that should help you with any DevOps tasks. The other is a traditional library that provides utilities for writing Scala-based Lambda Functions.
+Deploying Lambda functions is time consuming, so we built Scalambda to make it quick and easy. Using scalambda, you can enable developers to easily build and deploy their own Lambda Functions (and/or ApiGateway instances) with little to no effort or knowledge of AWS required.
 
-## Plugin Usage
+Scalambda is composed of three separate libraries. One is an SBT plugin that should help you with any DevOps tasks. The other is a traditional library that provides utilities for writing Scala-based Lambda Functions.
+
+## Usage
+
+#### Quickstart (create via Giter)
+
+The easiest way to get started with Scalambda is via the Giter template. Check it out at https://github.com/carpe/scalambda.g8
+
+#### Add to Existing Project
 
 Add the plugin to your project in the `project/plugins.sbt` file:
 
 ```scala
-// Carpe's own Artifactory
-resolvers += "Artifactory Realm" at "https://bin.carpe.io/artifactory/sbt-release"
-resolvers += "Artifactory Realm Snapshots" at "https://bin.carpe.io/artifactory/sbt-dev"
-import scala.tools.nsc.Properties
-credentials += Credentials(new File(Properties.envOrElse("JENKINS_HOME", Properties.envOrElse("HOME", "")) + "/.sbt/.credentials"))
-
-// CarpeData's own sbt plugin for jumpstarting Lambda Function development
-addSbtPlugin("io.carpe" % "sbt-scalambda" % "0.29.0")
+addSbtPlugin("io.carpe" % "sbt-scalambda" % "1.0.0")
 ```
 
-After adding the plugin to your project, add each Lambda Function as a subproject in your project's `build.sbt` file. There are two possible function types. 
+After enabling the plugin to your project, you can then use the `scalambda` function to define Lambda Functions from your project's sources. 
 
-Here is an example of how to add each of them:
+Examples:
 
 ```scala
 // build.sbt
 
-// this is the ARN for the IAM role that your Lambda function will assume
-scalambdaRoleArn := "arn:aws:iam::120864075170:role/MyLambdaFunctionRole"
-
-
-// a basic lambda function
+// a basic lambda function using default settings
 lazy val example = project
   .enablePlugins(ScalambdaPlugin)
   .settings(
-    lambdaFunction(
+    scalambda(
       functionClasspath = ??? // example: "io.carpe.example.ExampleFunction"
     )
   )
 
-// a lambda function to be used through API Gateway
-lazy val apiExample = project
+// you can also create multiple functions that share the same source
+lazy val multipleFunctions = project
   .enablePlugins(ScalambdaPlugin)
   .settings(
-    apiGatewayProxyLambda(
+    // first function
+    scalambda(
+      functionClasspath = ??? // example: "io.carpe.example.ExampleFunction"
+    )
+    // second function
+    scalambda(
       functionClasspath = ??? // example: "io.carpe.example.ExampleFunction"
     )
   )
 
 ```
 
-Both of these configurations will set default arguments for the [sbt-aws-lambda](https://github.com/saksdirect/sbt-aws-lambda) plugin. You can override any of the attributes this plugin exposes. A good example of when you might want to do this is if you want to deploy your Lambda Function into an AWS VPC, in which case. Here is an example:
+The first time the `scalambda` function is run within a project, sbt will automatically inject in the `scalambda-core` and `scalambda-testing` libraries into your project. These libraries provide you with a traits and helpers to make developing and testing lambda functions quick and easy.
 
-```scala
-// build.sbt
+## Defining Lambdas via Scalambda-Core
 
-// this is the ARN for the IAM role that your Lambda function will assume
-scalambdaRoleArn := "arn:aws:iam::120864075170:role/MyLambdaFunctionRole"
+`scalambda-core` currently comes with two traits for defining Lambda functions. Both use circe for encoding and decoding of your function's input and output.
 
-// a lambda function to be used through API Gateway
-lazy val apiExample = project
-  .enablePlugins(ScalambdaPlugin)
-  .settings(
-    apiGatewayProxyLambda(
-      functionClasspath = ??? // example: "io.carpe.example.ExampleFunction"
-    )
-  ).settings(
-    // these settings will place this lambda within the private subnet of our own ngvpc
-    vpcConfigSubnetIds := Some("subnet-08cbd1981c909822b,subnet-066982c21edde753b,subnet-04017edfe468d1f3f"),
-    vpcConfigSecurityGroupIds := Some("sg-0eb004aaa50425d07")
+- `io.carpe.scalambda.Scalambda` gives you the most freedom and control for your functions.
+- `io.carpe.scalambda.effect.ScalambdaIO` allows you to write functions using cats-effect's powerful IO. 
 
-    // you can also override other properties here if you'd like, like the s3 bucket where the lambda will be stored
-    // checkout the documentation on the sbt-aws-lambda lambda plugin (link above) to see more options
-    s3Bucket := Some("another-bucket-besides-carpe-lambdas")
-  )
 
-```
 
-This plugin also allows you to set a prefix that will be prepended to the name of any Lambda Functions this plugin creates which you can set in your project's global settings like:
-
-```scala
-// build.sbt
-ThisBuild / scalambdaRoleArn := "arn:aws:iam::120864075170:role/MyLambdaFunctionRole"
-ThisBuild / functionNamePrefix := Some("MyExampleApi")
-
-// a basic lambda function
-lazy val example = project
-  .enablePlugins(ScalambdaPlugin)
-  .settings(
-    lambdaFunction(
-      functionClasspath = ??? // example: "io.carpe.example.ExampleFunction"
-    )
-  )
-
-```
-
-This would change the name of the function that is deployed from `ExampleFunction` to `MyExampleApiExampleFunction`. This is helpful when you have many functions and want to logically group them, it also helps keep function names descriptive!
-
-## Running Scalambdas
-
-The output of a Scalambda is a Terraform module. You can choose where this output goes via the ``
-
-## Lib Usage
-
-Assuming you enabled the `ScalambdaPlugin` in your project, the `scalambda` library will automatically be injected into your project as a dependency.  
-
-To use this library, make the class that your `functionClasspath` property points to extend either `Scalambda` or `ApiScalambda`. Here is an example:
-
-```scala
+ ```scala
+ 
 import com.amazonaws.services.lambda.runtime.Context
 import io.carpe.scalambda.Scalambda
-
+ 
 class HelloWorld extends Scalambda[String, String] {
-
+ 
   override def handleRequest(input: String, context: Context): String = {
     "Hello, ${input}!"
   }
 }
-```
+ ```
  
-More documentation is coming in the future. In the meantime, review the java docs or reach out to one of the maintainers of this library if you have questions. 
+More documentation is coming in the future. In the meantime, review the java docs or reach out to one of the maintainers of this library if you have questions.
+
+## Managing Lambdas
+
+Scalambda provides 3 tasks for you to use to deploy/manage your lambda functions.
+
+#### scalambdaTerraform
+
+Uses `sbt-assembly` to produce two jar files (one for your sources, the other for your dependencies) and composes a terraform module. The jar files are copied into the terraform module so that you can then treat the entire terraform module as an artifact. This terraform module is generated by default in your project's target folder under `/target/terraform`. It is up to you to decide how to use this terraform!
+
+#### scalambdaPackage
+
+Used by the `scalambdaTerraform` command, it is the task that actually builds a jar based on your project's sources and then copies it into the `scalambdaTerraformPath` so that it can be used by the Terraform module generated by `scalambdaTerraform`. 
+
+It does NOT build a jar for your dependencies, so you can use it to replace just the sources jar for your lambda functions. This can make for a very fast way of developing/testing functions, as you can quickly run `scalambdaPackage` and then `terraform apply` in rapid succession.
+
+#### scalambdaPackageDependencies
+
+Used by the `scalambdaTerraform` command, it is the task that builds a fat jar based on your project's dependencies and then copies it into the `scalambdaTerraformPath` so that it can be used by the Terraform module generated by `scalambdaTerraform`. The file it creates is a zip file that can be used as Lambda Layer.

@@ -27,7 +27,7 @@ class OpenApiSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |      consumes:
         |      - application/json
         |      security:
-        |      - carpeAuthorizer: []
+        |      - my_authorizer: []
         |      responses:
         |        '200':
         |          description: Request completed without errors!
@@ -70,14 +70,14 @@ class OpenApiSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |            responseTemplates:
         |              application/json: '{}'
         |securityDefinitions:
-        |  carpeAuthorizer:
+        |  my_authorizer:
         |    type: apiKey
         |    name: Authorization
         |    in: header
         |    x-amazon-apigateway-authtype: custom
         |    x-amazon-apigateway-authorizer:
-        |      authorizerUri: arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:120864075170:function:CarpeAuthorizerProd/invocations
-        |      authorizerCredentials: arn:aws:iam::120864075170:role/Auth0Integration
+        |      authorizerUri: arn:fake:my_authorizer/invocations
+        |      authorizerCredentials: arn:fake:MyRole
         |      authorizerResultTtlInSeconds: 300
         |      identityValidationExpression: ^Bearer [-0-9a-zA-z\.]*$
         |      type: token

@@ -10,15 +10,17 @@ sealed trait AuthConfig {
 
 object AuthConfig {
 
-//  case class Authorized(authorizerName: String) extends AuthConf {
-//    lazy val tfVarName: String = s"${StringUtils.toSnakeCase(authorizerName)}_invoke_arn"
-//  }
-
-  case object CarpeAuthorizer extends AuthConfig {
-    override def authorizer: Option[SecurityDefinition] = Some(Authorizer(
-      authorizerName = Security.carpeAuthorizer.name,
-      authorizerArn = s"arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:120864075170:function:CarpeAuthorizerProd/invocations",
-      authorizerRole = "arn:aws:iam::120864075170:role/Auth0Integration"
+  /**
+   * A Custom Authorizer that you can use to implement your own auth logic for ApiGateway
+   * @param authorizerName name for your authorizer. Can be any snake_case string you'd like. Will show up on swagger.yaml
+   * @param authorizerArn invoke arn for your authorizer (example: s"arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:1234567889:function:MyAuthorizer/invocations")
+   * @param authorizerRole role to assume to allow invocation of your authorizer
+   */
+  case class Authorizer(authorizerName: String, authorizerArn: String, authorizerRole: String) extends AuthConfig {
+    override def authorizer: Option[SecurityDefinition] = Some(SecurityDefinition.Authorizer(
+      authorizerName = authorizerName,
+      authorizerArn = authorizerArn,
+      authorizerRole = authorizerRole
     ))
   }
 
@@ -26,11 +28,12 @@ object AuthConfig {
     override def authorizer: Option[SecurityDefinition] = Some(SecurityDefinition.ApiKey)
   }
 
-  case object Unauthorized extends AuthConfig {
+  case object AllowAll extends AuthConfig {
     override def authorizer: Option[SecurityDefinition] = None
   }
 
-//  def authorized(authorizerName: String): Authorized = Authorized(authorizerName)
-
-  lazy val unauthorized: Unauthorized.type = Unauthorized
+  /**
+   * Sets an endpoint to require no authorization.
+   */
+  lazy val unauthorized: AllowAll.type = AllowAll
 }

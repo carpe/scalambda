@@ -1,9 +1,7 @@
 package io.carpe.scalambda.terraform
 
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.function.AuthConfig.CarpeAuthorizer
-import io.carpe.scalambda.conf.function.{ApiGatewayConfig, AuthConfig}
-import io.carpe.scalambda.terraform.openapi.resourcemethod.Security
+import io.carpe.scalambda.conf.function.ApiGatewayConfig
 import io.carpe.scalambda.terraform.openapi.{ResourceMethod, ResourcePath, SecurityDefinition}
 
 case class OpenApi(paths: Seq[ResourcePath], securityDefinitions: Seq[SecurityDefinition])

@@ -40,15 +40,15 @@ object ScalambdaPlugin extends AutoPlugin {
 
     lazy val enableXray = settingKey[Boolean]("Enables AWS X-Ray for any Lambda functions or Api Gateway stages generated with scalambdaTerraform.")
 
-    lazy val scalambdaTerraformPath = settingKey[File]("Path to where terraform should be written to.")
+    lazy val scalambdaTerraformPath = taskKey[File]("Path to where terraform should be written to.")
 
-    lazy val packageScalambdaMergeStrat =
+    lazy val scalambdaPackageMergeStrat =
       settingKey[String => MergeStrategy]("mapping from archive member path to merge strategy")
-    lazy val packageScalambda = taskKey[File]("Create jar (without dependencies) for your Lambda Function(s)")
+    lazy val scalambdaPackage = taskKey[File]("Create jar (without dependencies) for your Lambda Function(s)")
 
-    lazy val packageScalambdaDependenciesMergeStrat =
+    lazy val scalambdaDependenciesMergeStrat =
       settingKey[String => MergeStrategy]("mapping from archive member path to merge strategy")
-    lazy val packageScalambdaDependencies = taskKey[File](
+    lazy val scalambdaPackageDependencies = taskKey[File](
       "Create a jar containing all the dependencies for your Lambda Function(s). This will be used as a Lambda Layer to support your function."
     )
 
@@ -163,8 +163,8 @@ object ScalambdaPlugin extends AutoPlugin {
           functions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty),
           version = gitHeadCommit.value.getOrElse({ formattedDateVersion.value }),
           s3BucketName = s3BucketName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas"),
-          projectSource = { packageScalambda.value },
-          dependencies = { packageScalambdaDependencies.value },
+          projectSource = { scalambdaPackage.value },
+          dependencies = { scalambdaPackageDependencies.value },
           isXrayEnabled = enableXray.?.value.getOrElse(false),
           apiName = apiName.?.value.getOrElse(s"${sbt.Keys.name.value}"),
           terraformOutput = scalambdaTerraformPath.value,

@@ -1,46 +1,34 @@
-import sbt._
 import sbt.Keys.libraryDependencies
+import sbt._
+import versions._
 
-import scala.tools.nsc.Properties
-import sbtsonar.SonarPlugin.autoImport.sonarProperties
-
-//ThisBuild / crossScalaVersions := Seq("2.11.12", "2.12.10")
+scapegoatVersion in ThisBuild := "1.4.1"
 ThisBuild / scalaVersion := "2.12.10"
 ThisBuild / organization := "io.carpe"
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 
-lazy val sonarSettings = Seq(
-  sonarProperties ++= Map(
-    "sonar.modules" -> "core,testing,plugin",
-),
-  aggregate in sonarScan := false
-)
-
 lazy val root = (project in file("."))
   .settings(name := "scalambda")
-  .settings(sonarSettings)
-  .enablePlugins(CarpeCorePlugin)
   .aggregate(plugin, core, testing)
-  .settings(sonarScan / skip := true)
-  .settings(skip in publish := true, skip in publishLocal := true)
+  .settings(skip in publish := true, skip in publishLocal := true, sonarScan := {})
 
 lazy val core = project
   .settings(name := "scalambda-core")
-  .enablePlugins(CarpeCorePlugin)
-  //.settings(sonarSettings)
   .settings(description := "Dependencies shared by both delegates and handlers. Includes things like Models and generic Lambda helpers.")
   .settings(
     // Circe is a serialization library that supports Scala's case classes much better than Jackson (and is also quite a bit faster)
-    libraryDependencies ++= carpeDeps.circe,
-
-    // Cats, which provides extensions to allow for safer, faster functional programming code.
-    libraryDependencies ++= carpeDeps.minimalCats,
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-core",
+      "io.circe" %% "circe-generic",
+      "io.circe" %% "circe-parser",
+      "io.circe" %% "circe-generic-extras"
+    ).map(_ % circeVersion),
 
     // Cats Effect, used to control side effects and make managing resources (such as database connections) easier
     libraryDependencies += "org.typelevel" %% "cats-effect" % "2.0.0",
 
-    // Minimal set of interfaces for AWS Lambda creation
+    // Minimal set of interfaces for AWS Lambda
     libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
 
     // Logging
@@ -54,7 +42,6 @@ lazy val core = project
 
 lazy val testing = project
   .settings(name := "scalambda-testing")
-  .enablePlugins(CarpeCorePlugin)
   .settings(description := "Utilities for testing Lambda Functions created with Scalambda.")
   .settings(
     // Testing
@@ -72,16 +59,12 @@ lazy val testing = project
 lazy val plugin = project
   .settings(name := "sbt-scalambda")
   .enablePlugins(SbtPlugin, BuildInfoPlugin)
-  .enablePlugins(CarpeCorePlugin)
   .settings(description := "Dependencies shared by both delegates and handlers. Includes things like Models and generic Lambda helpers.")
   .settings(
     // this allows the plugin see what the current version of scalambda is at runtime in order to
     // automatically include the library as a dependency.
     buildInfoKeys := Seq[BuildInfoKey](version),
     buildInfoPackage := "io.carpe.scalambda",
-
-    // Cats, used mainly to make managing all the AWS requests Scalambda makes a little easier
-    libraryDependencies ++= carpeDeps.minimalCats,
 
     // Used to generate swagger file for terraforming
     libraryDependencies += "io.circe" %% "circe-generic" % "0.12.1",

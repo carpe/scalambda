@@ -11,8 +11,6 @@ case class Security(name: String)
 
 object Security {
 
-  lazy val carpeAuthorizer: Security = Security("carpeAuthorizer")
-
   implicit val encoder: Encoder[Security] = (security: Security) => Json.obj(
     (security.name, Json.fromValues(List.empty))
   )

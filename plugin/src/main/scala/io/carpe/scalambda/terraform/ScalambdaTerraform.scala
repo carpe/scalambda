@@ -27,9 +27,6 @@ object ScalambdaTerraform {
     maybeDomainName: Option[String]
   ): Unit = {
 
-    // create archive file resources to use to zip the assembly output in TF
-    createArchives(projectSource, dependencies, terraformOutput.getAbsolutePath)
-
     // get filename of for the dependencies jar, since it has a content hash appended to it that we can use to power
     // our caching mechanism
     val dependenciesFileNameWithContentHash = dependencies.getName
@@ -106,27 +103,6 @@ object ScalambdaTerraform {
 
     // write the module to a series of files
     ScalambdaModule.write(scalambdaModule, terraformOutput.getAbsolutePath)
-  }
-
-  def createArchives(source: File, dependencies: File, output: String): Unit = {
-
-    // we need to store the dependencies in a specific folder structure in order to have them loaded into the lambda layer
-    import java.io.{BufferedInputStream, FileInputStream, FileOutputStream}
-    import java.util.zip.{ZipEntry, ZipOutputStream}
-
-    // create zip file of dependencies jar because terraform's archive_file is acting strange in recent versions
-    // TODO: review this and see if we can switch back to using a terraform archive
-    val zip = new ZipOutputStream(new FileOutputStream(output + "/dependencies.zip"))
-    zip.putNextEntry(new ZipEntry("java/lib/dependencies.jar"))
-    val in = new BufferedInputStream(new FileInputStream(dependencies))
-    var b = in.read()
-    while (b > -1) {
-      zip.write(b)
-      b = in.read()
-    }
-    in.close()
-    zip.closeEntry()
-    zip.close()
   }
 
   def defineS3Resources(bucketName: String, dependenciesPathWithContentHash: String): (S3Bucket, S3BucketItem, S3BucketItem) = {
