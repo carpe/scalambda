@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Properties>
+        <!--Used to name each of the pieces of the properties-->
+        <Property name="timestamp">%d{yyyy-MM-dd HH:mm:ss}</Property>
+        <Property name="logEntryType">%-5p</Property>
+        <Property name="className">%F</Property>
+        <Property name="lineNumber">%L</Property>
+        <Property name="message">%m</Property>
+        <Property name="newline">%n</Property>
+        <Property name="pattern" value="[${timestamp}] [${logEntryType}] [${className}:${lineNumber}] ${message}${newline}" />
+        <Property name="colorfulPattern" value="[${timestamp}] [%highlight{${logEntryType}}{TRACE=magenta}] [${className}:${lineNumber}] ${message}${newline}" />
+    </Properties>
+    <Appenders>
+        <Console name="STDOUT" target="SYSTEM_OUT">
+            <!--Uses the above property named "colorfulPattern"-->
+            <PatternLayout pattern="${colorfulPattern}" />
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Root level="DEBUG">
+            <AppenderRef ref="STDOUT" level="DEBUG"/>
+        </Root>
+    </Loggers>
+</Configuration>
