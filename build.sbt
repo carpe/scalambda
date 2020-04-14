@@ -2,6 +2,7 @@ import sbt.Keys.libraryDependencies
 import sbt._
 import versions._
 import sonar._
+import scapegoat._
 
 scapegoatVersion in ThisBuild := "1.4.1"
 ThisBuild / scalaVersion := "2.12.10"
@@ -12,12 +13,14 @@ ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 lazy val root = (project in file("."))
   .settings(name := "scalambda")
   .aggregate(plugin, core, testing)
-  .settings(skip in publish := true, skip in publishLocal := true, sonarScan := {})
+  .settings(skip in publish := true, skip in publishLocal := true)
+  .settings(sonarSettings, aggregate in sonarScan := false, sonarProperties ++= Map("sonar.modules" -> "core,testing,plugin"))
 
-lazy val commonSettings = sonarSettings
+lazy val commonSettings = sonarSettings ++ scapegoatSettings
 
 lazy val core = project
   .settings(name := "scalambda-core")
+  .settings(commonSettings)
   .settings(description := "Dependencies shared by both delegates and handlers. Includes things like Models and generic Lambda helpers.")
   .settings(
     // Circe is a serialization library that supports Scala's case classes much better than Jackson (and is also quite a bit faster)
