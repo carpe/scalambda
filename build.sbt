@@ -104,6 +104,9 @@ lazy val plugin = project
 
 /**
  * Publishing information
+ *
+ * In order to publish, follow the steps at https://www.scala-sbt.org/release/docs/Using-Sonatype.html
+ *
  */
 
 ThisBuild / organization := "io.carpe"
