@@ -18,5 +18,5 @@ addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.2.1")
 addSbtPlugin("com.sksamuel.scapegoat" % "sbt-scapegoat" % "1.1.0")
 
 // used for publishing to the sonatype repo
-addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "(version)")
+addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.9.2")
 addSbtPlugin("com.jsuereth" % "sbt-pgp" % "2.0.0-M2")
