@@ -1,6 +1,6 @@
 // plugin used to get build info at compile time. This is used specifically to synchronize the versions of Scalambda's
 // sbt plugin and library.
-addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "1.4.0")
+addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "1.5.0")
 
 // used for code coverage reporting
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
@@ -15,7 +15,7 @@ addSbtPlugin("com.github.mwz" % "sbt-sonar" % "2.1.0")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.2.1")
 
 // use to do the static code analysis on the code
-addSbtPlugin("com.sksamuel.scapegoat" % "sbt-scapegoat" % "1.4.0")
+addSbtPlugin("com.sksamuel.scapegoat" % "sbt-scapegoat" % "1.5.0")
 
 // used for publishing to the sonatype repo
 addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.9.2")
