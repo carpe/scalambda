@@ -1,0 +1,89 @@
+#!groovy
+pipeline {
+    agent {
+        docker {
+            image 'hseeberger/scala-sbt:8u242_1.3.8_2.12.10'
+            args "-v $JENKINS_HOME/.sbt/.credentials:/mnt/JENKINS_HOME/.sbt/.credentials"          
+            label 'GENERAL'
+        }
+    }
+    parameters {
+        choice(name: 'RELEASE_TYPE', choices: ['PATCH', 'MINOR', 'MAJOR'], description: 'The version to which you want to release ')
+    }
+    options {
+        buildDiscarder(logRotator(daysToKeepStr: '15',numToKeepStr: '30'))
+        ansiColor('xterm')
+        disableConcurrentBuilds()
+        timeout(time: 190, unit: 'MINUTES')
+        timestamps()
+    }
+    environment {
+        // PROJECT
+        CUSTOM_BRANCH_NAME = "${BRANCH_NAME}".replace('/','-')
+        
+        // SLACK
+        SLACK_CHANEL_TO_NOTIFY = "#release-journal" 
+        PERSON_TO_NOTIFY= "<@UKG2DBS23>" // Jorge Galveias Slack ID
+        
+        // GIT 
+        GIT_USER = 'Jenkins Bot'
+        GIT_EMAIL = 'jenkins@carpe.io'
+        GIT_TOKEN = credentials('GITHUB_RELEASE_TOKEN')
+        GIT_URL_WITH_TOKEN = "${GIT_URL}".replace('https://',"https://${GIT_TOKEN}@")
+ 
+        // RELEASE
+        RELEASE_BRANCH = 'develop'
+        RELEASE_VERSION = 'x.y.z'
+        // JENKINS
+        CI_JOB_NAME = "${JOB_NAME.split('-release')[0]}"
+        
+        // SBT 
+        SBT_VERSION = "1.3.8"
+        SBT_OPTIONS = "-Dsbt.version=${SBT_VERSION} -Dsbt.ci=true -Dsbt.global.base=.sbt -Dsbt.boot.directory=.sbt -Dsbt.ivy.home=.ivy2 -Dsbt.coursier.home=.coursier"
+        SBT_CREDENTIALS="$JENKINS_HOME/.sbt/.credentials" 
+    
+}
+    stages {
+        stage('Run CI Job') {
+            steps {
+                build job: "${CI_JOB_NAME}/${RELEASE_BRANCH}"
+            }
+        }
+        stage('release and publish'){
+            steps {
+                script {
+                    def CURRENT_VERSION = sh(script: 'git describe --abbrev=0', returnStdout: true)
+                    def (major,minor,patch) = CURRENT_VERSION.tokenize('.').collect{it.toInteger()}
+                    switch(RELEASE_TYPE) {
+                        case 'PATCH': RELEASE_VERSION = "${major}.${minor}.${patch + 1}"; break;
+                        case 'MINOR': RELEASE_VERSION = "${major}.${minor + 1}.0"; break;
+                        case 'MAJOR': RELEASE_VERSION = "${major + 1}.0.0"; break
+                        default : RELEASE_VERSION = "${major}.${minor}.${patch + 1}";RELEASE_TYPE='PATCH'; break;
+                    }
+                }
+                sh "git remote set-url origin $GIT_URL_WITH_TOKEN"
+                sh "git config --local user.email $GIT_EMAIL"
+                sh "git config --local user.name $GIT_USER "
+                sh "git checkout $RELEASE_BRANCH"
+                sh "sbt $SBT_OPTIONS \"release with-defaults release-version ${RELEASE_VERSION}\""
+            }
+        }
+    }
+    post {
+
+       success {
+         script{
+            RELEASE_VERSION = sh(script: 'git describe --abbrev=0', returnStdout: true)
+            currentBuild.description = "Released Version : ${RELEASE_VERSION}"
+          }
+          slackSend(channel: "${SLACK_CHANEL_TO_NOTIFY}", color: '#7CFC00',message:"*Project*: `${CI_JOB_NAME}` \n*Release*: ${RELEASE_VERSION} \n *Release Type*: ${RELEASE_TYPE}\n *Status*: ${currentBuild.currentResult} \n *JOB URL*: ${env.BUILD_URL}")
+       }
+       failure {
+         slackSend(channel: "${SLACK_CHANEL_TO_NOTIFY}", color: '#FF4500',message:"*Project*: `${CI_JOB_NAME}` \n *Release Type*: ${RELEASE_TYPE}\n *Status*: ${currentBuild.currentResult} \n *JOB URL*: ${env.BUILD_URL} \n Notifying: ${PERSON_TO_NOTIFY}")
+       }
+       cleanup {
+           cleanWs()
+       }
+     }
+}
+

@@ -4,23 +4,24 @@ pipeline {
         docker {
             image 'hseeberger/scala-sbt:8u242_1.3.8_2.12.10'
             args "-v $JENKINS_HOME/.sbt/.credentials:/mnt/JENKINS_HOME/.sbt/.credentials"
+            label 'GENERAL'
         }
     }
     options {
-        buildDiscarder(logRotator(daysToKeepStr: '1',numToKeepStr: '5'))
+        buildDiscarder(logRotator(daysToKeepStr: '15',numToKeepStr: '30'))
         ansiColor('xterm')
         disableConcurrentBuilds()
         timeout(time: 180, unit: 'MINUTES')
         timestamps()
     }
     environment {
-	def CI_PROPERTIES = readProperties interpolate: true, file: '.ci/ci.properties'
+	    //def CI_PROPERTIES = readProperties interpolate: true, file: '.ci/ci.properties'
         // PROJECT
         PROJECT_NAME = "${JOB_NAME.split('/')[0]}"
         CURRENT_VERSION = readFile("${env.WORKSPACE}/version.sbt").split(":=")[1].replace("\"","").trim()
         ORGANIZATION = "carpe"
-        //DEFAULT_SCALA_VERSION = sh(script:"sbt -Dsbt.log.noformat=true $SBT_OPTIONS \"show scalaBinaryVersion\" | tail -1 | awk '{print \$(NF)}' | tr -d '\n'", returnStdout: true)
-        DEFAULT_SCALA_VERSION = CI_PROPERTIES.get('DEFAULT_SCALA_VERSION')
+        DEFAULT_SCALA_VERSION = sh(script:"sbt -Dsbt.log.noformat=true $SBT_OPTIONS \"show scalaBinaryVersion\" | tail -1 | awk '{print \$(NF)}' | tr -d '\n'", returnStdout: true)
+        //DEFAULT_SCALA_VERSION = CI_PROPERTIES.get('DEFAULT_SCALA_VERSION')
         
         // SLACK
         SLACK_CHANEL_TO_NOTIFY = "#ci-journal" 
@@ -111,6 +112,23 @@ pipeline {
               withSonarQubeEnv(installationName:'carpe_sonarqube_server') {
                 sh "sbt ${SBT_OPTIONS} ${SONARQUBE_OPTIONS} -Dsonar.login=${SONAR_AUTH_TOKEN} sonarScan"
               }
+            }
+        }
+        stage('Snapshot Release'){
+            when { 
+                not {
+                    anyOf { 
+                      branch 'master'; 
+                      branch 'develop' 
+                    } 
+                }
+            }
+            steps{
+                sh "sbt ${SBT_OPTIONS} \"set version in ThisBuild := \\\"${SNAPSHOT_VERSION_TO_RELEASE}\\\" \" \"+publish\" "
+                sh "echo \\\"${PROJECT_NAME}-${SNAPSHOT_VERSION_TO_RELEASE}\\\" > snapshotVersionReleased.html"
+                script{
+                    currentBuild.description = "Released Version : ${SNAPSHOT_VERSION_TO_RELEASE}"
+                }
             }
         }
     }
