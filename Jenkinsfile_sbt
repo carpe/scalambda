@@ -139,13 +139,18 @@ pipeline {
             archiveArtifacts artifacts: "target/scala-${DEFAULT_SCALA_VERSION}/scoverage-report/**"
             archiveArtifacts artifacts: 'target/test-reports/**'
             step([$class: 'ScoveragePublisher', reportDir: "target/scala-${DEFAULT_SCALA_VERSION}/scoverage-report", reportFile: 'scoverage.xml'])
-            slackSend(channel: "${SLACK_CHANNEL_TO_NOTIFY_ALWAYS}", color: '#FF4500',message:"*Project*: `${CI_JOB_NAME}` \n*Branch*: ${env.BRANCH_NAME} \n *Commit*: ${env.GIT_COMMIT} \n *Status*: ${currentBuild.currentResult} \n *JOB URL*: ${env.BUILD_URL}")
+            
+        }
+        success{
+          slackSend(channel: "${SLACK_CHANNEL_TO_NOTIFY_ALWAYS}", color: '#7CFC00',message:"*Project*: `${CI_JOB_NAME}` \n*Branch*: ${env.BRANCH_NAME} \n *Commit*: ${env.GIT_COMMIT} \n *Status*: ${currentBuild.currentResult} \n *JOB URL*: ${env.BUILD_URL}")
         }
         failure{
+          slackSend(channel: "${SLACK_CHANNEL_TO_NOTIFY_ALWAYS}", color: '#FF4500',message:"*Project*: `${CI_JOB_NAME}` \n*Branch*: ${env.BRANCH_NAME} \n *Commit*: ${env.GIT_COMMIT} \n *Status*: ${currentBuild.currentResult} \n *JOB URL*: ${env.BUILD_URL}")
           script {
             if (env.BRANCH_NAME == 'develop'){
               slackSend(channel: "${SLACK_CHANNEL_TO_NOTIFY}", color: '#FF4500',message:"*Project*: `${CI_JOB_NAME}` \n*Branch*: ${env.BRANCH_NAME} \n *Commit*: ${env.GIT_COMMIT} \n *Status*: ${currentBuild.currentResult} \n *JOB URL*: ${env.BUILD_URL} \n Notifying: ${PERSON_TO_NOTIFY}")
             }
+ 
           }
         }
         cleanup{
