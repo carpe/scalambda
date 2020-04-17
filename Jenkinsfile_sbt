@@ -24,7 +24,8 @@ pipeline {
         //DEFAULT_SCALA_VERSION = CI_PROPERTIES.get('DEFAULT_SCALA_VERSION')
         
         // SLACK
-        SLACK_CHANEL_TO_NOTIFY = "#ci-journal" 
+        SLACK_CHANNEL_TO_NOTIFY = "#ci-journal" 
+        SLACK_CHANNEL_TO_NOTIFY_ALWAYS = "#ci-full-journal" 
         PERSON_TO_NOTIFY= "<@UKG2DBS23>" // Jorge Galveias Slack ID
         
         // TESTS
@@ -48,7 +49,7 @@ pipeline {
         // GITHUB
         GITHUB_TOKEN = credentials('GITHUB_RELEASE_TOKEN')
         GITHUB_API_URL = "https://api.github.com/repos/${ORGANIZATION}/${PROJECT_NAME}" 
-        // SONARQUBORGANIZATIONE
+        // SONARQUBE
         SONARQUBE_OPTIONS="-Dsonar.organization=${ORGANIZATION} -Dsonar.projectKey=carpe_${PROJECT_NAME} -Dsonar.verbose=true"
         
     }
@@ -138,11 +139,12 @@ pipeline {
             archiveArtifacts artifacts: "target/scala-${DEFAULT_SCALA_VERSION}/scoverage-report/**"
             archiveArtifacts artifacts: 'target/test-reports/**'
             step([$class: 'ScoveragePublisher', reportDir: "target/scala-${DEFAULT_SCALA_VERSION}/scoverage-report", reportFile: 'scoverage.xml'])
+            slackSend(channel: "${SLACK_CHANNEL_TO_NOTIFY_ALWAYS}", color: '#FF4500',message:"*Project*: `${CI_JOB_NAME}` \n*Branch*: ${env.BRANCH_NAME} \n *Commit*: ${env.GIT_COMMIT} \n *Status*: ${currentBuild.currentResult} \n *JOB URL*: ${env.BUILD_URL}")
         }
         failure{
           script {
             if (env.BRANCH_NAME == 'develop'){
-              slackSend(channel: "${SLACK_CHANEL_TO_NOTIFY}", color: '#FF4500',message:"*Project*: `${CI_JOB_NAME}` \n*Branch*: ${env.BRANCH_NAME} \n *Commit*: ${env.GIT_COMMIT} \n *Status*: ${currentBuild.currentResult} \n *JOB URL*: ${env.BUILD_URL} \n Notifying: ${PERSON_TO_NOTIFY}")
+              slackSend(channel: "${SLACK_CHANNEL_TO_NOTIFY}", color: '#FF4500',message:"*Project*: `${CI_JOB_NAME}` \n*Branch*: ${env.BRANCH_NAME} \n *Commit*: ${env.GIT_COMMIT} \n *Status*: ${currentBuild.currentResult} \n *JOB URL*: ${env.BUILD_URL} \n Notifying: ${PERSON_TO_NOTIFY}")
             }
           }
         }
