@@ -1,5 +1,6 @@
 package io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources
 
+import io.carpe.scalambda.conf.utils.StringUtils
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TLiteral, TResourceRef, TString}
@@ -10,7 +11,7 @@ import io.carpe.scalambda.terraform.ast.providers.aws.lambda.LambdaFunctionAlias
  * lambda function. This is helpful if you are using a lambda "fan out" and want to insure that the lambdas are only
  * "fanning out" to lambda functions with their same version.
  */
-case class LambdaFunctionAliasResource(function: LambdaFunction, aliasName: String) extends Resource with LambdaFunctionAlias {
+case class LambdaFunctionAliasResource(function: LambdaFunction, aliasName: String, description: String) extends Resource with LambdaFunctionAlias {
 
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
@@ -22,14 +23,21 @@ case class LambdaFunctionAliasResource(function: LambdaFunction, aliasName: Stri
    *
    * @return
    */
-  override def name: String = s"${function.name}"
+  override def name: String = s"${function.name}_${StringUtils.toSnakeCase({
+    try {
+      aliasName.substring(0, 16)
+    } catch {
+      case e: IndexOutOfBoundsException =>
+        aliasName
+    }
+  })}"
 
   /**
    * Properties of the definition
    */
   override def body: Map[String, TValue] = Map(
     "name" -> TString(aliasName),
-    "description" -> TString("Managed by Scalambda"),
+    "description" -> TString(description),
     "function_name" -> TResourceRef(function, "function_name"),
     "function_version" -> TResourceRef(function, "version"),
     "depends_on" -> TArray(

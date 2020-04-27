@@ -8,14 +8,18 @@ import io.carpe.scalambda.terraform.ast.props.TValue.{TBool, TString, TVariableR
 import io.carpe.scalambda.terraform.ast.providers.aws.apigateway
 import io.carpe.scalambda.terraform.ast.providers.aws.apigateway._
 import io.carpe.scalambda.terraform.ast.providers.aws.lambda.LambdaFunctionAlias
-import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.LambdaPermission
+import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.{LambdaFunctionAliasResource, LambdaPermission}
 import io.carpe.scalambda.terraform.ast.providers.aws.route53.Route53Record
 import io.carpe.scalambda.terraform.ast.providers.terraform.data.TemplateFile
 
 object ApiGatewayComposer {
 
-  def maybeDefineApiResources(
-                               isXrayEnabled: Boolean,
+  /**
+   * This will be the name of the alias that api gateway uses to invoke the non-referenced lambda functions
+   */
+  lazy val apiFunctionAlias: String = "api"
+
+  def maybeDefineApiResources( isXrayEnabled: Boolean,
                                apiName: String,
                                functions: Seq[ScalambdaFunction],
                                functionAliases: Seq[LambdaFunctionAlias],
@@ -24,6 +28,7 @@ object ApiGatewayComposer {
                              ): (
     Option[ApiGateway],
       Option[TemplateFile],
+      Seq[LambdaFunctionAlias],
       Seq[LambdaPermission],
       Option[ApiGatewayDeployment],
       Option[ApiGatewayStage],
@@ -36,7 +41,7 @@ object ApiGatewayComposer {
     // if there are no functions that are configured to be exposed via api
     if (functions.count(_.apiGatewayConfig.isDefined) == 0) {
       // do an early return
-      return (None, None, Seq.empty, None, None, None, None, None, Seq.empty)
+      return (None, None, Nil, Nil, None, None, None, None, None, Seq.empty)
     }
 
     val certificateArnVariable = Variable("certificate_arn", Some("Arn of AWS Certificate Manager certificate."), None)
@@ -53,15 +58,40 @@ object ApiGatewayComposer {
       defaultValue = None
     )
 
+    // defined aliases for all functions in this project, so that as the versions of those functions change
+    // we can make sure that the api is never pointed at a non-defined alias
+    val apiFunctionAliases = functionAliases.flatMap(functionAlias => {
+      functionAlias match {
+        case projectFunctionAlias: LambdaFunctionAliasResource =>
+          Some(projectFunctionAlias.copy(aliasName = apiFunctionAlias, description = s"This is the version of the lambda used by ApiGateway for $apiName."))
+        case _ =>
+          None
+      }
+    })
+
+    // create aliases for the inverse of the above aliases
+    val referencedFunctionAliases = functionAliases.flatMap(functionAlias => {
+      functionAlias match {
+        case projectFunctionAlias: LambdaFunctionAliasResource =>
+          None
+        case referenced: LambdaFunctionAlias =>
+          Some(referenced)
+      }
+    })
+
+    // this will be the full list of aliases used by the api to invoke the lambdas
+    val apiAliases = apiFunctionAliases ++ referencedFunctionAliases
+
+    // use the aliases to define the swagger template that will be used to generate our api
     val swaggerTemplate = {
-      SwaggerComposer.writeSwagger(apiName = apiName, rootTerraformPath = terraformOutput.getAbsolutePath, functions = functions, functionAliases = functionAliases)
+      SwaggerComposer.writeSwagger(apiName = apiName, rootTerraformPath = terraformOutput.getAbsolutePath, functions = functions, functionAliases = apiAliases)
     }
 
     // define api gateway
     val api = ApiGateway(TString(apiName), None, swaggerTemplate)
 
-    // define permissions for api gateway to invoke lambdas
-    val permissions = functionAliases.map(alias => {
+    // define permissions for both of the defined aliases for api gateway to use to invoke lambdas
+    val permissions = apiAliases.map(alias => {
       val statementId = s"Allow${alias.approximateFunctionName}InvokeByApi" + "${title(terraform.workspace)}"
       val resourceName = alias.name
       val apiArn = TString("${aws_api_gateway_rest_api." + api.name + ".execution_arn}/*/*")
@@ -98,6 +128,7 @@ object ApiGatewayComposer {
     (
       Some(api),
       Some(swaggerTemplate),
+      apiFunctionAliases,
       permissions,
       Some(apiGatewayDeployment),
       Some(apiGatewayStage),

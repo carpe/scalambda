@@ -43,4 +43,5 @@ case class LambdaFunctionAliasData(referencedFunction: ReferencedFunction) exten
   override def approximateFunctionName: String = referencedFunction.functionName
 
   override def swaggerVariableName: String = referencedFunction.swaggerVariableName
+
 }

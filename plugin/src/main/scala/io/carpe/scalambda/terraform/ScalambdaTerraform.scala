@@ -62,6 +62,7 @@ object ScalambdaTerraform {
     val (
       apiGateway,
       swaggerTemplate,
+      apiLambdaAliases,
       lambdaPermissions,
       apiGatewayDeployment,
       apiGatewayStage,
@@ -82,7 +83,7 @@ object ScalambdaTerraform {
     // load resources into module
     val scalambdaModule = ScalambdaModule(
       lambdas,
-      lambdaAliases ++ referencedFunctionAliases,
+      lambdaAliases ++ apiLambdaAliases ++ referencedFunctionAliases,
       lambdaDependenciesLayer,
       lambdaWarmingResources = lambdaWarming,
       s3Buckets = Seq(s3Bucket),
