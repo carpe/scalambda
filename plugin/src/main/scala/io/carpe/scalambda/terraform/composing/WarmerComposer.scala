@@ -65,7 +65,7 @@ object WarmerComposer {
       statementId = "Allow${title(" + lambdaAlias.functionName.asInterpolatedRef + ")}InvokeByWarmer",
       principal = "events.amazonaws.com",
       functionName = lambdaAlias.functionName,
-      qualifer = lambdaAlias.qualifier,
+      qualifier = lambdaAlias.qualifier,
       sourceArn = TResourceRef(eventRule, "arn")
     )
 

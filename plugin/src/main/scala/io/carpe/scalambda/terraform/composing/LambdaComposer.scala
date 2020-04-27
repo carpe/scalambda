@@ -8,10 +8,9 @@ import io.carpe.scalambda.terraform.ast.Definition
 import io.carpe.scalambda.terraform.ast.Definition.{Output, Variable}
 import io.carpe.scalambda.terraform.ast.props.TValue.{TBool, TResourceRef, TString}
 import io.carpe.scalambda.terraform.ast.providers.aws
+import io.carpe.scalambda.terraform.ast.providers.aws.BillingTag
 import io.carpe.scalambda.terraform.ast.providers.aws.lambda.LambdaFunctionAlias
-import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.{
-  LambdaFunction, LambdaLayerVersion, ProvisionedConcurrency
-}
+import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.{LambdaFunction, LambdaLayerVersion, ProvisionedConcurrency}
 import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
 
 object LambdaComposer {
@@ -23,7 +22,8 @@ object LambdaComposer {
     version: String,
     s3Bucket: S3Bucket,
     projectBucketItem: S3BucketItem,
-    dependenciesBucketItem: S3BucketItem
+    dependenciesBucketItem: S3BucketItem,
+    billingTags: Seq[BillingTag]
   ): (
     Seq[LambdaFunction],
     Seq[LambdaFunctionAlias],
@@ -64,7 +64,7 @@ object LambdaComposer {
            * Define Terraform resources for function
            */
           val functionResource =
-            LambdaFunction(function, version, s3Bucket, projectBucketItem, lambdaDependenciesLayer, isXrayEnabled)
+            LambdaFunction(function, version, s3Bucket, projectBucketItem, lambdaDependenciesLayer, isXrayEnabled, billingTags = billingTags)
 
           val functionAlias = aws.lambda.resources.LambdaFunctionAliasResource(functionResource, version)
 

@@ -79,7 +79,7 @@ object ApiGatewayComposer {
     val maybeApiGatewayDomainName = maybeDomainName.map(domainName => ApiGatewayDomainName("api_domain", domainName, TVariableRef(certificateArnVariable.name), domainNameToggleVariable))
     val maybeReferrableApiGatewayDomainName = maybeApiGatewayDomainName.map(domainName => domainName.copy(name = s"${domainName.name}[count.index]"))
     val maybeBasePathMapping = maybeReferrableApiGatewayDomainName.map(domainName => {
-      apigateway.ApiGatewayBasePathMapping(api, apiGatewayDeployment, domainName, domainNameToggleVariable)
+      apigateway.ApiGatewayBasePathMapping(api, apiGatewayStage, domainName, domainNameToggleVariable)
     })
 
     val zoneId = TVariableRef(zoneIdVariable.name)

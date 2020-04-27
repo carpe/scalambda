@@ -8,6 +8,7 @@ import io.carpe.scalambda.conf.ScalambdaFunction.ProjectFunction
 import io.carpe.scalambda.conf.utils.StringUtils
 import io.carpe.scalambda.terraform.ast.module.ScalambdaModule
 import io.carpe.scalambda.terraform.ast.props.TValue.{TLiteral, TString}
+import io.carpe.scalambda.terraform.ast.providers.aws.BillingTag
 import io.carpe.scalambda.terraform.ast.providers.aws.lambda.data
 import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
 import io.carpe.scalambda.terraform.composing.{ApiGatewayComposer, LambdaComposer}
@@ -19,20 +20,15 @@ object ScalambdaTerraform {
     functions: List[ScalambdaFunction],
     version: String,
     s3BucketName: String,
-    projectSource: File,
-    dependencies: File,
+    billingTags: Seq[BillingTag],
     isXrayEnabled: Boolean,
     apiName: String,
     terraformOutput: File,
     maybeDomainName: Option[String]
   ): Unit = {
 
-    // get filename of for the dependencies jar, since it has a content hash appended to it that we can use to power
-    // our caching mechanism
-    val dependenciesFileNameWithContentHash = dependencies.getName
-
     // create resource definitions for the s3 resources that will be used to store the function's source code
-    val (s3Bucket, projectBucketItem, dependenciesBucketItem) = defineS3Resources(s3BucketName, dependenciesFileNameWithContentHash)
+    val (s3Bucket, projectBucketItem, dependenciesBucketItem) = defineS3Resources(s3BucketName, billingTags)
 
     val projectFunctions = functions.flatMap(_ match {
       case function: ProjectFunction =>
@@ -58,7 +54,8 @@ object ScalambdaTerraform {
         versionAsAlias,
         s3Bucket,
         projectBucketItem,
-        dependenciesBucketItem
+        dependenciesBucketItem,
+        billingTags
       )
 
     // create resource definitions for an api gateway instance, if lambdas are configured for HTTP
@@ -105,19 +102,27 @@ object ScalambdaTerraform {
     ScalambdaModule.write(scalambdaModule, terraformOutput.getAbsolutePath)
   }
 
-  def defineS3Resources(bucketName: String, dependenciesPathWithContentHash: String): (S3Bucket, S3BucketItem, S3BucketItem) = {
+  def defineS3Resources(bucketName: String, billingTags: Seq[BillingTag]): (S3Bucket, S3BucketItem, S3BucketItem) = {
     // create a new bucket
-    val newBucket = S3Bucket(bucketName)
+    val newBucket = S3Bucket(bucketName, billingTags)
 
     // create bucket items (to be placed into that bucket) that are pointed to the sources of each lambda function
     val sourceBucketItem =
-      S3BucketItem(newBucket, name = "sources", key = "sources.jar", source = "sources.jar", etag = TLiteral("""filemd5("${path.module}/sources.jar")"""))
+      S3BucketItem(
+        newBucket,
+        name = "sources",
+        key = "sources.jar",
+        source = "sources.jar",
+        etag = TLiteral("""filemd5("${path.module}/sources.jar")"""),
+        billingTags = billingTags
+      )
     val depsBucketItem = S3BucketItem(
       newBucket,
       name = "dependencies",
       key = "dependencies.zip",
       source = "dependencies.zip",
-      etag = TLiteral("""filemd5("${path.module}/dependencies.zip")""")
+      etag = TLiteral("""filemd5("${path.module}/dependencies.zip")"""),
+      billingTags = billingTags
     )
 
     (newBucket, sourceBucketItem, depsBucketItem)

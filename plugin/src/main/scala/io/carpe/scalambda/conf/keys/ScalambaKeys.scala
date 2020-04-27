@@ -7,3 +7,4 @@ trait ScalambaKeys
     with ApiGatewayKeys
     with RuntimeKeys
     with WarmerKeys
+    with BillingTagKeys

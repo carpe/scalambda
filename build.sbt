@@ -96,7 +96,6 @@ lazy val plugin = project
     },
 
     // Testing
-    libraryDependencies += "org.scalactic" %% "scalactic" % "3.1.1" % Test,
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % Test,
     libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test,
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")

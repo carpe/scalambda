@@ -3,9 +3,10 @@ package io.carpe.scalambda.terraform.ast.providers.aws.s3
 import io.carpe.scalambda.conf.utils.StringUtils
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TBool, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TBool, TObject, TString}
+import io.carpe.scalambda.terraform.ast.providers.aws.BillingTag
 
-case class S3Bucket(bucketName: String) extends Resource {
+case class S3Bucket(bucketName: String, billingTags: Seq[BillingTag]) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    */
@@ -23,6 +24,11 @@ case class S3Bucket(bucketName: String) extends Resource {
    */
   override def body: Map[String, TValue] = Map(
     "bucket" -> TString(name.replace('_', '-') + "-${terraform.workspace}"),
-    "force_destroy" -> TBool(true)
+    "force_destroy" -> TBool(true),
+    "tags" -> TObject(
+      billingTags.map(billingTag => {
+        billingTag.name -> TString(billingTag.value)
+      }): _*
+    )
   )
 }

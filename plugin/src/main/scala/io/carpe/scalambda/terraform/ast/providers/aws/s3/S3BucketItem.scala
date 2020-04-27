@@ -2,9 +2,10 @@ package io.carpe.scalambda.terraform.ast.providers.aws.s3
 
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TLiteral, TResourceRef, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TLiteral, TObject, TResourceRef, TString}
+import io.carpe.scalambda.terraform.ast.providers.aws.BillingTag
 
-case class S3BucketItem(s3Bucket: S3Bucket, name: String, key: String, source: String, etag: TValue) extends Resource {
+case class S3BucketItem(s3Bucket: S3Bucket, name: String, key: String, source: String, etag: TValue, billingTags: Seq[BillingTag]) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    */
@@ -17,6 +18,11 @@ case class S3BucketItem(s3Bucket: S3Bucket, name: String, key: String, source: S
     "key" -> TString(key),
     "bucket" -> TResourceRef(s3Bucket, "id"),
     "source" -> TString("${path.module}/" + source),
-    "etag" -> etag
+    "etag" -> etag,
+    "tags" -> TObject(
+      billingTags.map(billingTag => {
+        billingTag.name -> TString(billingTag.value)
+      })
+    : _*)
   )
 }

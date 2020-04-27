@@ -6,6 +6,7 @@ import io.carpe.scalambda.conf.function.ScalambdaRuntime.{Java11, Java8}
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue._
+import io.carpe.scalambda.terraform.ast.providers.aws.BillingTag
 import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
 
 case class LambdaFunction(
@@ -14,7 +15,8 @@ case class LambdaFunction(
   s3Bucket: S3Bucket,
   s3BucketItem: S3BucketItem,
   dependenciesLayer: LambdaLayerVersion,
-  isXrayEnabled: Boolean
+  isXrayEnabled: Boolean,
+  billingTags: Seq[BillingTag]
 ) extends Resource {
 
   /**
@@ -95,6 +97,12 @@ case class LambdaFunction(
         } else TNone
       }
     ),
+    // billing tags
+    "tags" -> TObject(
+      billingTags.map(billingTag => {
+        billingTag.name -> TString(billingTag.value)
+      })
+    : _*),
     "depends_on" -> TArray(
       TLiteral(s"${dependenciesLayer.resourceType}.${dependenciesLayer.name}")
     ),

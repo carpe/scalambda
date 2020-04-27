@@ -30,9 +30,6 @@ object ScalambdaPlugin extends AutoPlugin {
 
   object autoImport extends ScalambaKeys {
 
-    lazy val apiName = settingKey[String]("Prefix for the name of the api. Defaults to project name")
-    lazy val apiAuthorizerArn = settingKey[String]("Arn for custom authorizer to use for ApiGateway")
-
     lazy val s3BucketName =
       settingKey[String]("Prefix for S3 bucket name to store lambda functions in. Defaults to project name.")
     lazy val domainName = settingKey[String]("Domain name to be used in the terraform output")
@@ -59,7 +56,6 @@ object ScalambdaPlugin extends AutoPlugin {
     def iamRoleSource: FunctionRoleSource.type = FunctionRoleSource
     def functionSource: FunctionSource.type = FunctionSource
     def environmentVariable: EnvironmentVariable.type = EnvironmentVariable
-    val Vpc: VpcConf.type = VpcConf
     val Auth: AuthConfig.type = AuthConfig
 
     def scalambda(functionClasspath: String,
@@ -69,7 +65,7 @@ object ScalambdaPlugin extends AutoPlugin {
                   runtime: ScalambdaRuntime = RuntimeConfig.default.runtime,
                   concurrencyLimit: Int = RuntimeConfig.default.reservedConcurrency,
                   warmWith: WarmerConfig = WarmerConfig.Cold,
-                  vpcConfig: VpcConf = Vpc.withoutVpc,
+                  vpcConfig: VpcConf = VpcConf.withoutVpc,
                   environmentVariables: Seq[EnvironmentVariable] = List.empty,
     ): Seq[Def.Setting[_]] = {
 
@@ -122,7 +118,7 @@ object ScalambdaPlugin extends AutoPlugin {
                           concurrencyLimit: Int = RuntimeConfig.apiDefault.reservedConcurrency,
                           environmentVariables: Seq[EnvironmentVariable] = List.empty,
                           warmWith: WarmerConfig = WarmerConfig.Cold,
-                          vpcConfig: VpcConf = Vpc.withoutVpc,
+                          vpcConfig: VpcConf = VpcConf.withoutVpc,
                           apiConfig: ApiGatewayConfig
     ): Seq[Def.Setting[_]] = {
 
@@ -163,8 +159,7 @@ object ScalambdaPlugin extends AutoPlugin {
           functions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty),
           version = gitHeadCommit.value.getOrElse({ formattedDateVersion.value }),
           s3BucketName = s3BucketName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas"),
-          projectSource = { scalambdaPackage.value },
-          dependencies = { scalambdaPackageDependencies.value },
+          billingTags = billingTags.?.value.getOrElse(Nil),
           isXrayEnabled = enableXray.?.value.getOrElse(false),
           apiName = apiName.?.value.getOrElse(s"${sbt.Keys.name.value}"),
           terraformOutput = scalambdaTerraformPath.value,
