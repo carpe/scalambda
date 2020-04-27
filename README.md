@@ -16,7 +16,7 @@ The easiest way to get started with Scalambda is via the Giter template. Check i
 Add the plugin to your project in the `project/plugins.sbt` file:
 
 ```scala
-addSbtPlugin("io.carpe" % "sbt-scalambda" % "1.0.0")
+addSbtPlugin("io.carpe" % "sbt-scalambda" % "2.0.0")
 ```
 
 After enabling the plugin to your project, you can then use the `scalambda` function to define Lambda Functions from your project's sources. 
