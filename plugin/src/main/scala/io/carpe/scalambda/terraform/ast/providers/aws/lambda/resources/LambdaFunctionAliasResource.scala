@@ -39,10 +39,7 @@ case class LambdaFunctionAliasResource(function: LambdaFunction, aliasName: Stri
     "name" -> TString(aliasName),
     "description" -> TString(description),
     "function_name" -> TResourceRef(function, "function_name"),
-    "function_version" -> TResourceRef(function, "version"),
-    "depends_on" -> TArray(
-      TLiteral(s"aws_lambda_function.${function.name}")
-    )
+    "function_version" -> TResourceRef(function, "version")
   )
 
   override def invokeArn: TValue.TRef = TResourceRef(this, "invoke_arn")

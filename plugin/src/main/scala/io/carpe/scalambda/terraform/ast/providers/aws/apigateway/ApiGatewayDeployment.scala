@@ -24,6 +24,9 @@ case class ApiGatewayDeployment(apiGateway: ApiGateway, lambdaPermissions: Seq[L
   override def body: Map[String, TValue] = Map(
     "rest_api_id" -> TResourceRef(apiGateway, "id"),
     "stage_name" -> TString("intermediate"),
+    // set the state description to be the md5 hash of the swagger file used to generate the api gateway instance.
+    // this helps ensure the deployment will be recreated when the api changes
+    "stage_description" -> TLiteral("""md5(file("${path.module}/swagger.yaml"))"""),
     "lifecycle" -> TBlock(
       "create_before_destroy" -> TBool(true)
     ),

@@ -154,6 +154,11 @@ object ScalambdaPlugin extends AutoPlugin {
       scalambdaFunctions := List.empty,
       scalambdaTerraformPath := target.value / "terraform",
       scalambdaTerraform := {
+        // assemble source jar
+        scalambdaPackage.value
+        // assembly dependencies
+        scalambdaPackageDependencies.value
+        // write terraform
         ScalambdaTerraform.writeTerraform(
           projectName = { sbt.Keys.name.value },
           functions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty),

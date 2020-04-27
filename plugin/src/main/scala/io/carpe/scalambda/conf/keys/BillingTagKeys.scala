@@ -5,4 +5,6 @@ import sbt.settingKey
 
 trait BillingTagKeys {
   lazy val billingTags = settingKey[Seq[BillingTag]]("AWS Billing Tags to apply to all terraformed resources.")
+
+  def BillingTag(name: String, value: String): BillingTag = new BillingTag(name, value)
 }

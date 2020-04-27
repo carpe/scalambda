@@ -1,6 +1,7 @@
 package io.carpe.scalambda.terraform.composing
 
-import java.io.PrintWriter
+import java.io.{File, PrintWriter}
+import java.nio.file.Files
 
 import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.terraform.OpenApi
@@ -19,6 +20,9 @@ object SwaggerComposer {
 
     // convert the api to yaml
     val openApiDefinition = OpenApi.apiToYaml(openApi)
+
+    // make sure parent directories are created
+    Files.createDirectories(new File(rootTerraformPath).toPath)
 
     // write that yaml to the path
     val swaggerFilePath = rootTerraformPath + "/swagger.yaml"
