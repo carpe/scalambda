@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Removed
 - `Vpc` value in `autoImport` scope has been replaced by `VpcConfigKeys` trait mixed into ScalambdaKeys  
 
-## [1.0.1] - 2019-04-20 
+## [1.0.1] - 2020-04-20
 ## Changed
 - Updates to build process. No visible changes to published plugin or lib. 
 
