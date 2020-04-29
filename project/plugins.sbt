@@ -20,3 +20,7 @@ addSbtPlugin("com.sksamuel.scapegoat" % "sbt-scapegoat" % "1.1.0")
 // used for publishing to the sonatype repo
 addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.9.2")
 addSbtPlugin("com.jsuereth" % "sbt-pgp" % "2.0.0-M2")
+
+// used to generate the companion site to house documentation
+addSbtPlugin("com.47deg"  % "sbt-microsites" % "1.1.5")
+addSbtPlugin("com.typesafe.sbt" % "sbt-ghpages" % "0.6.3")

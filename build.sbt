@@ -141,3 +141,17 @@ ThisBuild / publishTo := {
   else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 ThisBuild / publishMavenStyle := true
+
+/**
+ * Documentation / Companion site
+ */
+
+lazy val docs = (project in file("docs"))
+  .enablePlugins(MicrositesPlugin, GhpagesPlugin)
+  .settings(
+    // set remote repo for Ghpages plugin
+    git.remoteRepo := "git@github.com:carpe/scalambda.git",
+
+    // set microsite to use Ghpages plugin for publishing documentation
+    micrositePushSiteWith := GHPagesPlugin
+  )
