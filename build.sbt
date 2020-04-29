@@ -109,7 +109,7 @@ lazy val plugin = project
  */
 
 ThisBuild / organization := "io.carpe"
-ThisBuild / organizationName := "CarpeData"
+ThisBuild / organizationName := "Carpe Data"
 ThisBuild / organizationHomepage := Some(url("https://carpe.io/"))
 
 ThisBuild / scmInfo := Some(
@@ -129,9 +129,10 @@ ThisBuild / developers := List(
 
 ThisBuild / useGpg := true
 
-ThisBuild / description := " Tools for building scala lambdas"
+ThisBuild / description := "Toolkit for building/deploying Lambda Functions with SBT"
 ThisBuild / licenses := List("Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"))
 ThisBuild / homepage := Some(url("https://github.com/carpe/scalambda"))
+ThisBuild / organizationHomepage := Some(url("https://www.carpe.io/"))
 
 // Remove all additional repository other than Maven Central from POM
 ThisBuild / pomIncludeRepository := { _ => false }
@@ -153,5 +154,13 @@ lazy val docs = (project in file("docs"))
     git.remoteRepo := "git@github.com:carpe/scalambda.git",
 
     // set microsite to use Ghpages plugin for publishing documentation
-    micrositePushSiteWith := GHPagesPlugin
+    micrositePushSiteWith := GHPagesPlugin,
+
+    micrositeHomepage := "https://carpe.github.io/scalambda/",
+    micrositeName := "scalambda",
+
+    micrositeBaseUrl := "scalambda",
+    micrositeDocumentationUrl := "docs",
+    micrositeGithubOwner := "carpe",
+    micrositeGithubRepo := "scalambda"
   )
