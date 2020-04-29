@@ -8,3 +8,4 @@ trait ScalambaKeys
     with RuntimeKeys
     with WarmerKeys
     with BillingTagKeys
+    with AssemblyKeys

@@ -1,7 +1,9 @@
 package io.carpe.scalambda.conf.keys
 
+import io.carpe.scalambda.conf.api
+import io.carpe.scalambda.conf.api.{ApiDomain, ApiGatewayConfig}
 import sbt.settingKey
-import io.carpe.scalambda.conf.function.{ApiGatewayConfig, AuthConfig, Method}
+import io.carpe.scalambda.conf.function.{Auth, Method}
 
 trait ApiGatewayKeys {
 
@@ -9,27 +11,43 @@ trait ApiGatewayKeys {
    * Api related settings
    */
 
+  lazy val domainName = settingKey[ApiDomain]("Domain name to be used in the terraform output")
+
   lazy val apiName = settingKey[String]("Prefix for the name of the api. Defaults to project name")
+
   lazy val apiAuthorizerArn = settingKey[String]("Arn for custom authorizer to use for ApiGateway")
 
   /**
-   * Helpers for configuration
+   * Helpers for domain settings
    */
 
-  def post(route: String, authConf: AuthConfig = AuthConfig.AllowAll): ApiGatewayConfig = {
-    ApiGatewayConfig(route = route, method = Method.POST, authConf)
+  lazy val ApiDomain: io.carpe.scalambda.conf.api.ApiDomain.type = io.carpe.scalambda.conf.api.ApiDomain
+
+  /**
+   * Helpers for auth
+   */
+
+  lazy val Auth: io.carpe.scalambda.conf.function.Auth.type = io.carpe.scalambda.conf.function.Auth
+
+
+  /**
+   * Helpers for endpoint configuration
+   */
+
+  def post(route: String, authConf: Auth = Auth.AllowAll): ApiGatewayConfig = {
+    api.ApiGatewayConfig(route = route, method = Method.POST, authConf)
   }
 
-  def get(route: String, authConf: AuthConfig = AuthConfig.AllowAll): ApiGatewayConfig = {
-    ApiGatewayConfig(route = route, method = Method.GET, authConf)
+  def get(route: String, authConf: Auth = Auth.AllowAll): ApiGatewayConfig = {
+    api.ApiGatewayConfig(route = route, method = Method.GET, authConf)
   }
 
-  def put(route: String, authConf: AuthConfig = AuthConfig.AllowAll): ApiGatewayConfig = {
-    ApiGatewayConfig(route = route, method = Method.PUT, authConf)
+  def put(route: String, authConf: Auth = Auth.AllowAll): ApiGatewayConfig = {
+    api.ApiGatewayConfig(route = route, method = Method.PUT, authConf)
   }
 
-  def delete(route: String, authConf: AuthConfig = AuthConfig.AllowAll): ApiGatewayConfig = {
-    ApiGatewayConfig(route = route, method = Method.DELETE, authConf)
+  def delete(route: String, authConf: Auth = Auth.AllowAll): ApiGatewayConfig = {
+    api.ApiGatewayConfig(route = route, method = Method.DELETE, authConf)
   }
 
 }

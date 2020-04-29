@@ -4,7 +4,7 @@ import io.carpe.scalambda.terraform.ast.Definition.{Resource, Variable}
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue.{TBool, TLiteral, TString, TVariableRef}
 
-case class ApiGatewayDomainName(name: String, domainName: String, certificateArn: TValue, toggle: Variable[TBool]) extends Resource {
+case class ApiGatewayDomainName(name: String, domainName: TValue, certificateArn: TValue, toggle: Variable[TBool]) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    */
@@ -15,7 +15,7 @@ case class ApiGatewayDomainName(name: String, domainName: String, certificateArn
    */
   override def body: Map[String, TValue] = Map(
     "count" -> TLiteral(s"var.${toggle.name} ? 1 : 0"),
-    "domain_name" -> TString(domainName),
+    "domain_name" -> domainName,
     "certificate_arn" -> certificateArn
   )
 }

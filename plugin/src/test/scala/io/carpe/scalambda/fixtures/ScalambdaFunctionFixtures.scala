@@ -2,6 +2,7 @@ package io.carpe.scalambda.fixtures
 
 import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.conf.ScalambdaFunction.{ApiFunction, ProjectFunction}
+import io.carpe.scalambda.conf.api.ApiGatewayConfig
 import io.carpe.scalambda.conf.function.FunctionNaming.Static
 import io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import io.carpe.scalambda.conf.function._
@@ -17,7 +18,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       functionSource = IncludedInModule,
       iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
       runtimeConfig = RuntimeConfig.default,
-      apiConfig = ApiGatewayConfig(route = "/cars", method = Method.GET, authConf = AuthConfig.Authorizer("my_authorizer", "arn:fake:my_authorizer/invocations", "arn:fake:MyRole")),
+      apiConfig = ApiGatewayConfig(route = "/cars", method = Method.GET, authConf = Auth.Authorizer("my_authorizer", "arn:fake:my_authorizer/invocations", "arn:fake:MyRole")),
       vpcConfig = VpcConf.withoutVpc,
       warmerConfig = WarmerConfig.Cold,
       environmentVariables = List.empty

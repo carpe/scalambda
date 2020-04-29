@@ -5,9 +5,10 @@ import _root_.io.carpe.scalambda.conf.ScalambdaFunction
 import _root_.io.carpe.scalambda.conf.function.FunctionNaming.WorkspaceBased
 import _root_.io.carpe.scalambda.conf.function.FunctionRoleSource.FromVariable
 import _root_.io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
-import _root_.io.carpe.scalambda.conf.function.{VpcConf, _}
+import _root_.io.carpe.scalambda.conf.function._
 import _root_.io.carpe.scalambda.conf.keys.ScalambaKeys
 import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
+import _root_.io.carpe.scalambda.conf.api.{ApiGatewayConfig}
 import com.typesafe.sbt.GitVersioning
 import com.typesafe.sbt.SbtGit.GitKeys.{formattedDateVersion, gitHeadCommit}
 import sbt.Keys._
@@ -32,22 +33,11 @@ object ScalambdaPlugin extends AutoPlugin {
 
     lazy val s3BucketName =
       settingKey[String]("Prefix for S3 bucket name to store lambda functions in. Defaults to project name.")
-    lazy val domainName = settingKey[String]("Domain name to be used in the terraform output")
     lazy val scalambdaFunctions = settingKey[Seq[ScalambdaFunction]]("List of Scalambda Functions")
 
     lazy val enableXray = settingKey[Boolean]("Enables AWS X-Ray for any Lambda functions or Api Gateway stages generated with scalambdaTerraform.")
 
     lazy val scalambdaTerraformPath = taskKey[File]("Path to where terraform should be written to.")
-
-    lazy val scalambdaPackageMergeStrat =
-      settingKey[String => MergeStrategy]("mapping from archive member path to merge strategy")
-    lazy val scalambdaPackage = taskKey[File]("Create jar (without dependencies) for your Lambda Function(s)")
-
-    lazy val scalambdaDependenciesMergeStrat =
-      settingKey[String => MergeStrategy]("mapping from archive member path to merge strategy")
-    lazy val scalambdaPackageDependencies = taskKey[File](
-      "Create a jar containing all the dependencies for your Lambda Function(s). This will be used as a Lambda Layer to support your function."
-    )
 
     lazy val scalambdaTerraform =
       taskKey[Unit]("Produces a terraform module from the project's scalambda configuration.")
@@ -56,7 +46,6 @@ object ScalambdaPlugin extends AutoPlugin {
     def iamRoleSource: FunctionRoleSource.type = FunctionRoleSource
     def functionSource: FunctionSource.type = FunctionSource
     def environmentVariable: EnvironmentVariable.type = EnvironmentVariable
-    val Auth: AuthConfig.type = AuthConfig
 
     def scalambda(functionClasspath: String,
                   functionNaming: FunctionNaming = WorkspaceBased,
@@ -168,7 +157,7 @@ object ScalambdaPlugin extends AutoPlugin {
           isXrayEnabled = enableXray.?.value.getOrElse(false),
           apiName = apiName.?.value.getOrElse(s"${sbt.Keys.name.value}"),
           terraformOutput = scalambdaTerraformPath.value,
-          maybeDomainName = domainName.?.value
+          domainNameMapping = domainName.?.value.getOrElse(ApiDomain.Unmapped)
         )
       },
       libraryDependencies ++= {

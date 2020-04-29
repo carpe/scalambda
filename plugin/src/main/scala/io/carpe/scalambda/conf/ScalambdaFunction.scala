@@ -1,5 +1,6 @@
 package io.carpe.scalambda.conf
 
+import io.carpe.scalambda.conf.api.ApiGatewayConfig
 import io.carpe.scalambda.conf.function.FunctionNaming.Static
 import io.carpe.scalambda.conf.function._
 import io.carpe.scalambda.conf.utils.StringUtils

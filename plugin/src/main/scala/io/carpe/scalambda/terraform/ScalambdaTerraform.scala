@@ -5,6 +5,7 @@ import java.nio.file.Files
 
 import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.conf.ScalambdaFunction.ProjectFunction
+import io.carpe.scalambda.conf.api.ApiDomain
 import io.carpe.scalambda.conf.utils.StringUtils
 import io.carpe.scalambda.terraform.ast.module.ScalambdaModule
 import io.carpe.scalambda.terraform.ast.props.TValue.{TLiteral, TString}
@@ -16,15 +17,15 @@ import io.carpe.scalambda.terraform.composing.{ApiGatewayComposer, LambdaCompose
 object ScalambdaTerraform {
 
   def writeTerraform(
-    projectName: String,
-    functions: List[ScalambdaFunction],
-    version: String,
-    s3BucketName: String,
-    billingTags: Seq[BillingTag],
-    isXrayEnabled: Boolean,
-    apiName: String,
-    terraformOutput: File,
-    maybeDomainName: Option[String]
+                      projectName: String,
+                      functions: List[ScalambdaFunction],
+                      version: String,
+                      s3BucketName: String,
+                      billingTags: Seq[BillingTag],
+                      isXrayEnabled: Boolean,
+                      apiName: String,
+                      terraformOutput: File,
+                      domainNameMapping: ApiDomain
   ): Unit = {
 
     // create resource definitions for the s3 resources that will be used to store the function's source code
@@ -69,7 +70,8 @@ object ScalambdaTerraform {
       apiDomainName,
       apiPathMapping,
       apiRoute53Alias,
-      apiVariables
+      apiVariables,
+      apiOutputs
     ) =
       ApiGatewayComposer.maybeDefineApiResources(
         isXrayEnabled,
@@ -77,7 +79,7 @@ object ScalambdaTerraform {
         functions,
         lambdaAliases ++ referencedFunctionAliases,
         terraformOutput,
-        maybeDomainName
+        domainNameMapping
       )
 
     // load resources into module
@@ -96,7 +98,7 @@ object ScalambdaTerraform {
       apiGatewayStage = apiGatewayStage,
       domainResources = Seq(apiDomainName, apiPathMapping, apiRoute53Alias).flatten,
       variables = lambdaVariables ++ apiVariables,
-      outputs = lambdaOutputs
+      outputs = lambdaOutputs ++ apiOutputs
     )
 
     // write the module to a series of files

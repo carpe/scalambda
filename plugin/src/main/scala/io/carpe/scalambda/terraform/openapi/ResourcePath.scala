@@ -1,7 +1,8 @@
 package io.carpe.scalambda.terraform.openapi
 
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.function.{ApiGatewayConfig, Method}
+import io.carpe.scalambda.conf.api.ApiGatewayConfig
+import io.carpe.scalambda.conf.function.Method
 
 case class ResourcePath(name: String, post: Option[ResourceMethod], get: Option[ResourceMethod], put: Option[ResourceMethod], delete: Option[ResourceMethod], options: Option[ResourceMethod]) {
   def addFunction(apiConfig: ApiGatewayConfig, function: ScalambdaFunction): ResourcePath = {
