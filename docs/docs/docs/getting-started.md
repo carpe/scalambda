@@ -1,7 +1,7 @@
 ---
 layout: docs
 title: Getting Started
-permalink: docs/getting-started/
+permalink: /docs/getting-started/
 ---
 
 ## New Project

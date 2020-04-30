@@ -4,3 +4,10 @@ options:
 
   - title: Getting Started
     url: docs/getting-started
+
+  - title: Api Gateway
+    nested_options:
+     - title: Create an API
+       url: docs/api/create-api
+     - title: Deploy an API
+       url: docs/api/deploy-api
