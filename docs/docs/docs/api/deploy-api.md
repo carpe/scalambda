@@ -1,10 +1,10 @@
 ---
 layout: docs
 title: Deploy an API
-permalink: /docs/api/deploy-api
+permalink: /docs/api/deploy-api/
 ---
 
-This section assumes you have already defined your API, [read this to learn how](https://carpe.github.io/scalambda/docs/api/create-api).
+This section assumes you have already defined your API, [read this to learn how](https://carpe.github.io/scalambda/docs/api/create-api/).
 
 ## Deploying your API
 

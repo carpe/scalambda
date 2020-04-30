@@ -1,10 +1,10 @@
 ---
 layout: docs
 title: Create an API
-permalink: /docs/api/create-api
+permalink: /docs/api/create-api/
 ---
 
-### Defining the Api
+### Defining your API
 
 Two things will be needed in order to have Scalambda generate the terraform that connects your Lambda Functions to Api Gateway:
 1. You must set the `apiName` setting key to the desired name of your API Gateway instance. 
