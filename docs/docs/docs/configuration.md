@@ -1,7 +1,7 @@
 ---
 layout: docs
 title: Configuration
-permalink: /docs/
+permalink: /docs/configuration/
 ---
 
 ## Defining Scalambdas
