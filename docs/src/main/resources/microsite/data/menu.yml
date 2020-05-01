@@ -1,11 +1,16 @@
 options:
-  - title: Intro
+  - title: Getting Started
     url: docs/
 
-  - title: Getting Started
-    url: docs/getting-started
+  - title: Configuring Functions
+    url: docs/configuration
 
-  - title: Api Gateway
+  - title: Creating Functions
+    nested_options:
+     - title: Create an API
+       url: docs/api/create-api
+
+  - title: Deploying an Api
     nested_options:
      - title: Create an API
        url: docs/api/create-api

@@ -15,8 +15,6 @@ trait ApiGatewayKeys {
 
   lazy val apiName = settingKey[String]("Prefix for the name of the api. Defaults to project name")
 
-  lazy val apiAuthorizerArn = settingKey[String]("Arn for custom authorizer to use for ApiGateway")
-
   /**
    * Helpers for domain settings
    */

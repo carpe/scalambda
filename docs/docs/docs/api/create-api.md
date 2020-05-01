@@ -4,7 +4,7 @@ title: Create an API
 permalink: /docs/api/create-api/
 ---
 
-### Defining your API
+## Defining your API
 
 Two things will be needed in order to have Scalambda generate the terraform that connects your Lambda Functions to Api Gateway:
 1. You must set the `apiName` setting key to the desired name of your API Gateway instance. 
@@ -17,7 +17,7 @@ Here is how you might define the classic Petstore API example:
 
 lazy val petstore = project
   .enablePlugins(ScalambdaPlugin)
-  .ettings(
+  .settings(
     // set the name of your api (this name must be unique to all Api Gateway instances in your current AWS Region)
     apiName := ??? // example: "petstore-api"
   )
@@ -54,7 +54,7 @@ lazy val petstore = project
   )
 ```
 
-### Defining each Endpoint 
+## Defining each Endpoint 
 
 When Api Gateway receives a request, it will invoke the configured Lambda Function with what AWS calls an "Api Gateway Proxy Request". They also expect your function to provide a response in the form of an "Api Gateway Proxy Response".
 

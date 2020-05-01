@@ -149,6 +149,7 @@ ThisBuild / publishMavenStyle := true
 
 lazy val docs = (project in file("docs"))
   .enablePlugins(MicrositesPlugin, GhpagesPlugin)
+  .dependsOn(core)
   .settings(
     // set remote repo for Ghpages plugin
     git.remoteRepo := "git@github.com:carpe/scalambda.git",
