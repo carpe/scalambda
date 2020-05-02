@@ -66,7 +66,7 @@ object LambdaComposer {
           val functionResource =
             LambdaFunction(function, version, s3Bucket, projectBucketItem, lambdaDependenciesLayer, isXrayEnabled, billingTags = billingTags)
 
-          val functionAlias = aws.lambda.resources.LambdaFunctionAliasResource(functionResource, version, s"Managed by Scalambda. The name of this alias is the version of the code that this function is using. It is either a version of a commit SHA.")
+          val functionAlias = aws.lambda.resources.LambdaFunctionAliasResource(functionResource, version, "Managed by Scalambda. The name of this alias is the version of the code that this function is using. It is either a version of a commit SHA.")
 
           val (warmingVariables: Seq[Variable[TBool]], functionWarming: Seq[Definition]) = {
             function.warmerConfig match {
