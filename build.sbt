@@ -160,6 +160,8 @@ lazy val docs = (project in file("docs"))
     micrositeHomepage := "https://carpe.github.io/scalambda/",
     micrositeName := "scalambda",
 
+    micrositeAnalyticsToken := "UA-85042842-3",
+
     micrositeBaseUrl := "scalambda",
     micrositeDocumentationUrl := "docs",
     micrositeGithubOwner := "carpe",
