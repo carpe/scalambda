@@ -16,7 +16,7 @@ The easiest way to get started with Scalambda is via the Giter template. Check i
 Add the plugin to your project in the `project/plugins.sbt` file:
 
 ```scala
-addSbtPlugin("io.carpe" % "sbt-scalambda" % "2.0.0")
+addSbtPlugin("io.carpe" % "sbt-scalambda" % "3.0.0")
 ```
 
 After enabling the plugin to your project, you can then use the `scalambda` function to define Lambda Functions from your project's sources. 
@@ -59,7 +59,6 @@ The first time the `scalambda` function is run within a project, sbt will automa
 
 - `io.carpe.scalambda.Scalambda` gives you the most freedom and control for your functions.
 - `io.carpe.scalambda.effect.ScalambdaIO` allows you to write functions using cats-effect's powerful IO. 
-
 
 
  ```scala
