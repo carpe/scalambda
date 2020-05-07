@@ -5,6 +5,9 @@ options:
   - title: Configuring Functions
     url: docs/configuration
 
+  - title: Writing Functions
+    url: docs/writing-functions
+
   - title: Deploying an Api
     nested_options:
      - title: Create an API
