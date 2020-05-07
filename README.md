@@ -1,5 +1,7 @@
 # Scalambda
 
+![Cats Friendly Badge](https://typelevel.org/cats/img/cats-badge-tiny.png)
+
 Deploying Lambda functions is time-consuming, so we built Scalambda to make it quick and easy. Using Scalambda, you can enable developers to easily build and deploy their own Lambda Functions (and/or ApiGateway instances) with little to no effort or knowledge of AWS required.
 
 ## Create a new Project
