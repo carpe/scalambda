@@ -22,7 +22,7 @@ pipeline {
         CUSTOM_BRANCH_NAME = "${BRANCH_NAME}".replace('/','-')
         
         // SLACK
-        SLACK_CHANEL_TO_NOTIFY = "#release-journal" 
+        SLACK_CHANEL_TO_NOTIFY = "#ci-release-journal" 
         PERSON_TO_NOTIFY= "<@UKG2DBS23>" // Jorge Galveias Slack ID
         
         // GIT 
