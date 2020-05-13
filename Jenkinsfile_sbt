@@ -115,23 +115,6 @@ pipeline {
               }
             }
         }
-        stage('Snapshot Release'){
-            when { 
-                not {
-                    anyOf { 
-                      branch 'master'; 
-                      branch 'develop' 
-                    } 
-                }
-            }
-            steps{
-                sh "sbt ${SBT_OPTIONS} \"set version in ThisBuild := \\\"${SNAPSHOT_VERSION_TO_RELEASE}\\\" \" \"+publish\" "
-                sh "echo \\\"${PROJECT_NAME}-${SNAPSHOT_VERSION_TO_RELEASE}\\\" > snapshotVersionReleased.html"
-                script{
-                    currentBuild.description = "Released Version : ${SNAPSHOT_VERSION_TO_RELEASE}"
-                }
-            }
-        }
     }
     post {
         always {
