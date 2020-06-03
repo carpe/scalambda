@@ -28,8 +28,8 @@ pipeline {
         PERSON_TO_NOTIFY= "<@UKG2DBS23>" // Jorge Galveias Slack ID
         
         // TESTS
-        UNIT_TESTS_FOUND = sh(script: "find ${env.WORKSPACE}/src -name 'test'", returnStdout: true).contains("test")
-        IT_TESTS_FOUND = sh(script: "find ${env.WORKSPACE}/src -name 'it' ", returnStdout: true).contains("it")
+        UNIT_TESTS_FOUND = sh(script: "find ${env.WORKSPACE} -name 'test'", returnStdout: true).contains("test")
+        IT_TESTS_FOUND = sh(script: "find ${env.WORKSPACE} -name 'it'", returnStdout: true).contains("it")
         
         // GIT 
         CUSTOM_BRANCH_BANE = "${BRANCH_NAME}".replace('/','-')
