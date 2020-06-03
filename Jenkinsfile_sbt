@@ -25,12 +25,11 @@ pipeline {
         
         // SLACK
         SLACK_CHANNEL_TO_NOTIFY = "#ci-journal" 
-        SLACK_CHANNEL_TO_NOTIFY_ALWAYS = "#ci-full-journal" 
         PERSON_TO_NOTIFY= "<@UKG2DBS23>" // Jorge Galveias Slack ID
         
         // TESTS
-        UNIT_TESTS_FOUND = sh(script: " sbt $SBT_OPTIONS \"show test:definedTests\"", returnStdout: true).contains("Test")
-        IT_TESTS_FOUND = sh(script: " find ${env.WORKSPACE} -name 'it' ", returnStdout: true).contains("it")
+        UNIT_TESTS_FOUND = sh(script: "find ${env.WORKSPACE}/src -name 'test'", returnStdout: true).contains("test")
+        IT_TESTS_FOUND = sh(script: "find ${env.WORKSPACE}/src -name 'it' ", returnStdout: true).contains("it")
         
         // GIT 
         CUSTOM_BRANCH_BANE = "${BRANCH_NAME}".replace('/','-')
@@ -115,6 +114,23 @@ pipeline {
               }
             }
         }
+        stage('Snapshot Release'){
+            when { 
+                not {
+                    anyOf { 
+                      branch 'master'; 
+                      branch 'develop' 
+                    } 
+                }
+            }
+            steps{
+                sh "sbt ${SBT_OPTIONS} \"set version in ThisBuild := \\\"${SNAPSHOT_VERSION_TO_RELEASE}\\\" \" \"+publish\" "
+                sh "echo \\\"${PROJECT_NAME}-${SNAPSHOT_VERSION_TO_RELEASE}\\\" > snapshotVersionReleased.html"
+                script{
+                    currentBuild.description = "Released Version : ${SNAPSHOT_VERSION_TO_RELEASE}"
+                }
+            }
+        }
     }
     post {
         always {
@@ -125,17 +141,11 @@ pipeline {
             
         }
         success{
-          slackSend(channel: "${SLACK_CHANNEL_TO_NOTIFY_ALWAYS}", color: '#7CFC00',message:"*Project*: `${CI_JOB_NAME}` \n*Branch*: ${env.BRANCH_NAME} \n *Commit*: ${env.GIT_COMMIT} \n *Status*: ${currentBuild.currentResult} \n *JOB URL*: ${env.BUILD_URL}")
+          slackSend(channel: "${SLACK_CHANNEL_TO_NOTIFY}", color: '#7CFC00',message:"*Project*: `${CI_JOB_NAME}` \n*Branch*: ${env.BRANCH_NAME} \n *Commit*: ${env.GIT_COMMIT} \n *Status*: ${currentBuild.currentResult} \n *JOB URL*: ${env.BUILD_URL}")
         }
         failure{
-          slackSend(channel: "${SLACK_CHANNEL_TO_NOTIFY_ALWAYS}", color: '#FF4500',message:"*Project*: `${CI_JOB_NAME}` \n*Branch*: ${env.BRANCH_NAME} \n *Commit*: ${env.GIT_COMMIT} \n *Status*: ${currentBuild.currentResult} \n *JOB URL*: ${env.BUILD_URL}")
-          script {
-            if (env.BRANCH_NAME == 'develop'){
-              slackSend(channel: "${SLACK_CHANNEL_TO_NOTIFY}", color: '#FF4500',message:"*Project*: `${CI_JOB_NAME}` \n*Branch*: ${env.BRANCH_NAME} \n *Commit*: ${env.GIT_COMMIT} \n *Status*: ${currentBuild.currentResult} \n *JOB URL*: ${env.BUILD_URL} \n Notifying: ${PERSON_TO_NOTIFY}")
-            }
- 
-          }
-        }
+          slackSend(channel: "${SLACK_CHANNEL_TO_NOTIFY}", color: '#FF4500',message:"*Project*: `${CI_JOB_NAME}` \n*Branch*: ${env.BRANCH_NAME} \n *Commit*: ${env.GIT_COMMIT} \n *Status*: ${currentBuild.currentResult} \n *JOB URL*: ${env.BUILD_URL}")
+        } 
         cleanup{
           cleanWs()
         }
