@@ -74,7 +74,7 @@ module "my_lambda_functions" {
 
 **If you're at all confused**: You can generate a project with our [Giter8 Template](https://github.com/carpe/scalambda.g8/), or just check out at [the files here](https://github.com/carpe/scalambda.g8/tree/master/src/main/g8) to get an idea of what the layout looks like.
 
-### Step 3) Apply the Terraform
+### Step 2) Apply the Terraform
 
 Now all that's left to do is initialize and apply the Terraform. From the same directory as your `main.tf` file, run the following:
 
@@ -88,7 +88,7 @@ terraform apply
 
 It's likely that after running `terraform init` or `terraform apply`, you will see some errors, don't worry! We're super close to being done anyway, and the errors should be fairly easy to fix. Check out the section below if you need help, or consider [opening an issue](https://github.com/carpe/scalambda/issues/new/choose) on our Github repository.
 
-### Step 4) Done!
+### Step 3) Done!
 
 After you've fixed the errors and your Terraform has been applied, you should be able to see your newly provisioned Lambda Functions in the AWS Web Console. **For subsequent deploys**, all you need to do is run the following:
 
