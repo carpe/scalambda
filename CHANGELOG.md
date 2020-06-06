@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2020-06-05
+## Added
+- More documentation on how to deploy Scalambda projects.
+- New, much more flexible [Authorizers](https://github.com/carpe/scalambda/blob/ad397b36adc8e1b13d6bd8be9bc5d481396c5b03/plugin/src/main/scala/io/carpe/scalambda/conf/function/Auth.scala#L11-L48) to use secure your ApiGateway instances.
+
+## Changed
+- Replaced older options for defining Authorizers for ApiGateway with more flexible ones that connect with Terraform much better.
+
 ## [3.0.0] - 2020-05-01
 ## Added
 - A lot more documentation and companion website is now live.
