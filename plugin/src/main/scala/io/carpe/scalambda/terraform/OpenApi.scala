@@ -36,7 +36,12 @@ object OpenApi {
       })
     }).toList
 
-    val securityDefinitions = functionsByRoute.flatMap(_._2.flatMap(_._1.authConf.authorizer)).toSeq
+    // get all the unique security definitions for all the functions
+    val securityDefinitions = functionsByRoute.toSeq.flatMap({ case (route, functions) =>
+      functions.flatMap({ case (apiGatewayConfig, function) =>
+        apiGatewayConfig.authConf.securityDefinitions
+      })
+    }).distinct
 
     OpenApi(resourcePaths, securityDefinitions)
   }

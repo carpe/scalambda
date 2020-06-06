@@ -76,8 +76,8 @@ class OpenApiSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
         |    in: header
         |    x-amazon-apigateway-authtype: custom
         |    x-amazon-apigateway-authorizer:
-        |      authorizerUri: arn:fake:my_authorizer/invocations
-        |      authorizerCredentials: arn:fake:MyRole
+        |      authorizerUri: ${my_authorizer_uri}
+        |      authorizerCredentials: ${my_authorizer_role}
         |      authorizerResultTtlInSeconds: 300
         |      identityValidationExpression: ^Bearer [-0-9a-zA-z\.]*$
         |      type: token

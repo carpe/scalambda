@@ -1,6 +1,6 @@
 package io.carpe.scalambda.terraform.openapi.resourcemethod
 
-import io.carpe.scalambda.terraform.openapi.ResourceMethod
+import io.carpe.scalambda.terraform.openapi.{ResourceMethod, SecurityDefinition}
 import io.circe.{Encoder, Json}
 
 /**
@@ -10,6 +10,10 @@ import io.circe.{Encoder, Json}
 case class Security(name: String)
 
 object Security {
+
+  def apply(securityDefinition: SecurityDefinition): Security = {
+    Security(securityDefinition.authorizerName)
+  }
 
   implicit val encoder: Encoder[Security] = (security: Security) => Json.obj(
     (security.name, Json.fromValues(List.empty))

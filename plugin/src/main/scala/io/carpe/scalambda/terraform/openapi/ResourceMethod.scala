@@ -31,8 +31,12 @@ object ResourceMethod {
       List.empty,
       description = "TBD",
       consumes = List("application/json"),
-      security = lambda.apiGatewayConfig.flatMap(_.authConf.authorizer)
-        .map(_.authorizerName).toList.map(Security(_)),
+      security = {
+        // get all the function's security definitions
+        val securityDefinitions = lambda.apiGatewayConfig.map(_.authConf.securityDefinitions.toList).getOrElse(List.empty)
+        // convert security definitions to security elements to add to the swagger definition
+        securityDefinitions.map(Security(_))
+      },
       responses = List(
         MethodResponse(200, "Request completed without errors!", List.empty)
       ),

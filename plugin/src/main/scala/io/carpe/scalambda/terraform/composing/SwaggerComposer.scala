@@ -6,15 +6,18 @@ import java.nio.file.Files
 import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.terraform.OpenApi
 import io.carpe.scalambda.terraform.ast.props.TValue
+import io.carpe.scalambda.terraform.ast.props.TValue.TVariableRef
 import io.carpe.scalambda.terraform.ast.providers.aws.lambda.LambdaFunctionAlias
 import io.carpe.scalambda.terraform.ast.providers.terraform.data.TemplateFile
+import io.carpe.scalambda.terraform.openapi.SecurityDefinition
 
 object SwaggerComposer {
 
   def writeSwagger( apiName: String,
                     rootTerraformPath: String,
                     functions: Seq[ScalambdaFunction],
-                    functionAliases: Seq[LambdaFunctionAlias]
+                    functionAliases: Seq[LambdaFunctionAlias],
+                    securityDefinitions: Seq[SecurityDefinition]
                   ): TemplateFile = {
     val openApi = OpenApi.forFunctions(functions)
 
@@ -32,6 +35,25 @@ object SwaggerComposer {
       alias.swaggerVariableName -> alias.invokeArn
     })
 
-    TemplateFile("swagger.yaml", apiName, lambdaVars)
+    val securityVars: Seq[(String, TValue)] = securityDefinitions.distinct.flatMap(securityDefinition => {
+      securityDefinition match {
+        case authorizer: SecurityDefinition.TokenAuthorizer =>
+          Seq(
+            authorizer.authorizerUriVariable -> TVariableRef(authorizer.authorizerUriVariable),
+            authorizer.authorizerRoleVariable -> TVariableRef(authorizer.authorizerRoleVariable)
+          )
+        case authorizer: SecurityDefinition.RequestAuthorizer =>
+          Seq(
+            authorizer.authorizerUriVariable -> TVariableRef(authorizer.authorizerUriVariable),
+            authorizer.authorizerRoleVariable -> TVariableRef(authorizer.authorizerRoleVariable)
+          )
+        case SecurityDefinition.ApiKey =>
+          Nil
+      }
+    })
+
+    val allVars = lambdaVars ++ securityVars
+
+    TemplateFile("swagger.yaml", apiName, allVars)
   }
 }

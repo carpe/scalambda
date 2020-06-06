@@ -13,6 +13,7 @@ import io.carpe.scalambda.terraform.ast.providers.aws.lambda.LambdaFunctionAlias
 import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.{LambdaFunctionAliasResource, LambdaPermission}
 import io.carpe.scalambda.terraform.ast.providers.aws.route53.Route53Record
 import io.carpe.scalambda.terraform.ast.providers.terraform.data.TemplateFile
+import io.carpe.scalambda.terraform.openapi.SecurityDefinition
 
 object ApiGatewayComposer {
 
@@ -28,19 +29,19 @@ object ApiGatewayComposer {
                                functionAliases: Seq[LambdaFunctionAlias],
                                terraformOutput: File,
                                apiDomainMapping: ApiDomain
-  ): (
+                             ): (
     Option[ApiGateway],
-    Option[TemplateFile],
-    Seq[LambdaFunctionAlias],
-    Seq[LambdaPermission],
-    Option[ApiGatewayDeployment],
-    Option[ApiGatewayStage],
-    Option[ApiGatewayDomainName],
-    Option[ApiGatewayBasePathMapping],
-    Option[Route53Record],
-    Seq[Variable[_]],
-    Seq[Output[_]]
-  ) = {
+      Option[TemplateFile],
+      Seq[LambdaFunctionAlias],
+      Seq[LambdaPermission],
+      Option[ApiGatewayDeployment],
+      Option[ApiGatewayStage],
+      Option[ApiGatewayDomainName],
+      Option[ApiGatewayBasePathMapping],
+      Option[Route53Record],
+      Seq[Variable[_]],
+      Seq[Output[_]]
+    ) = {
 
     // if there are no functions that are configured to be exposed via api
     if (functions.count(_.apiGatewayConfig.isDefined) == 0) {
@@ -97,13 +98,20 @@ object ApiGatewayComposer {
     // this will be the full list of aliases used by the api to invoke the lambdas
     val apiAliases = apiFunctionAliases ++ referencedFunctionAliases
 
+    val securityDefinitions = {
+      functions.flatMap(function => {
+        function.apiGatewayConfig.map(_.authConf.securityDefinitions.toList).getOrElse(List.empty)
+      }).distinct
+    }
+
     // use the aliases to define the swagger template that will be used to generate our api
     val swaggerTemplate = {
       SwaggerComposer.writeSwagger(
         apiName = apiName,
         rootTerraformPath = terraformOutput.getAbsolutePath,
         functions = functions,
-        functionAliases = apiAliases
+        functionAliases = apiAliases,
+        securityDefinitions = securityDefinitions
       )
     }
 
@@ -147,6 +155,18 @@ object ApiGatewayComposer {
       domainName => Route53Record("api_domain_alias", domainName, zoneId, domainNameToggleVariable)
     )
 
+    /**
+     * Variable Definitions for the user to provide
+     */
+
+    val securityVars = securityDefinitions.flatMap {
+      case authorizer: SecurityDefinition.TokenAuthorizer =>
+        authorizer.variables
+      case authorizer: SecurityDefinition.RequestAuthorizer =>
+        authorizer.variables
+      case SecurityDefinition.ApiKey =>
+        Nil
+    }
 
     val domainName = apiDomainMapping match {
       case ApiDomain.FromVariable =>
@@ -166,6 +186,10 @@ object ApiGatewayComposer {
       .map(_ => zoneIdVariable)
       .toSeq
 
+    /**
+     * Bundle all of the above
+     */
+
     (
       Some(api),
       Some(swaggerTemplate),
@@ -176,7 +200,7 @@ object ApiGatewayComposer {
       maybeApiGatewayDomainName,
       maybeBasePathMapping,
       maybeRoute53Record,
-      domainName ++ certificate ++ domainNameToggle ++ hostedZoneId,
+      domainName ++ certificate ++ domainNameToggle ++ hostedZoneId ++ securityVars,
       composeOutputs(api, apiGatewayDeployment, apiGatewayStage)
     )
   }
