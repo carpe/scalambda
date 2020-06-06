@@ -8,7 +8,10 @@ options:
   - title: Writing Functions
     url: docs/writing-functions
 
-  - title: Deploying an Api
+  - title: Deploying Functions
+    url: docs/deploying-functions
+
+  - title: Api Gateway
     nested_options:
      - title: Create an API
        url: docs/api/create-api

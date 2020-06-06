@@ -8,23 +8,25 @@ permalink: /docs/
 
 Deploying Lambda functions is time-consuming, so we built Scalambda to make it quick and easy. Using Scalambda, you can enable developers to easily build and deploy their own Lambda Functions (and/or ApiGateway instances) with little to no effort or knowledge of AWS required.
 
-## Create a new Project
+#### Create a new Project
 
-The easiest way to get started with Scalambda is via the Giter template. Run the following to get started immediately:
+The easiest way to get started with Scalambda is via the [Giter8 template](https://github.com/carpe/scalambda.g8). Run the following to get started immediately:
 
 ```
 sbt --supershell=false new carpe/scalambda.g8
 ```
 
-Check it out at https://github.com/carpe/scalambda.g8
+You can check out the repository as well if you'd like [here](https://github.com/carpe/scalambda.g8).
 
-## Add to an existing Project
+#### Add to an existing Project
 
 Add the plugin to your project in the `project/plugins.sbt` file:
 
 ```scala
 addSbtPlugin("io.carpe" % "sbt-scalambda" % "3.0.0")
 ```
+
+After you add the plugin, you'll probably wanna read through the [documentation](https://carpe.github.io/scalambda/docs/configuration/) for how to configure your Lambda Functions.
 
 ## Motivation
 
