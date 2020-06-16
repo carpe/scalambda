@@ -114,6 +114,11 @@ object ScalambdaAssembly {
 
     // create zip file of dependencies jar because terraform's archive_file is acting strange in recent versions
     // TODO: review this and see if we can switch back to using a terraform archive
+
+    // create parent directory if it does not already exist
+    IO.createDirectory(zipOutput.getParentFile)
+
+    // write zip
     val zip = new ZipOutputStream(new FileOutputStream(zipOutput.getAbsolutePath))
     zip.putNextEntry(new ZipEntry("java/lib/dependencies.jar"))
     val in = new BufferedInputStream(new FileInputStream(dependencyJar))

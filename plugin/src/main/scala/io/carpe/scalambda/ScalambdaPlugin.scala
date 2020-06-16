@@ -13,6 +13,7 @@ import com.typesafe.sbt.GitVersioning
 import com.typesafe.sbt.SbtGit.GitKeys.{formattedDateVersion, gitHeadCommit}
 import sbt.Keys._
 import sbt._
+import sbt.Def
 import sbtassembly._
 
 import scala.tools.nsc.Properties
@@ -147,10 +148,14 @@ object ScalambdaPlugin extends AutoPlugin {
       scalambdaFunctions := List.empty,
       scalambdaTerraformPath := target.value / "terraform",
       scalambdaTerraform := {
-        // assemble source jar
-        scalambdaPackage.value
-        // assembly dependencies
-        scalambdaPackageDependencies.value
+        // assemble both the project's source and dependencies sequentially to avoid problems with sbt-assembly
+        Def.sequential(
+          // assembly dependencies
+          scalambdaPackageDependencies,
+          // assemble source jar
+          scalambdaPackage
+        ).value
+
         // write terraform
         ScalambdaTerraform.writeTerraform(
           projectName = { sbt.Keys.name.value },
