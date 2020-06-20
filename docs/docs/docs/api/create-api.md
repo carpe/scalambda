@@ -68,6 +68,7 @@ import io.carpe.scalambda.Scalambda
 import io.carpe.scalambda.request.APIGatewayProxyRequest
 import io.carpe.scalambda.response.APIGatewayProxyResponse
 import io.carpe.scalambda.response.ApiError.InputError
+import cats.data.NonEmptyChain
 
 class Greeter extends Scalambda[APIGatewayProxyRequest[String], APIGatewayProxyResponse[String]] {
 
@@ -88,6 +89,8 @@ class Greeter extends Scalambda[APIGatewayProxyRequest[String], APIGatewayProxyR
       // use it to create a greeting
       greeting = s"Hello, ${inputName}!"
     } yield {
+      // place the greeting inside a response object, along with any headers that you'd like
+      // to supply. 
       APIGatewayProxyResponse.WithBody(
         statusCode = 200,
         headers = Map(
@@ -99,8 +102,15 @@ class Greeter extends Scalambda[APIGatewayProxyRequest[String], APIGatewayProxyR
 
     // return the result, or an error to Api Gateway
     greetingResponse.getOrElse({
-      // Instances of ApiError can be thrown and will automatically be serialized into a valid ApiGatewayProxyResponse
-      throw InputError("No input was provided")
+      APIGatewayProxyResponse.WithError(
+        // ApiError has a default encoder that will be used to inject errors into the 
+        // response body as json. You can override this encoder if you'd like, it is an implicit
+        // parameter for the APIGatewayProxyResponse.WithError's constructor 
+        errors = NonEmptyChain(InputError("No input was provided")),        
+        headers = Map(
+          "content-type" -> "application/json"
+        )
+      )
     })
   }
 }
