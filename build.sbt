@@ -162,6 +162,9 @@ lazy val docs = (project in file("docs"))
 
     micrositeAnalyticsToken := "UA-85042842-3",
 
+    // disable gitter since we currently have none
+    micrositeGitterChannel := false,
+
     micrositeBaseUrl := "scalambda",
     micrositeDocumentationUrl := "docs",
     micrositeGithubOwner := "carpe",
