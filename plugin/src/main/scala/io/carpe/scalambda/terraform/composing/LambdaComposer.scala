@@ -104,9 +104,9 @@ object LambdaComposer {
           val functionEnvVariables = function
             .environmentVariables
             .flatMap(_ match {
-              case EnvironmentVariable.Static(key, value) =>
+              case EnvironmentVariable.StaticVariable(key, value) =>
                 None
-              case EnvironmentVariable.Variable(key, variableName) =>
+              case EnvironmentVariable.VariableFromTF(key, variableName) =>
                 Some(variableName)
             })
             .map(

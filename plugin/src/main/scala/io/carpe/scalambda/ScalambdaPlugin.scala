@@ -2,18 +2,15 @@ package io.carpe.scalambda
 
 import _root_.io.carpe.scalambda.assembly.AssemblySettings
 import _root_.io.carpe.scalambda.conf.ScalambdaFunction
-import _root_.io.carpe.scalambda.conf.function.FunctionNaming.WorkspaceBased
-import _root_.io.carpe.scalambda.conf.function.FunctionRoleSource.FromVariable
+import _root_.io.carpe.scalambda.conf.api.ApiGatewayConfig
 import _root_.io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import _root_.io.carpe.scalambda.conf.function._
 import _root_.io.carpe.scalambda.conf.keys.ScalambaKeys
 import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
-import _root_.io.carpe.scalambda.conf.api.{ApiGatewayConfig}
 import com.typesafe.sbt.GitVersioning
 import com.typesafe.sbt.SbtGit.GitKeys.{formattedDateVersion, gitHeadCommit}
 import sbt.Keys._
-import sbt._
-import sbt.Def
+import sbt.{Def, _}
 import sbtassembly._
 
 import scala.tools.nsc.Properties
@@ -32,23 +29,21 @@ object ScalambdaPlugin extends AutoPlugin {
 
   object autoImport extends ScalambaKeys {
 
-    def functionNaming: FunctionNaming.type = FunctionNaming
-    def iamRoleSource: FunctionRoleSource.type = FunctionRoleSource
-    def functionSource: FunctionSource.type = FunctionSource
+    @deprecated(message = "Use StaticVariable or VariableFromTF instead", since = "5.0.0")
     def environmentVariable: EnvironmentVariable.type = EnvironmentVariable
 
     /**
      * Use this function to define a Lambda Function. This will allow you to generate Terraform, build optimized jars,
      * and provide you with helpful libraries to get your Lambda Function deployed.
      *
-     * @param functionClasspath path to the class that contains the handler for your lambda function
-     * @param functionNaming controls how your lambda function is named
-     * @param iamRoleSource controls how your lambda function receives it's IAM role
-     * @param memory amount of memory for your function to use (in MBs)
-     * @param runtime runtime for your function to use (java8 or java11)
-     * @param concurrencyLimit maximum number of concurrent instances of your Function
-     * @param warmWith controls how your lambda function will be kept "warm"
-     * @param vpcConfig use this setting if you need to run your Lambda Function inside a VPC
+     * @param functionClasspath    path to the class that contains the handler for your lambda function
+     * @param functionNaming       controls how your lambda function is named
+     * @param iamRoleSource        controls how your lambda function receives it's IAM role
+     * @param memory               amount of memory for your function to use (in MBs)
+     * @param runtime              runtime for your function to use (java8 or java11)
+     * @param concurrencyLimit     maximum number of concurrent instances of your Function
+     * @param warmWith             controls how your lambda function will be kept "warm"
+     * @param vpcConfig            use this setting if you need to run your Lambda Function inside a VPC
      * @param environmentVariables use this to inject ENV variables into your Lambda Function
      * @return
      */
@@ -61,7 +56,7 @@ object ScalambdaPlugin extends AutoPlugin {
                   warmWith: WarmerConfig = WarmerConfig.Cold,
                   vpcConfig: VpcConf = VpcConf.withoutVpc,
                   environmentVariables: Seq[EnvironmentVariable] = List.empty,
-    ): Seq[Def.Setting[_]] = {
+                 ): Seq[Def.Setting[_]] = {
 
       val awsLambdaProxyPluginConfig = Seq(
         // add this lambda to the list of existing lambda definitions for this function
@@ -84,10 +79,10 @@ object ScalambdaPlugin extends AutoPlugin {
     }
 
     def foreignEndpoint(
-      functionName: String,
-      qualifier: String,
-      apiConfig: ApiGatewayConfig
-    ): Seq[Def.Setting[_]] = {
+                         functionName: String,
+                         qualifier: String,
+                         apiConfig: ApiGatewayConfig
+                       ): Seq[Def.Setting[_]] = {
 
       val awsLambdaProxyPluginConfig = Seq(
         // add this lambda to the list of existing lambda definitions for this function
@@ -114,7 +109,7 @@ object ScalambdaPlugin extends AutoPlugin {
                           warmWith: WarmerConfig = WarmerConfig.Cold,
                           vpcConfig: VpcConf = VpcConf.withoutVpc,
                           apiConfig: ApiGatewayConfig
-    ): Seq[Def.Setting[_]] = {
+                         ): Seq[Def.Setting[_]] = {
 
       val awsLambdaProxyPluginConfig = Seq(
         // add this lambda to the list of existing lambda definitions for this function
@@ -158,9 +153,13 @@ object ScalambdaPlugin extends AutoPlugin {
 
         // write terraform
         ScalambdaTerraform.writeTerraform(
-          projectName = { sbt.Keys.name.value },
+          projectName = {
+            sbt.Keys.name.value
+          },
           functions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty),
-          version = gitHeadCommit.value.getOrElse({ formattedDateVersion.value }),
+          version = gitHeadCommit.value.getOrElse({
+            formattedDateVersion.value
+          }),
           s3BucketName = s3BucketName.?.value.getOrElse(s"${sbt.Keys.name.value}-lambdas"),
           billingTags = billingTags.?.value.getOrElse(Nil),
           isXrayEnabled = enableXray.?.value.getOrElse(false),

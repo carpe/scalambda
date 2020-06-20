@@ -10,11 +10,9 @@ import io.circe
 import io.circe.parser.decodeAccumulating
 import io.circe.{Decoder, Encoder, Printer}
 
-import scala.collection.immutable
 import scala.io.Source
 
-abstract class Scalambda[I, O](implicit val dec: Decoder[I], val enc: Encoder[O])
-  extends LazyLogging {
+abstract class Scalambda[I, O](implicit val dec: Decoder[I], val enc: Encoder[O]) extends LazyLogging {
 
   /**
    * This is the handler that will be called by AWS when executing the Lambda Function.

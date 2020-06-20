@@ -4,8 +4,8 @@ sealed trait EnvironmentVariable
 
 object EnvironmentVariable {
 
-  case class Static(key: String, value: String) extends EnvironmentVariable
+  case class StaticVariable(key: String, value: String) extends EnvironmentVariable
 
-  case class Variable(key: String, variableName: String) extends EnvironmentVariable
+  case class VariableFromTF(key: String, variableName: String) extends EnvironmentVariable
 
 }

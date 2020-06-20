@@ -34,7 +34,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       vpcConfig = VpcConf.withoutVpc,
       warmerConfig = WarmerConfig.Cold,
       environmentVariables = List(
-        EnvironmentVariable.Static("API", "www.google.com")
+        EnvironmentVariable.StaticVariable("API", "www.google.com")
       )
     )
   }

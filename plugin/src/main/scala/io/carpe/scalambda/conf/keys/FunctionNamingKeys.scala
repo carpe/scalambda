@@ -5,7 +5,7 @@ import io.carpe.scalambda.conf.function.FunctionNaming.{Static, WorkspaceBased}
 
 trait FunctionNamingKeys {
 
-  def workspaceBased: FunctionNaming = WorkspaceBased
+  def WorkspaceBased: FunctionNaming = FunctionNaming.WorkspaceBased
 
-  def static(name: String): FunctionNaming = Static(name)
+  def Static(name: String): FunctionNaming = FunctionNaming.Static(name)
 }
