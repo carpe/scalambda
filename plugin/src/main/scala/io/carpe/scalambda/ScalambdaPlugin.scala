@@ -141,8 +141,10 @@ object ScalambdaPlugin extends AutoPlugin {
       awsLambdaProxyPluginConfig ++ scalambdaLibs
     }
 
-    def apiGatewayDefinition(routes: (ApiGatewayEndpoint, ScalambdaFunction)*): Seq[Def.Setting[_]] = {
+    def apiGatewayDefinition(apiGatewayInstanceName: String)(routes: (ApiGatewayEndpoint, ScalambdaFunction)*): Seq[Def.Setting[_]] = {
       val apiEndpointSettings = Seq(
+        apiName := apiGatewayInstanceName,
+
         scalambdaFunctions ++= routes.map(_._2),
 
         scalambdaApiEndpoints ++= Chain.fromSeq(routes),

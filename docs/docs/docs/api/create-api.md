@@ -4,11 +4,7 @@ title: Create an API
 permalink: /docs/api/create-api/
 ---
 
-## Defining your API
-
-Two things will be needed in order to have Scalambda generate the terraform that connects your Lambda Functions to Api Gateway:
-1. You must set the `apiName` setting key to the desired name of your API Gateway instance. 
-1. You must define a `scalambdaEndpoint` for each endpoint in you want in your API. Each of these endpoints will become a new Lambda Function. 
+## Defining your API 
 
 Here is how you might define the classic Petstore API example:
 
@@ -17,42 +13,26 @@ Here is how you might define the classic Petstore API example:
 
 lazy val petstore = project
   .enablePlugins(ScalambdaPlugin)
-  .settings(
-    // set the name of your api (this name must be unique to all Api Gateway instances in your current AWS Region)
-    apiName := ??? // example: "petstore-api"
-  )
-  .settings(
-    // This lambda will handle all POST requests to "<my api domain>/pets"
-    scalambdaEndpoint(
-      functionClasspath = ???, // example: "io.carpe.example.CreatePet"
-      apiConfig = post("/pets")
-    )   
-
-    // This lambda will handle all GET requests to "<my api domain>/pets"
-    scalambdaEndpoint(
-      functionClasspath = ???, // example: "io.carpe.example.GetPets"
-      apiConfig = get("/pets")
+  .settings({
+    // save the lambda function to a value so you can re-use it across multiple endpoints 
+    lazy val petsHandler = Function(
+      functionClasspath = ??? // example: "io.carpe.example.CreatePet"
     )
-  
-    // This lambda will handle all GET requests to "<my api domain>/pets/<some pet id>"
-    scalambdaEndpoint(
-      functionClasspath = ???, // example: "io.carpe.example.GetPet"
-      apiConfig = get("/pets/{id}")
+    
+    // this function allows us name our api and map the lambda function above to various endpoints
+    apiGatewayDefinition(apiGatewayInstanceName = "petstore-api-${terraform.workspace}")(
+      // This sends all POST requests to "<my api domain>/pets" to our lambda function
+      POST("/pets") -> petsHandler,
+      // This sends all GET requests to "<my api domain>/pets" to our lambda function
+      GET("/pets") -> petsHandler,
+      // This sends all GET requests to "<my api domain>/pets/<some pet id>" to our lambda function
+      // (it also makes "id" available as a path parameter, inside the pathParameters field on the request)
+      GET("/pets/{id}") -> petsHandler
     )
-
-    // This lambda will handle all PUT requests to "<my api domain>/pets/<some pet id>"
-    scalambdaEndpoint(
-      functionClasspath = ???, // example: "io.carpe.example.UpdatePet"
-      apiConfig = put("/pets/{id}")
-    )
-
-    // This lambda will handle all DELETE requests to "<my api domain>/pets/<some pet id>"
-    scalambdaEndpoint(
-      functionClasspath = ???, // example: "io.carpe.example.DeletePet"
-      apiConfig = delete("/pets/{id}")
-    )
-  )
+  })
 ```
+
+As you can see in the above example, we can map the same function to multiple endpoints. This helps keep cold start times down by allowing your functions to be re-used more frequently. You can just as easily define a lambda function for each endpoint if you'd prefer.
 
 ## Defining each Endpoint 
 
