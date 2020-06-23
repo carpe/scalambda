@@ -1,5 +1,6 @@
 package io.carpe.scalambda.response
 
+import cats.data.NonEmptyChain
 import io.circe.{Encoder, Json}
 
 /**
@@ -39,13 +40,26 @@ abstract class ApiError extends Throwable {
 
 object ApiError {
 
-  val defaultEncoder: Encoder[ApiError] = Encoder[ApiError](a => {
+  val errorEncoder: Encoder[ApiError] = Encoder[ApiError](a => {
     val requiredJson = Json.obj(
       ("status", Json.fromInt(a.httpStatus)),
       ("message", Json.fromString(a.message))
     )
 
     a.additional.fold(requiredJson)(d => requiredJson.deepMerge(d))
+  })
+
+  val errorsEncoder: Encoder[NonEmptyChain[ApiError]] = Encoder[NonEmptyChain[ApiError]](errors => {
+    errors.length match {
+      case 1 =>
+        errorEncoder.apply(errors.head)
+      case _ =>
+        Json.obj(
+          ("status", Json.fromInt(errors.toChain.toList.map(_.httpStatus).max)),
+          ("message", Json.fromString("Multiple errors were found with the request. See errors for details.")),
+          ("errors", Json.fromValues(errors.map(ApiError.errorEncoder.apply).toChain.toList))
+        )
+    }
   })
 
   /**
@@ -78,5 +92,6 @@ object ApiError {
     override val httpStatus: Int = 404
     override val message: String = msg
   }
+
 }
 

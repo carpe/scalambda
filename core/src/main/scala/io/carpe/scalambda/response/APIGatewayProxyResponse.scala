@@ -16,7 +16,7 @@ object APIGatewayProxyResponse {
   case class WithError(headers: Map[String, String] = Map.empty,
                        errors: NonEmptyChain[ApiError],
                        isBase64Encoded: Boolean = false
-                      )(implicit val errorsEncoder: Encoder[NonEmptyChain[ApiError]]) extends APIGatewayProxyResponse[Nothing]
+                      ) extends APIGatewayProxyResponse[Nothing]
 
   case class WithBody[T](statusCode: Int,
                          headers: Map[String, String] = Map.empty,
@@ -42,10 +42,10 @@ object APIGatewayProxyResponse {
 
     case we@WithError(headers, errors, isBase64Encoded) =>
       // AWS wants the response body to always be a string, so we encode it first
-      val errAsString = we.errorsEncoder(errors).noSpaces
+      val errAsString = Scalambda.encode(errors)(ApiError.errorsEncoder)
 
       Json.obj(
-        ("statusCode", Json.fromInt(errors.head.httpStatus)),
+        ("statusCode", Json.fromInt(errors.toChain.toList.map(_.httpStatus).max)),
         ("headers", Json.fromFields(headers.map({ case (k, v) => (k, Json.fromString(v)) }))),
         ("body", Json.fromString(errAsString)),
         ("isBase64Encoded", Json.fromBoolean(isBase64Encoded))
@@ -62,10 +62,4 @@ object APIGatewayProxyResponse {
         ("isBase64Encoded", Json.fromBoolean(isBase64Encoded))
       )
   }
-
-  implicit def defaultErrorsEncoder(implicit apiErrorEncoder: Encoder[ApiError]): Encoder[NonEmptyChain[ApiError]] = Encoder[NonEmptyChain[ApiError]](errors => {
-    Json.obj(
-      ("errors", Json.fromValues(errors.map(apiErrorEncoder.apply).toChain.toList))
-    )
-  })
 }

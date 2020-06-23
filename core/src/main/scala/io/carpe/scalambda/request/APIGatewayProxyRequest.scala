@@ -45,6 +45,21 @@ object APIGatewayProxyRequest {
   import io.circe._
   import io.circe.parser._
 
+  implicit def decoder[T](implicit innerDecoder: Decoder[T]): Decoder[APIGatewayProxyRequest[T]] = (c: HCursor) => {
+    for {
+      maybeBody <- c.downField("body").as[Option[String]]
+      decodedResponse <- {
+        maybeBody match {
+          case Some(_) =>
+            // request included a body, so decode it with the body decoder
+            APIGatewayProxyRequest.decodeWithBody(innerDecoder).apply(c)
+          case None =>
+            APIGatewayProxyRequest.decodeWithoutBody.apply(c)
+        }
+      }
+    } yield decodedResponse
+  }
+
   implicit def decodeWithBody[T](implicit typeDecoder: Decoder[T]): Decoder[APIGatewayProxyRequest.WithBody[T]] = {
 
     Decoder.instance[APIGatewayProxyRequest.WithBody[T]] { c: HCursor =>
