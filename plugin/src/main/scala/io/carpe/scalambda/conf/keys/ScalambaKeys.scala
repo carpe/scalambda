@@ -38,7 +38,7 @@ trait ScalambaKeys extends FunctionNamingKeys
      */
     def Function(functionClasspath: String,
                  functionNaming: FunctionNaming = WorkspaceBased,
-                 iamRoleSource: FunctionRoleSource = FromVariable,
+                 iamRoleSource: FunctionRoleSource = RoleFromVariable,
                  memory: Int = RuntimeConfig.default.memory,
                  runtime: ScalambdaRuntime = RuntimeConfig.default.runtime,
                  concurrencyLimit: Int = RuntimeConfig.default.reservedConcurrency,

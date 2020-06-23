@@ -56,7 +56,7 @@ object ScalambdaPlugin extends AutoPlugin {
      */
     def scalambda(functionClasspath: String,
                   functionNaming: FunctionNaming = WorkspaceBased,
-                  iamRoleSource: FunctionRoleSource = FromVariable,
+                  iamRoleSource: FunctionRoleSource = RoleFromVariable,
                   memory: Int = RuntimeConfig.default.memory,
                   runtime: ScalambdaRuntime = RuntimeConfig.default.runtime,
                   concurrencyLimit: Int = RuntimeConfig.default.reservedConcurrency,
@@ -108,7 +108,7 @@ object ScalambdaPlugin extends AutoPlugin {
     @deprecated(message = "Use apiGatewayDefinition to define your api routes. See https://carpe.github.io/scalambda/docs/api/create-api/#defining-your-api for more info.", since = "5.0.0")
     def scalambdaEndpoint(functionClasspath: String,
                           functionNaming: FunctionNaming = WorkspaceBased,
-                          iamRoleSource: FunctionRoleSource = FromVariable,
+                          iamRoleSource: FunctionRoleSource = RoleFromVariable,
                           memory: Int = RuntimeConfig.apiDefault.memory,
                           runtime: ScalambdaRuntime = RuntimeConfig.apiDefault.runtime,
                           concurrencyLimit: Int = RuntimeConfig.apiDefault.reservedConcurrency,

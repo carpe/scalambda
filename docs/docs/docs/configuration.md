@@ -66,8 +66,8 @@ Each `scalambda` function accepts a wide range of parameters. Although, the only
 | ------------------------------- | ------------------------ | ------------------------------------------------------- | ------------------------------:|
 | functionClasspath               | String                   | path to the class that contains the handler for your lambda function   | -               |
 | functionNaming                  | FunctionNaming           | controls how your lambda function is named  | `WorkspaceBased` |
-| iamRoleSource                   | FunctionRoleSource       | controls how your lambda function receives it's IAM role. Options are `FromVariable` or `StaticArn` | `FromVariable` |
-| memory                          | Int                      | amount of memory for your function to use (in MBs)  | 1536MB |
+| iamRoleSource                   | FunctionRoleSource       | controls how your lambda function receives it's IAM role. Options are `RoleFromVariable` or `RoleFromArn` | `RoleFromVariable` |
+| memory                          | Int                      | amount of memory for your function to use (in MBs)  | 1536 |
 | runtime                         | ScalambdaRuntime         | runtime for your function to use (Java8 or Java11) | `Java8` | 
 | concurrencyLimit                | Int                      | maximum number of concurrent instances of your Function | - |
 | warmWith                        | WarmerConfig             | controls how your lambda function will be kept "warm" | `WarmerConfig.Cold` |
