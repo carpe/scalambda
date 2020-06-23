@@ -63,8 +63,6 @@ object ApiGatewayComposer {
                         apiDomainMapping: ApiDomain
                        ): ComposedApiGatewayResources = {
 
-    val functions: NonEmptyList[ScalambdaFunction] = endpointMappings.map(_._2)
-
     val domainNameVariable = Variable(ApiDomain.FromVariable.apiDomainVariableName, Some("Top-level domain name to map the service to."), None)
 
     val certificateArnVariable = Variable("certificate_arn", Some("Arn of AWS Certificate Manager certificate."), None)
