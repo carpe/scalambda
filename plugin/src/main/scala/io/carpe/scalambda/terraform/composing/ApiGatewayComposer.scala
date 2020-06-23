@@ -2,10 +2,10 @@ package io.carpe.scalambda.terraform.composing
 
 import java.io.File
 
+import cats.data.NonEmptyList
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.api.ApiDomain
+import io.carpe.scalambda.conf.api.{ApiDomain, ApiGatewayEndpoint}
 import io.carpe.scalambda.terraform.ast.Definition.{Output, Variable}
-import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue.{TBool, TResourceRef, TString, TVariableRef}
 import io.carpe.scalambda.terraform.ast.providers.aws.apigateway
 import io.carpe.scalambda.terraform.ast.providers.aws.apigateway._
@@ -22,14 +22,7 @@ object ApiGatewayComposer {
    */
   lazy val apiFunctionAlias: String = "api"
 
-  def maybeDefineApiResources(
-                               isXrayEnabled: Boolean,
-                               apiName: String,
-                               functions: Seq[ScalambdaFunction],
-                               functionAliases: Seq[LambdaFunctionAlias],
-                               terraformOutput: File,
-                               apiDomainMapping: ApiDomain
-                             ): (
+  type ComposedApiGatewayResources = (
     Option[ApiGateway],
       Option[TemplateFile],
       Seq[LambdaFunctionAlias],
@@ -41,13 +34,36 @@ object ApiGatewayComposer {
       Option[Route53Record],
       Seq[Variable[_]],
       Seq[Output[_]]
-    ) = {
+    )
 
-    // if there are no functions that are configured to be exposed via api
-    if (functions.count(_.apiGatewayConfig.isDefined) == 0) {
-      // do an early return
-      return (None, None, Nil, Nil, None, None, None, None, None, Nil, Nil)
-    }
+  def maybeDefineApiResources(isXrayEnabled: Boolean,
+                              apiName: String,
+                              endpointMappings: List[(ApiGatewayEndpoint, ScalambdaFunction)],
+                              functionAliases: Seq[LambdaFunctionAlias],
+                              terraformOutput: File,
+                              apiDomainMapping: ApiDomain
+                             ): ComposedApiGatewayResources = {
+    NonEmptyList.fromList(endpointMappings).map(nonEmptyEndpointMappings => {
+      // define api resources if there are endpoint mappings
+      defineApiResource(isXrayEnabled, apiName, nonEmptyEndpointMappings, functionAliases, terraformOutput, apiDomainMapping)
+    }).getOrElse({
+      // if there are no functions that are configured to be exposed via api, return empty resources
+      (None, None, Nil, Nil, None, None, None, None, None, Nil, Nil)
+    })
+
+
+  }
+
+
+  def defineApiResource(isXrayEnabled: Boolean,
+                        apiName: String,
+                        endpointMappings: NonEmptyList[(ApiGatewayEndpoint, ScalambdaFunction)],
+                        functionAliases: Seq[LambdaFunctionAlias],
+                        terraformOutput: File,
+                        apiDomainMapping: ApiDomain
+                       ): ComposedApiGatewayResources = {
+
+    val functions: NonEmptyList[ScalambdaFunction] = endpointMappings.map(_._2)
 
     val domainNameVariable = Variable(ApiDomain.FromVariable.apiDomainVariableName, Some("Top-level domain name to map the service to."), None)
 
@@ -98,18 +114,15 @@ object ApiGatewayComposer {
     // this will be the full list of aliases used by the api to invoke the lambdas
     val apiAliases = apiFunctionAliases ++ referencedFunctionAliases
 
-    val securityDefinitions = {
-      functions.flatMap(function => {
-        function.apiGatewayConfig.map(_.authConf.securityDefinitions.toList).getOrElse(List.empty)
-      }).distinct
-    }
+    // get all the unique security definitions for all the functions
+    val securityDefinitions = endpointMappings.toList.flatMap({ case (endpoint, _) => endpoint.auth.securityDefinitions }).distinct
 
     // use the aliases to define the swagger template that will be used to generate our api
     val swaggerTemplate = {
       SwaggerComposer.writeSwagger(
         apiName = apiName,
         rootTerraformPath = terraformOutput.getAbsolutePath,
-        functions = functions,
+        endpointMappings = endpointMappings,
         functionAliases = apiAliases,
         securityDefinitions = securityDefinitions
       )

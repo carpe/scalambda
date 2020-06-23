@@ -1,6 +1,8 @@
 package io.carpe.scalambda.terraform.openapi
 
 import io.carpe.scalambda.conf.ScalambdaFunction
+import io.carpe.scalambda.conf.api.ApiGatewayEndpoint
+import io.carpe.scalambda.terraform.ast.providers.aws.apigateway.ApiGateway
 import io.carpe.scalambda.terraform.openapi.resourcemethod.Integration.{AllowOrigin, LambdaIntegration}
 import io.carpe.scalambda.terraform.openapi.resourcemethod.{Integration, MethodResponse, Security}
 import io.circe.{Encoder, Json}
@@ -26,16 +28,16 @@ object ResourceMethod {
       integration = AllowOrigin("*")
     )
 
-  def fromLambda(lambda: ScalambdaFunction): ResourceMethod = {
+  def fromLambda(endointMapping: ApiGatewayEndpoint, lambda: ScalambdaFunction): ResourceMethod = {
     new ResourceMethod(
       List.empty,
       description = "TBD",
       consumes = List("application/json"),
       security = {
-        // get all the function's security definitions
-        val securityDefinitions = lambda.apiGatewayConfig.map(_.authConf.securityDefinitions.toList).getOrElse(List.empty)
+        // get all the unique security definitions for the endpoint
+        val securityDefinitions = endointMapping.auth.securityDefinitions
         // convert security definitions to security elements to add to the swagger definition
-        securityDefinitions.map(Security(_))
+        securityDefinitions.map(Security(_)).toList
       },
       responses = List(
         MethodResponse(200, "Request completed without errors!", List.empty)

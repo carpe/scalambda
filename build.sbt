@@ -26,10 +26,12 @@ lazy val core = project
     // Circe is a serialization library that supports Scala's case classes much better than Jackson (and is also quite a bit faster)
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-core",
-      "io.circe" %% "circe-generic",
       "io.circe" %% "circe-parser",
-      "io.circe" %% "circe-generic-extras"
+      "io.circe" %% "circe-generic"
     ).map(_ % circeVersion),
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-generic-extras"
+    ).map(_ % circeGenericVersion),
 
     // Cats Effect, used to control side effects and make managing resources (such as database connections) easier
     libraryDependencies += "org.typelevel" %% "cats-effect" % "2.0.0",
@@ -73,7 +75,7 @@ lazy val plugin = project
     buildInfoPackage := "io.carpe.scalambda",
 
     // Used to generate swagger file for terraforming
-    libraryDependencies += "io.circe" %% "circe-generic" % "0.12.1",
+    libraryDependencies += "io.circe" %% "circe-generic" % circeGenericVersion,
     libraryDependencies += "io.circe" %% "circe-yaml" % "0.12.0",
 
       // Used for reading configuration values

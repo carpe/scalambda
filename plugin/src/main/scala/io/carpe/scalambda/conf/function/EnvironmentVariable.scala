@@ -8,4 +8,10 @@ object EnvironmentVariable {
 
   case class VariableFromTF(key: String, variableName: String) extends EnvironmentVariable
 
+  @deprecated("use `StaticVariable` instead of `environmentVariable.Static`", since = "5.0.0")
+  def Static(key: String, value: String): StaticVariable = StaticVariable.apply(key, value)
+
+  @deprecated("use `VariableFromTF` instead of `environmentVariable.VariableFromTF`", since = "5.0.0")
+  def Variable(key: String, variableName: String): VariableFromTF = VariableFromTF.apply(key, variableName)
+
 }

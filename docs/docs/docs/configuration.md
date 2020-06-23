@@ -66,13 +66,13 @@ Each `scalambda` function accepts a wide range of parameters. Although, the only
 | ------------------------------- | ------------------------ | ------------------------------------------------------- | ------------------------------:|
 | functionClasspath               | String                   | path to the class that contains the handler for your lambda function   | -               |
 | functionNaming                  | FunctionNaming           | controls how your lambda function is named  | `WorkspaceBased` |
-| iamRoleSource                   | FunctionRoleSource       | controls how your lambda function receives it's IAM role            | `FromVariable` |
+| iamRoleSource                   | FunctionRoleSource       | controls how your lambda function receives it's IAM role. Options are `FromVariable` or `StaticArn` | `FromVariable` |
 | memory                          | Int                      | amount of memory for your function to use (in MBs)  | 1536MB |
 | runtime                         | ScalambdaRuntime         | runtime for your function to use (Java8 or Java11) | `Java8` | 
 | concurrencyLimit                | Int                      | maximum number of concurrent instances of your Function | - |
 | warmWith                        | WarmerConfig             | controls how your lambda function will be kept "warm" | `WarmerConfig.Cold` |
 | vpcConfig                       | VpcConfig                | use this setting if you need to run your Lambda Function inside a VPC | `VpcConf.withoutVpc` |
-| environmentVariables            | Seq[EnvironmentVariable] | use this to inject ENV variables into your Lambda Function | Nil |
+| environmentVariables            | Seq[EnvironmentVariable] | use this to inject ENV variables into your Lambda Function. Options are `StaticVariable` and `VariableFromTF` | Nil |
 
 ## Tasks
 

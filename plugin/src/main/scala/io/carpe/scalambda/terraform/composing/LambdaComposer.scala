@@ -86,7 +86,7 @@ object LambdaComposer {
            */
           val functionRoleVariables = Seq(
             function.iamRole match {
-              case fromVariable: FunctionRoleSource.FromVariable.type =>
+              case fromVariable: FunctionRoleSource.RoleFromVariable.type =>
                 Some(
                   Variable[TString](
                     fromVariable.variableName(function),
@@ -96,7 +96,7 @@ object LambdaComposer {
                     defaultValue = None
                   )
                 )
-              case FunctionRoleSource.StaticArn(_) =>
+              case FunctionRoleSource.RoleFromArn(_) =>
                 None
             }
           ).flatten

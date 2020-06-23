@@ -2,11 +2,12 @@ package io.carpe.scalambda
 
 import _root_.io.carpe.scalambda.assembly.AssemblySettings
 import _root_.io.carpe.scalambda.conf.ScalambdaFunction
-import _root_.io.carpe.scalambda.conf.api.ApiGatewayConfig
+import _root_.io.carpe.scalambda.conf.api.{ApiGatewayConfig, ApiGatewayEndpoint}
 import _root_.io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import _root_.io.carpe.scalambda.conf.function._
 import _root_.io.carpe.scalambda.conf.keys.ScalambaKeys
 import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
+import cats.data.Chain
 import com.typesafe.sbt.GitVersioning
 import com.typesafe.sbt.SbtGit.GitKeys.{formattedDateVersion, gitHeadCommit}
 import sbt.Keys._
@@ -31,6 +32,12 @@ object ScalambdaPlugin extends AutoPlugin {
 
     @deprecated(message = "Use StaticVariable or VariableFromTF instead", since = "5.0.0")
     def environmentVariable: EnvironmentVariable.type = EnvironmentVariable
+
+    @deprecated(message = "Use RoleFromArn instead", since = "5.0.0")
+    def roleFromArn(arn: String): FunctionRoleSource = FunctionRoleSource.RoleFromArn(arn)
+
+    @deprecated(message = "Use RoleFromVariable instead (or leave empty since RoleFromVariable is the default)", since = "5.0.0")
+    def roleFromVariable: FunctionRoleSource = FunctionRoleSource.RoleFromVariable
 
     /**
      * Use this function to define a Lambda Function. This will allow you to generate Terraform, build optimized jars,
@@ -78,10 +85,9 @@ object ScalambdaPlugin extends AutoPlugin {
       awsLambdaProxyPluginConfig ++ scalambdaLibs
     }
 
-    def foreignEndpoint(
-                         functionName: String,
-                         qualifier: String,
-                         apiConfig: ApiGatewayConfig
+    def foreignEndpoint(functionName: String,
+                        qualifier: String,
+                        apiConfig: ApiGatewayConfig
                        ): Seq[Def.Setting[_]] = {
 
       val awsLambdaProxyPluginConfig = Seq(
@@ -99,6 +105,7 @@ object ScalambdaPlugin extends AutoPlugin {
       awsLambdaProxyPluginConfig ++ scalambdaLibs
     }
 
+    @deprecated(message = "Use apiGatewayDefinition to define your api routes. See https://carpe.github.io/scalambda/docs/api/create-api/#defining-your-api for more info.", since = "5.0.0")
     def scalambdaEndpoint(functionClasspath: String,
                           functionNaming: FunctionNaming = WorkspaceBased,
                           iamRoleSource: FunctionRoleSource = FromVariable,
@@ -110,28 +117,41 @@ object ScalambdaPlugin extends AutoPlugin {
                           vpcConfig: VpcConf = VpcConf.withoutVpc,
                           apiConfig: ApiGatewayConfig
                          ): Seq[Def.Setting[_]] = {
+      // define the function as a normal scalambda function.
+      val function = ScalambdaFunction.Function(
+        naming = functionNaming,
+        handlerPath = functionClasspath + "::handler",
+        functionSource = IncludedInModule,
+        iamRole = iamRoleSource,
+        runtimeConfig = RuntimeConfig.apiDefault.copy(memory = memory, runtime = runtime, reservedConcurrency = concurrencyLimit),
+        vpcConfig = vpcConfig,
+        warmerConfig = warmWith,
+        environmentVariables = environmentVariables
+      )
 
       val awsLambdaProxyPluginConfig = Seq(
         // add this lambda to the list of existing lambda definitions for this function
-        scalambdaFunctions += {
-          ScalambdaFunction.ApiFunction(
-            naming = functionNaming,
-            handlerPath = functionClasspath + "::handler",
-            functionSource = IncludedInModule,
-            iamRole = iamRoleSource,
-            runtimeConfig = RuntimeConfig.apiDefault.copy(memory = memory, runtime = runtime, reservedConcurrency = concurrencyLimit),
-            vpcConfig = vpcConfig,
-            warmerConfig = warmWith,
-            apiConfig = apiConfig,
-            environmentVariables = environmentVariables
-          )
-        }
+        scalambdaFunctions += function,
+
+        // add this lambda the list of api gateway endpoints that will be generated
+        scalambdaApiEndpoints ++= Chain.one(ApiGatewayEndpoint(apiConfig.route, apiConfig.method, apiConfig.authConf) -> function)
       )
 
       // return a project
       awsLambdaProxyPluginConfig ++ scalambdaLibs
     }
+
+    def apiGatewayDefinition(routes: (ApiGatewayEndpoint, ScalambdaFunction)*): Seq[Def.Setting[_]] = {
+      val apiEndpointSettings = Seq(
+        scalambdaFunctions ++= routes.map(_._2),
+
+        scalambdaApiEndpoints ++= Chain.fromSeq(routes),
+      )
+
+      apiEndpointSettings ++ scalambdaLibs
+    }
   }
+
 
   import autoImport._
 
@@ -141,6 +161,7 @@ object ScalambdaPlugin extends AutoPlugin {
     AssemblySettings.sourceJarAssemblySettings ++ AssemblySettings.dependencyAssemblySettings ++ Seq(
       // set scalambda functions to empty list initially. lambda functions can then be added by users
       scalambdaFunctions := List.empty,
+      scalambdaApiEndpoints := Chain.empty,
       scalambdaTerraformPath := target.value / "terraform",
       scalambdaTerraform := {
         // assemble both the project's source and dependencies sequentially to avoid problems with sbt-assembly
@@ -157,6 +178,7 @@ object ScalambdaPlugin extends AutoPlugin {
             sbt.Keys.name.value
           },
           functions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty),
+          endpointMappings = scalambdaApiEndpoints.?.value.map(_.toList).getOrElse(List.empty),
           version = gitHeadCommit.value.getOrElse({
             formattedDateVersion.value
           }),
