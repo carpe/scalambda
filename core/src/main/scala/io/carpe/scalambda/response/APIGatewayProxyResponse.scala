@@ -1,6 +1,5 @@
 package io.carpe.scalambda.response
 
-import cats.data.NonEmptyChain
 import io.carpe.scalambda.Scalambda
 import io.circe.{Encoder, Json}
 
@@ -14,7 +13,8 @@ object APIGatewayProxyResponse {
                   ) extends APIGatewayProxyResponse[Nothing]
 
   case class WithError(headers: Map[String, String] = Map.empty,
-                       errors: NonEmptyChain[ApiError],
+                       error: ApiError,
+                       additionalErrors: Seq[ApiError] = Nil,
                        isBase64Encoded: Boolean = false
                       ) extends APIGatewayProxyResponse[Nothing]
 
@@ -40,12 +40,12 @@ object APIGatewayProxyResponse {
         ("isBase64Encoded", Json.fromBoolean(isBase64Encoded))
       )
 
-    case we@WithError(headers, errors, isBase64Encoded) =>
+    case we@WithError(headers, error, additionalErrors, isBase64Encoded) =>
       // AWS wants the response body to always be a string, so we encode it first
-      val errAsString = Scalambda.encode(errors)(ApiError.errorsEncoder)
+      val errAsString = Scalambda.encode(cats.data.NonEmptyChain.apply(error, additionalErrors: _*))(ApiError.errorsEncoder)
 
       Json.obj(
-        ("statusCode", Json.fromInt(errors.toChain.toList.map(_.httpStatus).max)),
+        ("statusCode", Json.fromInt((error +: additionalErrors).map(_.httpStatus).max)),
         ("headers", Json.fromFields(headers.map({ case (k, v) => (k, Json.fromString(v)) }))),
         ("body", Json.fromString(errAsString)),
         ("isBase64Encoded", Json.fromBoolean(isBase64Encoded))
