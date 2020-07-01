@@ -179,8 +179,8 @@ object ScalambdaPlugin extends AutoPlugin {
           projectName = {
             sbt.Keys.name.value
           },
-          functions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty),
-          endpointMappings = scalambdaApiEndpoints.?.value.map(_.toList).getOrElse(List.empty),
+          functions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty).distinct,
+          endpointMappings = scalambdaApiEndpoints.?.value.map(_.toList).getOrElse(List.empty).distinct,
           version = gitHeadCommit.value.getOrElse({
             formattedDateVersion.value
           }),
