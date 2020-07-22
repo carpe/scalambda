@@ -1,13 +1,16 @@
 package io.carpe.scalambda.terraform
 
+import cats.data.NonEmptyList
 import io.carpe.scalambda.fixtures.ScalambdaFunctionFixtures
 import org.scalatest.flatspec.AnyFlatSpec
 
 class OpenApiSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
 
   "OpenApi" should "be able to be serialized as yaml" in {
-    val functions = List(
-      carsIndexFunction
+    val carsIndexEndpointMapping = carsIndexEndpoint -> carsIndexFunction
+
+    val functions = NonEmptyList.one(
+      carsIndexEndpointMapping
     )
 
     val testApi = OpenApi.forFunctions(functions)

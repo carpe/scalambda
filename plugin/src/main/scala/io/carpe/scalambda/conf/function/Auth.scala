@@ -16,22 +16,25 @@ object Auth {
    * This authorizer will invoke the desired lambda function as a TOKEN authorizer. See the docs below for more information:
    * https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-lambda-authorizer-input.html
    *
-   * @param authorizerName name for your authorizer. Can be any snake_case string you'd like. Will show up on swagger.yaml
+   * @param tfVariableName for the generated terraform variables that will allow you to connect your ApiGateway to your authorizer. Can be any snake_case string you'd like.
    */
-  case class TokenAuthorizer(authorizerName: String) extends Auth {
+  case class TokenAuthorizer(tfVariableName: String) extends Auth {
     override def securityDefinitions: Seq[SecurityDefinition] = Seq(SecurityDefinition.TokenAuthorizer(
-      authorizerName = authorizerName
+      authorizerName = tfVariableName
     ))
   }
 
   /**
-   * A Custom Authorizer that you can use to implement your own auth logic for ApiGateway
+   * A Custom Authorizer that you can use to implement your own auth logic for ApiGateway.
    *
-   * @param authorizerName name for your authorizer. Can be any snake_case string you'd like. Will show up on swagger.yaml
+   * This authorizer will invoke the desired lambda function as a TOKEN authorizer. See the docs below for more information:
+   * https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-lambda-authorizer-input.html
+   *
+   * @param tfVariableName for the generated terraform variables that will allow you to connect your ApiGateway to your authorizer. Can be any snake_case string you'd like.
    */
-  case class RequestAuthorizer(authorizerName: String, identitySources: Seq[String]) extends Auth {
+  case class RequestAuthorizer(tfVariableName: String, identitySources: Seq[String]) extends Auth {
     override def securityDefinitions: Seq[SecurityDefinition] = Seq(SecurityDefinition.RequestAuthorizer(
-      authorizerName = authorizerName, identitySources = identitySources
+      authorizerName = tfVariableName, identitySources = identitySources
     ))
   }
 

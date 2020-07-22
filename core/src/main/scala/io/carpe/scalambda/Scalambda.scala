@@ -2,58 +2,60 @@ package io.carpe.scalambda
 
 import java.io.{InputStream, OutputStream}
 
+import cats.data.NonEmptyList
+import cats.effect.{IO, Resource}
 import com.amazonaws.services.lambda.runtime.Context
 import com.typesafe.scalalogging.LazyLogging
-import io.carpe.scalambda.response.{APIGatewayProxyResponse, ApiError}
-import io.carpe.scalambda.response.ApiError.InputError
 import io.circe
-import io.circe.parser.decode
+import io.circe.parser.decodeAccumulating
 import io.circe.{Decoder, Encoder, Printer}
 
 import scala.io.Source
 
-abstract class Scalambda[I, O](implicit val dec: Decoder[I], val enc: Encoder[O])
-  extends LazyLogging {
+abstract class Scalambda[I, O](implicit val dec: Decoder[I], val enc: Encoder[O]) extends LazyLogging {
 
   /**
    * This is the handler that will be called by AWS when executing the Lambda Function.
    *
-   * @param is inputstream for input
-   * @param os outputstream for output
+   * @param is      inputstream for input
+   * @param os      outputstream for output
    * @param context aws request context
    */
   final def handler(is: InputStream, os: OutputStream, context: Context): Unit = {
-    // read the input
-    val inputString = Source.fromInputStream(is).mkString
 
-    logger.trace(s"Function invoked with: ${inputString}")
+    // wrap input stream with resource
+    Resource.make(IO.pure(is))(is => IO {
+      is.close()
+    }).use(inputStream => {
+      // read input stream for parsing
+      val inputString = Source.fromInputStream(inputStream).mkString
+      logger.trace(s"Input to function was: ${inputString}")
 
-    // check if the request is a warmer (aka no-op) request
-    val outputString = Scalambda.checkForWarmer(inputString).fold({
+      // wrap output stream with resource
+      val output = Resource.make(IO.pure(os))(os => IO {
+        os.close()
+      })
+
       // attempt to parse input
-      decode[I](inputString).fold(
-        // if unsuccessful, render an error as the body
-        error =>
-          {
-            logger.error("Failed to decode input:", error)
-            handleInvalidInput(error)
-          },
-        // if successful, run the defined handler function
+      decodeAccumulating[I](inputString).fold(
+        // if unsuccessful,
+        errors => {
+          // ... call the defined handler for invalid input
+          handleInvalidInput(output, errors)
+        },
+        // if successful,
         req => {
+          // ... run the defined handler function
           val resp = handleRequest(req, context)
-          Scalambda.encode[O](resp)
+
+          // write the response to the output stream and then close it
+          output.use(os => IO {
+            val outputString = Scalambda.encode[O](resp)
+            os.write(outputString.getBytes)
+          })
         }
       )
-    })(
-      // Respond to warmer request
-      _ => "ACK"
-    )
-
-    // write the response to the output stream and then close it
-    os.write(outputString.getBytes)
-    os.close()
-
-    logger.trace(s"Output was: ${outputString}")
+    }).unsafeRunSync()
   }
 
   def handleRequest(input: I, context: Context): O
@@ -64,24 +66,29 @@ abstract class Scalambda[I, O](implicit val dec: Decoder[I], val enc: Encoder[O]
    *
    * You can override this to modify what is returned when invalid input is provided.
    *
-   * @param decodeError produced by circe
+   * @param outputStream to write the response to. The stream will be closed by scalambda
+   * @param errors       encountered when parsing the input
    * @return
    */
-  protected def handleInvalidInput(decodeError: circe.Error): String = decodeError.getMessage
+  protected def handleInvalidInput(outputStream: Resource[IO, OutputStream], errors: NonEmptyList[circe.Error]): IO[Unit] = {
+    import cats.implicits._
+
+    for {
+      logErrors <- errors.map(err => IO {
+        logger.error("Failed to parse input.", err)
+      }).sequence
+    } yield {
+      logger.error("Failed to parse input, see errors in earlier logs for details.")
+      val encodedErrors = Scalambda.encode(errors.toList.map(_.getMessage))
+      outputStream.use(o => IO {
+        o.write(encodedErrors.getBytes)
+      })
+    }
+  }
 
 }
 
 object Scalambda {
-
-  lazy val LAMBDA_WARMER_CODE = "STAY_WARM"
-
-  def checkForWarmer(requestInput: String): Option[Unit] = {
-    if (requestInput.equals(Scalambda.LAMBDA_WARMER_CODE)) {
-      Some(())
-    } else {
-      None
-    }
-  }
 
   private lazy val printer: Printer = Printer.noSpaces.copy(dropNullValues = true)
 

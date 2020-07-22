@@ -75,11 +75,11 @@ case class LambdaFunction(
     "timeout" -> TNumber(scalambdaFunction.runtimeConfig.timeout),
     // environment variables to inject into the lambda
     "environment" -> TBlock("variables" -> TObject({
-      scalambdaFunction.environmentVariables :+ (EnvironmentVariable.Static("SCALAMBDA_VERSION", version))
+      scalambdaFunction.environmentVariables :+ (EnvironmentVariable.StaticVariable("SCALAMBDA_VERSION", version))
     }.map {
-      case EnvironmentVariable.Static(key, value) =>
+      case EnvironmentVariable.StaticVariable(key, value) =>
         key -> TString(value)
-      case EnvironmentVariable.Variable(key, variableName) =>
+      case EnvironmentVariable.VariableFromTF(key, variableName) =>
         key -> TVariableRef(variableName)
     }: _*)),
     // vpc configuration for the lambda

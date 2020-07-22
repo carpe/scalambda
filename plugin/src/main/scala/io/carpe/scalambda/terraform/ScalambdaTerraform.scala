@@ -1,14 +1,13 @@
 package io.carpe.scalambda.terraform
 
 import java.io.File
-import java.nio.file.Files
 
 import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.conf.ScalambdaFunction.ProjectFunction
-import io.carpe.scalambda.conf.api.ApiDomain
+import io.carpe.scalambda.conf.api.{ApiDomain, ApiGatewayEndpoint}
 import io.carpe.scalambda.conf.utils.StringUtils
 import io.carpe.scalambda.terraform.ast.module.ScalambdaModule
-import io.carpe.scalambda.terraform.ast.props.TValue.{TLiteral, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue.TLiteral
 import io.carpe.scalambda.terraform.ast.providers.aws.BillingTag
 import io.carpe.scalambda.terraform.ast.providers.aws.lambda.data
 import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
@@ -16,17 +15,17 @@ import io.carpe.scalambda.terraform.composing.{ApiGatewayComposer, LambdaCompose
 
 object ScalambdaTerraform {
 
-  def writeTerraform(
-                      projectName: String,
-                      functions: List[ScalambdaFunction],
-                      version: String,
-                      s3BucketName: String,
-                      billingTags: Seq[BillingTag],
-                      isXrayEnabled: Boolean,
-                      apiName: String,
-                      terraformOutput: File,
-                      domainNameMapping: ApiDomain
-  ): Unit = {
+  def writeTerraform(projectName: String,
+                     functions: List[ScalambdaFunction],
+                     endpointMappings: List[(ApiGatewayEndpoint, ScalambdaFunction)],
+                     version: String,
+                     s3BucketName: String,
+                     billingTags: Seq[BillingTag],
+                     isXrayEnabled: Boolean,
+                     apiName: String,
+                     terraformOutput: File,
+                     domainNameMapping: ApiDomain
+                    ): Unit = {
 
     // create resource definitions for the s3 resources that will be used to store the function's source code
     val (s3Bucket, projectBucketItem, dependenciesBucketItem) = defineS3Resources(s3BucketName, billingTags)
@@ -72,11 +71,11 @@ object ScalambdaTerraform {
       apiRoute53Alias,
       apiVariables,
       apiOutputs
-    ) =
+      ) =
       ApiGatewayComposer.maybeDefineApiResources(
         isXrayEnabled,
         apiName,
-        functions,
+        endpointMappings,
         lambdaAliases ++ referencedFunctionAliases,
         terraformOutput,
         domainNameMapping

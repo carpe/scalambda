@@ -3,7 +3,9 @@ package io.carpe.scalambda.terraform.composing
 import java.io.{File, PrintWriter}
 import java.nio.file.Files
 
+import cats.data.NonEmptyList
 import io.carpe.scalambda.conf.ScalambdaFunction
+import io.carpe.scalambda.conf.api.ApiGatewayEndpoint
 import io.carpe.scalambda.terraform.OpenApi
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue.TVariableRef
@@ -15,11 +17,12 @@ object SwaggerComposer {
 
   def writeSwagger( apiName: String,
                     rootTerraformPath: String,
-                    functions: Seq[ScalambdaFunction],
+                    endpointMappings: NonEmptyList[(ApiGatewayEndpoint, ScalambdaFunction)],
                     functionAliases: Seq[LambdaFunctionAlias],
                     securityDefinitions: Seq[SecurityDefinition]
                   ): TemplateFile = {
-    val openApi = OpenApi.forFunctions(functions)
+
+    val openApi = OpenApi.forFunctions(endpointMappings)
 
     // convert the api to yaml
     val openApiDefinition = OpenApi.apiToYaml(openApi)

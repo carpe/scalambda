@@ -1,8 +1,8 @@
 package io.carpe.scalambda.fixtures
 
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.ScalambdaFunction.{ApiFunction, ProjectFunction}
-import io.carpe.scalambda.conf.api.ApiGatewayConfig
+import io.carpe.scalambda.conf.ScalambdaFunction.ProjectFunction
+import io.carpe.scalambda.conf.api.{ApiGatewayConfig, ApiGatewayEndpoint}
 import io.carpe.scalambda.conf.function.FunctionNaming.Static
 import io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import io.carpe.scalambda.conf.function._
@@ -12,29 +12,31 @@ import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem
 import org.scalatest.flatspec.AnyFlatSpec
 
 trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
-  lazy val carsIndexFunction: ApiFunction = {
-    ScalambdaFunction.ApiFunction(
+
+  lazy val carsIndexFunction: ScalambdaFunction.Function = {
+    ScalambdaFunction.Function(
       Static("CarsIndex"), "io.cars.index.CarsIndex::handler",
       functionSource = IncludedInModule,
-      iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
+      iamRole = FunctionRoleSource.RoleFromArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
       runtimeConfig = RuntimeConfig.default,
-      apiConfig = ApiGatewayConfig(route = "/cars", method = Method.GET, authConf = Auth.TokenAuthorizer("my_authorizer")),
       vpcConfig = VpcConf.withoutVpc,
       warmerConfig = WarmerConfig.Cold,
       environmentVariables = List.empty
     )
   }
 
+  lazy val carsIndexEndpoint: ApiGatewayEndpoint = ApiGatewayEndpoint(url = "/cars", method = Method.GET, auth = Auth.TokenAuthorizer("my_authorizer"))
+
   lazy val driveCarFunction: ScalambdaFunction.Function = {
     ScalambdaFunction.Function(
       Static("DriveCar"), "io.cars.lambda.DriveCar::handler",
       functionSource = IncludedInModule,
-      iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
+      iamRole = FunctionRoleSource.RoleFromArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
       runtimeConfig = RuntimeConfig.default,
       vpcConfig = VpcConf.withoutVpc,
       warmerConfig = WarmerConfig.Cold,
       environmentVariables = List(
-        EnvironmentVariable.Static("API", "www.google.com")
+        EnvironmentVariable.StaticVariable("API", "www.google.com")
       )
     )
   }
@@ -43,7 +45,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
     ScalambdaFunction.Function(
       Static("FlyPlane"), "io.plane.lambda.FlyPlane::handler",
       functionSource = IncludedInModule,
-      iamRole = FunctionRoleSource.StaticArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
+      iamRole = FunctionRoleSource.RoleFromArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
       runtimeConfig = RuntimeConfig.default.copy(memory = 256, timeout = 30),
       vpcConfig = VpcConf(
         subnetIds = Seq("subnet-12345678987654321"),
