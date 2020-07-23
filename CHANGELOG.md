@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2020-07-22
+
+## Added
+- [Docs](https://carpe.github.io/scalambda/docs/api/create-api/) on how to secure Apis with `Auth`.
+- `apiGatewayDefinition` function can be used to [define ApiGateway Apis](https://carpe.github.io/scalambda/docs/api/create-api/).
+- New settings for configuration how Lambda Functions are named (`StaticArn` and `FromVariable`)
+
+## Changed
+- `scalambdaEndpoint` function has been deprecated in favor of `apiGatewayDefinition`.
+- `environmentVariable` has been deprecated in favor of (the much more descriptively named) `StaticVariable` and `VariableFromTF`.  
+
+## Removed
+- Undocumented and unsupported `ApiResource` and `ScalambdaApi` traits have been removed. For more information, see: https://github.com/carpe/scalambda/issues/29  
+- Undocumented `roleFromArn`, `roleFromVariable`, `functionSource`, `iamRoleSource`, and `functionNaming` functions have been removed, [see documentation on defining functions](https://carpe.github.io/scalambda/docs/configuration/) for alternatives.
+
+
 ## [4.0.1] - 2020-06-15
 ## Fixed
 - Fix for `FileNotFoundException` that was being thrown for some projects during `scalambdaTerraform` task execution.
