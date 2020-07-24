@@ -181,7 +181,7 @@ class Greeter extends Scalambda[APIGatewayProxyRequest[String], APIGatewayProxyR
         // ApiError has a default encoder that will be used to inject errors into the 
         // response body as json. You can override this encoder if you'd like, it is an implicit
         // parameter for the APIGatewayProxyResponse.WithError's constructor 
-        errors = NonEmptyChain(InputError("No input was provided")),        
+        error = NonEmptyChain(InputError("No input was provided")),        
         headers = Map(
           "content-type" -> "application/json"
         )
