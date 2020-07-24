@@ -141,9 +141,8 @@ package io.carpe.example
 import com.amazonaws.services.lambda.runtime.Context
 import io.carpe.scalambda.Scalambda
 import io.carpe.scalambda.request.APIGatewayProxyRequest
-import io.carpe.scalambda.response.APIGatewayProxyResponse
-import io.carpe.scalambda.response.ApiError.InputError
-import cats.data.NonEmptyChain
+import io.carpe.scalambda.response.{APIGatewayProxyResponse, ApiError}
+
 
 class Greeter extends Scalambda[APIGatewayProxyRequest[String], APIGatewayProxyResponse[String]] {
 
@@ -181,7 +180,7 @@ class Greeter extends Scalambda[APIGatewayProxyRequest[String], APIGatewayProxyR
         // ApiError has a default encoder that will be used to inject errors into the 
         // response body as json. You can override this encoder if you'd like, it is an implicit
         // parameter for the APIGatewayProxyResponse.WithError's constructor 
-        error = NonEmptyChain(InputError("No input was provided")),        
+        error = ApiError.InputError("No input was provided"),      
         headers = Map(
           "content-type" -> "application/json"
         )
