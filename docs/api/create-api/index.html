@@ -138,9 +138,8 @@ ga('send', 'pageview');
 <span class="k">import</span> <span class="nn">com.amazonaws.services.lambda.runtime.Context</span>
 <span class="k">import</span> <span class="nn">io.carpe.scalambda.Scalambda</span>
 <span class="k">import</span> <span class="nn">io.carpe.scalambda.request.APIGatewayProxyRequest</span>
-<span class="k">import</span> <span class="nn">io.carpe.scalambda.response.APIGatewayProxyResponse</span>
-<span class="k">import</span> <span class="nn">io.carpe.scalambda.response.ApiError.InputError</span>
-<span class="k">import</span> <span class="nn">cats.data.NonEmptyChain</span>
+<span class="k">import</span> <span class="nn">io.carpe.scalambda.response.</span><span class="o">{</span><span class="nc">APIGatewayProxyResponse</span><span class="o">,</span> <span class="nc">ApiError</span><span class="o">}</span>
+
 
 <span class="k">class</span> <span class="nc">Greeter</span> <span class="k">extends</span> <span class="nc">Scalambda</span><span class="o">[</span><span class="kt">APIGatewayProxyRequest</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>, <span class="kt">APIGatewayProxyResponse</span><span class="o">[</span><span class="kt">String</span><span class="o">]]</span> <span class="o">{</span>
 
@@ -178,7 +177,7 @@ ga('send', 'pageview');
         <span class="c1">// ApiError has a default encoder that will be used to inject errors into the </span>
         <span class="c1">// response body as json. You can override this encoder if you'd like, it is an implicit</span>
         <span class="c1">// parameter for the APIGatewayProxyResponse.WithError's constructor </span>
-        <span class="n">errors</span> <span class="k">=</span> <span class="nc">NonEmptyChain</span><span class="o">(</span><span class="nc">InputError</span><span class="o">(</span><span class="s">"No input was provided"</span><span class="o">)),</span>        
+        <span class="n">error</span> <span class="k">=</span> <span class="nv">ApiError</span><span class="o">.</span><span class="py">InputError</span><span class="o">(</span><span class="s">"No input was provided"</span><span class="o">),</span>      
         <span class="n">headers</span> <span class="k">=</span> <span class="nc">Map</span><span class="o">(</span>
           <span class="s">"content-type"</span> <span class="o">-&gt;</span> <span class="s">"application/json"</span>
         <span class="o">)</span>
