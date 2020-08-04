@@ -1,10 +1,10 @@
 package io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources
 
-import io.carpe.scalambda.terraform.ast.Definition.Resource
+import io.carpe.scalambda.terraform.ast.Definition.{Resource, Variable}
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TLiteral, TNumber, TResourceRef}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TBool, TIf, TLiteral, TNumber, TResourceRef}
 
-case class ProvisionedConcurrency(functionAlias: LambdaFunctionAliasResource, desiredConcurrency: Int) extends Resource {
+case class ProvisionedConcurrency(functionAlias: LambdaFunctionAliasResource, enableWarmers: Variable[TBool], desiredConcurrency: Int) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    */
@@ -22,7 +22,7 @@ case class ProvisionedConcurrency(functionAlias: LambdaFunctionAliasResource, de
    */
   override def body: Map[String, TValue] = Map(
     "function_name" -> TResourceRef(functionAlias, "function_name"),
-    "provisioned_concurrent_executions" -> TNumber(desiredConcurrency),
+    "provisioned_concurrent_executions" -> TIf(enableWarmers.ref, TNumber(desiredConcurrency), TNumber(0)),
     "qualifier" -> TResourceRef(functionAlias, "name"),
     "depends_on" -> TArray(
       TLiteral(s"aws_lambda_alias.${functionAlias.name}")

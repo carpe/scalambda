@@ -75,7 +75,7 @@ object LambdaComposer {
               case WarmerConfig.NoOp =>
                 (Seq(warmerVariable), WarmerComposer.composeWarmer(functionAlias, warmerVariable, NoOp.json).definitions)
               case WarmerConfig.ProvisionedConcurrency(concurrency) =>
-                (Nil, Seq(ProvisionedConcurrency(functionAlias, concurrency)))
+                (Nil, Seq(ProvisionedConcurrency(functionAlias, warmerVariable, concurrency)))
               case WarmerConfig.Cold =>
                 (Nil, Nil)
             }

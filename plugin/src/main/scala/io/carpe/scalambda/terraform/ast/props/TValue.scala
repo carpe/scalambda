@@ -26,6 +26,10 @@ object TValue {
     override def serialize(implicit level: Int): Chain[TLine] = TLine(number.toString)
   }
 
+  case class TIf(predicate: TValue, ifTrue: TValue, ifFalse: TValue) extends TValue {
+    override def serialize(implicit level: Int): Chain[TLine] = TLine(s"${predicate.serialize} ? ${ifTrue.serialize} : ${ifFalse.serialize}")
+  }
+
   case class TString(string: String) extends TValue {
     lazy val escapedString: String = {
       import io.circe.syntax._
