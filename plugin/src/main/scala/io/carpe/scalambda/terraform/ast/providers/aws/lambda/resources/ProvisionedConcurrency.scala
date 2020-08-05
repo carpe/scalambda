@@ -21,8 +21,9 @@ case class ProvisionedConcurrency(functionAlias: LambdaFunctionAliasResource, en
    * Properties of the definition
    */
   override def body: Map[String, TValue] = Map(
+    "count" -> TIf(enableWarmers.ref, TNumber(1), TNumber(0)),
     "function_name" -> TResourceRef(functionAlias, "function_name"),
-    "provisioned_concurrent_executions" -> TIf(enableWarmers.ref, TNumber(desiredConcurrency), TNumber(0)),
+    "provisioned_concurrent_executions" -> TNumber(desiredConcurrency),
     "qualifier" -> TResourceRef(functionAlias, "name"),
     "depends_on" -> TArray(
       TLiteral(s"aws_lambda_alias.${functionAlias.name}")

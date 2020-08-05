@@ -27,7 +27,7 @@ object TValue {
   }
 
   case class TIf(predicate: TValue, ifTrue: TValue, ifFalse: TValue) extends TValue {
-    override def serialize(implicit level: Int): Chain[TLine] = TLine(s"${predicate.serialize} ? ${ifTrue.serialize} : ${ifFalse.serialize}")
+    override def serialize(implicit level: Int): Chain[TLine] = (predicate.serialize :+ TInline(" ? ")) ++ (ifTrue.serialize :+ TInline(" : ")) ++ ifFalse.serialize
   }
 
   case class TString(string: String) extends TValue {

@@ -1,12 +1,12 @@
 package io.carpe.scalambda.fixtures
 
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.ScalambdaFunction.ProjectFunction
-import io.carpe.scalambda.conf.api.{ApiGatewayConfig, ApiGatewayEndpoint}
+import io.carpe.scalambda.conf.ScalambdaFunction.DefinedFunction
+import io.carpe.scalambda.conf.api.ApiGatewayEndpoint
 import io.carpe.scalambda.conf.function.FunctionNaming.Static
 import io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import io.carpe.scalambda.conf.function._
-import io.carpe.scalambda.terraform.ast.props.TValue.TString
+import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TString}
 import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.{LambdaFunction, LambdaLayerVersion}
 import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -47,7 +47,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
       functionSource = IncludedInModule,
       iamRole = FunctionRoleSource.RoleFromArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
       runtimeConfig = RuntimeConfig.default.copy(memory = 256, timeout = 30),
-      vpcConfig = VpcConf(
+      vpcConfig = VpcConf.StaticVpcConf(
         subnetIds = Seq("subnet-12345678987654321"),
         securityGroupIds = Seq("sg-12345678987654321")
       ),
@@ -61,7 +61,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
   lazy val dependenciesBucketItem: S3BucketItem = S3BucketItem(s3Bucket, "dependencies", "dependencies.zip", "dependencies.zip", TString("dependencies.jar"), billingTags = Nil)
   lazy val dependenciesLambdaLayer: LambdaLayerVersion = LambdaLayerVersion("testing", dependenciesBucketItem)
 
-  def asLambdaFunction(scalambdaFunction: ProjectFunction): LambdaFunction = {
-    LambdaFunction(scalambdaFunction, "1337", s3Bucket, sourcesBucketItem, dependenciesLambdaLayer, isXrayEnabled = false, billingTags = Nil)
+  def asLambdaFunction(scalambdaFunction: DefinedFunction): LambdaFunction = {
+    LambdaFunction(scalambdaFunction, subnetIds = TArray(TString("abc123")), securityGroupIds = TArray(TString("def456")), "1337", s3Bucket, sourcesBucketItem, dependenciesLambdaLayer, isXrayEnabled = false, billingTags = Nil)
   }
 }

@@ -3,6 +3,7 @@ package io.carpe.scalambda.terraform.ast.resources
 import io.carpe.scalambda.conf.function.RuntimeConfig
 import io.carpe.scalambda.conf.function.ScalambdaRuntime.Java11
 import io.carpe.scalambda.fixtures.{ScalambdaFunctionFixtures, TerraformBehaviors}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TString}
 import io.carpe.scalambda.terraform.ast.providers.aws.BillingTag
 import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.LambdaFunction
 import org.scalatest.flatspec.AnyFlatSpec
@@ -13,6 +14,8 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
     printableTerraform(
       LambdaFunction(
         driveCarFunction.copy(runtimeConfig = RuntimeConfig.default.copy(runtime = Java11)),
+        subnetIds = TArray(TString("abc123")),
+        securityGroupIds = TArray(TString("def456")),
         version = "42",
         s3Bucket = s3Bucket,
         s3BucketItem = sourcesBucketItem,
@@ -52,6 +55,8 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
     printableTerraform(
       LambdaFunction(
         driveCarFunction,
+        subnetIds = TArray(TString("abc123")),
+        securityGroupIds = TArray(TString("def456")),
         version = "1337",
         s3Bucket = s3Bucket,
         s3BucketItem = sourcesBucketItem,
@@ -91,6 +96,8 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
     printableTerraform(
       LambdaFunction(
         driveCarFunction,
+        subnetIds = TArray(TString("abc123")),
+        securityGroupIds = TArray(TString("def456")),
         version = "1337",
         s3Bucket = s3Bucket,
         s3BucketItem = sourcesBucketItem,

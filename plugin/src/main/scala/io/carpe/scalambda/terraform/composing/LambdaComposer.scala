@@ -66,7 +66,6 @@ object LambdaComposer {
            * Define Terraform variables for function
            */
 
-
           val (subnetIdVariables, subnetIds) = composeSubnetIds(function.terraformLambdaResourceName, function.approximateFunctionName, function.vpcConfig)
 
           val (sgIdVariables, securityGroupIds) = composeSecurityGroupIds(function.terraformLambdaResourceName, function.approximateFunctionName, function.vpcConfig)
@@ -122,7 +121,7 @@ object LambdaComposer {
               case WarmerConfig.NoOp =>
                 (Seq(warmerVariable), WarmerComposer.composeWarmer(functionAlias, warmerVariable, NoOp.json).definitions)
               case WarmerConfig.ProvisionedConcurrency(concurrency) =>
-                (Nil, Seq(ProvisionedConcurrency(functionAlias, warmerVariable, concurrency)))
+                (Seq(warmerVariable), Seq(ProvisionedConcurrency(functionAlias, warmerVariable, concurrency)))
               case WarmerConfig.Cold =>
                 (Nil, Nil)
             }
