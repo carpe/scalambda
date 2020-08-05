@@ -1,8 +1,12 @@
 package io.carpe.scalambda.conf.function
 
-case class VpcConf(subnetIds: Seq[String], securityGroupIds: Seq[String])
+sealed trait VpcConf
 
 object VpcConf {
 
-  lazy val withoutVpc: VpcConf = VpcConf(Seq.empty, Seq.empty)
+  case class StaticVpcConf(subnetIds: Seq[String], securityGroupIds: Seq[String]) extends VpcConf
+
+  case object VpcFromTF extends VpcConf
+
+  lazy val withoutVpc: VpcConf = StaticVpcConf(Seq.empty, Seq.empty)
 }

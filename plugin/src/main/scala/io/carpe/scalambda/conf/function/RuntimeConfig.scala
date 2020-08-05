@@ -6,7 +6,7 @@ object RuntimeConfig {
   lazy val default: RuntimeConfig = RuntimeConfig(
     memory = 1536,
     timeout = 60 * 15,
-    runtime = ScalambdaRuntime.Java8,
+    runtime = ScalambdaRuntime.Java11,
     reservedConcurrency = -1
   )
 

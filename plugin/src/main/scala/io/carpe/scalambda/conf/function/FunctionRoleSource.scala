@@ -10,7 +10,7 @@ sealed trait FunctionRoleSource {
    * The value that the function role will be will be set to
    * @param function to infer name from
    */
-  def asTFValue(function: ScalambdaFunction.ProjectFunction): TValue
+  def asTFValue(function: ScalambdaFunction.DefinedFunction): TValue
 }
 
 object FunctionRoleSource {
@@ -20,8 +20,8 @@ object FunctionRoleSource {
    * resulting Terraform module.
    */
   case object RoleFromVariable extends FunctionRoleSource {
-    override def asTFValue(scalambdaFunction: ScalambdaFunction.ProjectFunction): TValue = TVariableRef(variableName(scalambdaFunction))
-    def variableName(scalambdaFunction: ScalambdaFunction.ProjectFunction): String = s"${scalambdaFunction.terraformLambdaResourceName}_role_arn"
+    override def asTFValue(scalambdaFunction: ScalambdaFunction.DefinedFunction): TValue = TVariableRef(variableName(scalambdaFunction))
+    def variableName(scalambdaFunction: ScalambdaFunction.DefinedFunction): String = s"${scalambdaFunction.terraformLambdaResourceName}_role_arn"
   }
 
   case class RoleFromArn(roleArn: String) extends FunctionRoleSource {
@@ -30,7 +30,7 @@ object FunctionRoleSource {
      *
      * @param function to infer name from
      */
-    override def asTFValue(function: ScalambdaFunction.ProjectFunction): TValue = TString(roleArn)
+    override def asTFValue(function: ScalambdaFunction.DefinedFunction): TValue = TString(roleArn)
   }
 
 }

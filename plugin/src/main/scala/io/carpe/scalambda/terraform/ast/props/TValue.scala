@@ -128,7 +128,7 @@ object TValue {
    * Collections
    */
 
-  case class TArray(values: TValue*) extends TValue {
+  case class TArray[A <: TValue](values: A*) extends TValue {
     lazy val valueChain: Chain[TValue] = Chain.fromSeq(values)
 
     override def serialize(implicit level: Int): Chain[TLine] = {
@@ -173,13 +173,6 @@ object TValue {
      */
     def asInterpolatedRef: String
 
-    /**
-     * Use this to override references to point to a different property.
-     * @param property to change the reference to
-     * @return
-     */
-    def overrideProperty(property: String): A
-
     override def serialize(implicit level: Int): Chain[TLine] = TLine(asInterpolatedRef)
   }
 
@@ -193,7 +186,6 @@ object TValue {
     type A = TDataRef
 
     override def asInterpolatedRef: String = s"data.${data.dataType}.${data.name}.${property}"
-    override def overrideProperty(property: String): TDataRef = this.copy(property = property)
   }
 
   /**
@@ -205,7 +197,6 @@ object TValue {
   case class TResourceRef(resource: Resource, property: String) extends TRef {
     type A = TResourceRef
     override def asInterpolatedRef: String = s"${resource.resourceType}.${resource.name}.${property}"
-    override def overrideProperty(property: String): TResourceRef = this.copy(property = property)
   }
 
   /**

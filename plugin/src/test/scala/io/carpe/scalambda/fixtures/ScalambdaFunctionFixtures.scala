@@ -13,8 +13,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
 
-  lazy val carsIndexFunction: ScalambdaFunction.Function = {
-    ScalambdaFunction.Function(
+  lazy val carsIndexFunction: ScalambdaFunction.DefinedFunction = {
+    ScalambdaFunction.DefinedFunction(
       Static("CarsIndex"), "io.cars.index.CarsIndex::handler",
       functionSource = IncludedInModule,
       iamRole = FunctionRoleSource.RoleFromArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
@@ -27,8 +27,8 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
 
   lazy val carsIndexEndpoint: ApiGatewayEndpoint = ApiGatewayEndpoint(url = "/cars", method = Method.GET, auth = Auth.TokenAuthorizer("my_authorizer"))
 
-  lazy val driveCarFunction: ScalambdaFunction.Function = {
-    ScalambdaFunction.Function(
+  lazy val driveCarFunction: ScalambdaFunction.DefinedFunction = {
+    ScalambdaFunction.DefinedFunction(
       Static("DriveCar"), "io.cars.lambda.DriveCar::handler",
       functionSource = IncludedInModule,
       iamRole = FunctionRoleSource.RoleFromArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),
@@ -41,8 +41,8 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
     )
   }
 
-  lazy val flyPlaneFunction: ScalambdaFunction.Function = {
-    ScalambdaFunction.Function(
+  lazy val flyPlaneFunction: ScalambdaFunction.DefinedFunction = {
+    ScalambdaFunction.DefinedFunction(
       Static("FlyPlane"), "io.plane.lambda.FlyPlane::handler",
       functionSource = IncludedInModule,
       iamRole = FunctionRoleSource.RoleFromArn("arn:aws:iam::12345678900:role/lambda_basic_execution"),

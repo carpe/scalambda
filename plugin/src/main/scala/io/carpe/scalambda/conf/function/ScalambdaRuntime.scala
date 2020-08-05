@@ -5,6 +5,7 @@ sealed trait ScalambdaRuntime {
 }
 
 object ScalambdaRuntime {
+
   case object Java8 extends ScalambdaRuntime {
     override def version: String = "java8"
   }

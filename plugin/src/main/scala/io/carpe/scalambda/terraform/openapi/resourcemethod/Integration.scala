@@ -14,7 +14,7 @@ object Integration {
   implicit val encoder: Encoder[Integration] = {
     case LambdaIntegration(function) =>
       function match {
-        case function: ScalambdaFunction.ProjectFunction =>
+        case function: ScalambdaFunction.DefinedFunction =>
           Json.obj(
             "uri" -> Json.fromString("""${""" + function.swaggerVariableName  + """}"""),
             "passthroughBehavior" -> Json.fromString("when_no_match"),

@@ -3,7 +3,7 @@ package io.carpe.scalambda.terraform
 import java.io.File
 
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.ScalambdaFunction.ProjectFunction
+import io.carpe.scalambda.conf.ScalambdaFunction.DefinedFunction
 import io.carpe.scalambda.conf.api.{ApiDomain, ApiGatewayEndpoint}
 import io.carpe.scalambda.conf.utils.StringUtils
 import io.carpe.scalambda.terraform.ast.module.ScalambdaModule
@@ -31,14 +31,14 @@ object ScalambdaTerraform {
     val (s3Bucket, projectBucketItem, dependenciesBucketItem) = defineS3Resources(s3BucketName, billingTags)
 
     val projectFunctions = functions.flatMap(_ match {
-      case function: ProjectFunction =>
+      case function: DefinedFunction =>
         Some(function)
       case ScalambdaFunction.ReferencedFunction(_, _, _) =>
         None
     })
 
     val referencedFunctionAliases = functions.flatMap(_ match {
-      case function: ProjectFunction =>
+      case function: DefinedFunction =>
         None
       case referencedFunction: ScalambdaFunction.ReferencedFunction =>
         Some(data.LambdaFunctionAliasData(referencedFunction))

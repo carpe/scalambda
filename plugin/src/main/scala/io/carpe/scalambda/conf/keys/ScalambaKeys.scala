@@ -45,8 +45,8 @@ trait ScalambaKeys extends FunctionNamingKeys
                  warmWith: WarmerConfig = WarmerConfig.Cold,
                  vpcConfig: VpcConf = VpcConf.withoutVpc,
                  environmentVariables: Seq[EnvironmentVariable] = List.empty,
-                ): ScalambdaFunction.Function = {
-      ScalambdaFunction.Function(
+                ): ScalambdaFunction.DefinedFunction = {
+      ScalambdaFunction.DefinedFunction(
         naming = functionNaming,
         handlerPath = functionClasspath + "::handler",
         functionSource = IncludedInModule,

@@ -5,7 +5,7 @@ import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue.TString
 
 sealed trait FunctionNaming {
-  def asTValue(function: ScalambdaFunction.ProjectFunction): TValue
+  def asTValue(function: ScalambdaFunction.DefinedFunction): TValue
 }
 
 object FunctionNaming {
@@ -32,7 +32,7 @@ object FunctionNaming {
    *
    */
   case object WorkspaceBased extends FunctionNaming {
-    override def asTValue(function: ScalambdaFunction.ProjectFunction): TValue = {
+    override def asTValue(function: ScalambdaFunction.DefinedFunction): TValue = {
       val functionName = inferLambdaName(function.handlerPath)
       TString(functionName + "${title(terraform.workspace)}")
     }
@@ -43,6 +43,6 @@ object FunctionNaming {
    * @param name for the lambda function
    */
   case class Static(name: String) extends FunctionNaming {
-    override def asTValue(function: ScalambdaFunction.ProjectFunction): TValue = TString(name)
+    override def asTValue(function: ScalambdaFunction.DefinedFunction): TValue = TString(name)
   }
 }

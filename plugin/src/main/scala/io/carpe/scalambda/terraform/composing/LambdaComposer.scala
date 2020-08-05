@@ -1,12 +1,13 @@
 package io.carpe.scalambda.terraform.composing
 
-import io.carpe.scalambda.conf.ScalambdaFunction.ProjectFunction
+import io.carpe.scalambda.conf.ScalambdaFunction.DefinedFunction
 import io.carpe.scalambda.conf.function.WarmerConfig.NoOp
-import io.carpe.scalambda.conf.function.{EnvironmentVariable, FunctionRoleSource, WarmerConfig}
+import io.carpe.scalambda.conf.function.{EnvironmentVariable, FunctionRoleSource, VpcConf, WarmerConfig}
 import io.carpe.scalambda.conf.utils.StringUtils
 import io.carpe.scalambda.terraform.ast.Definition
 import io.carpe.scalambda.terraform.ast.Definition.{Output, Variable}
-import io.carpe.scalambda.terraform.ast.props.TValue.{TBool, TResourceRef, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue
+import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TBool, TResourceRef, TString}
 import io.carpe.scalambda.terraform.ast.providers.aws
 import io.carpe.scalambda.terraform.ast.providers.aws.BillingTag
 import io.carpe.scalambda.terraform.ast.providers.aws.lambda.LambdaFunctionAlias
@@ -16,22 +17,22 @@ import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem
 object LambdaComposer {
 
   def defineLambdaResources(
-    isXrayEnabled: Boolean,
-    projectName: String,
-    scalambdaFunctions: List[ProjectFunction],
-    version: String,
-    s3Bucket: S3Bucket,
-    projectBucketItem: S3BucketItem,
-    dependenciesBucketItem: S3BucketItem,
-    billingTags: Seq[BillingTag]
-  ): (
+                             isXrayEnabled: Boolean,
+                             projectName: String,
+                             scalambdaFunctions: List[DefinedFunction],
+                             version: String,
+                             s3Bucket: S3Bucket,
+                             projectBucketItem: S3BucketItem,
+                             dependenciesBucketItem: S3BucketItem,
+                             billingTags: Seq[BillingTag]
+                           ): (
     Seq[LambdaFunction],
-    Seq[LambdaFunctionAlias],
-    LambdaLayerVersion,
-    Seq[Definition],
-    Seq[Variable[_]],
-    Seq[Output[_]]
-  ) = {
+      Seq[LambdaFunctionAlias],
+      LambdaLayerVersion,
+      Seq[Definition],
+      Seq[Variable[_]],
+      Seq[Output[_]]
+    ) = {
     // create a lambda layer that can be shared by all functions that contains the dependencies of said functions.
     // this will be used to speed up deployments
     val layerName = s"${StringUtils.toSnakeCase(projectName)}_assembled_dependencies"
@@ -51,39 +52,25 @@ object LambdaComposer {
         Seq.empty[Variable[_]],
         Seq.empty[Output[_]]
       )(
-        (function: ProjectFunction, resources) => {
+        (function: DefinedFunction, resources) => {
           val (
             functionResources,
             functionAliases,
             functionWarmingResources,
             variables,
             outputs
-          ) = resources
+            ) = resources
 
-          /**
-           * Define Terraform resources for function
-           */
-          val functionResource =
-            LambdaFunction(function, version, s3Bucket, projectBucketItem, lambdaDependenciesLayer, isXrayEnabled, billingTags = billingTags)
-
-          val functionAlias = aws.lambda.resources.LambdaFunctionAliasResource(functionResource, version, "Managed by Scalambda. The name of this alias is the version of the code that this function is using. It is either a version of a commit SHA.")
-
-          val (warmingVariables: Seq[Variable[TBool]], functionWarming: Seq[Definition]) = {
-            function.warmerConfig match {
-              case WarmerConfig.Invocation(json) =>
-                (Seq(warmerVariable), WarmerComposer.composeWarmer(functionAlias, warmerVariable, json).definitions)
-              case WarmerConfig.NoOp =>
-                (Seq(warmerVariable), WarmerComposer.composeWarmer(functionAlias, warmerVariable, NoOp.json).definitions)
-              case WarmerConfig.ProvisionedConcurrency(concurrency) =>
-                (Nil, Seq(ProvisionedConcurrency(functionAlias, warmerVariable, concurrency)))
-              case WarmerConfig.Cold =>
-                (Nil, Nil)
-            }
-          }
 
           /**
            * Define Terraform variables for function
            */
+
+
+          val (subnetIdVariables, subnetIds) = composeSubnetIds(function.terraformLambdaResourceName, function.approximateFunctionName, function.vpcConfig)
+
+          val (sgIdVariables, securityGroupIds) = composeSecurityGroupIds(function.terraformLambdaResourceName, function.approximateFunctionName, function.vpcConfig)
+
           val functionRoleVariables = Seq(
             function.iamRole match {
               case fromVariable: FunctionRoleSource.RoleFromVariable.type =>
@@ -118,7 +105,30 @@ object LambdaComposer {
                 )
             )
 
-          val functionVariables = functionRoleVariables ++ functionEnvVariables ++ warmingVariables
+
+          /**
+           * Define Terraform resources for function
+           */
+
+          val functionResource =
+            LambdaFunction(function, subnetIds, securityGroupIds, version, s3Bucket, projectBucketItem, lambdaDependenciesLayer, isXrayEnabled, billingTags = billingTags)
+
+          val functionAlias = aws.lambda.resources.LambdaFunctionAliasResource(functionResource, version, "Managed by Scalambda. The name of this alias is the version of the code that this function is using. It is either a version of a commit SHA.")
+
+          val (warmingVariables: Seq[Variable[TBool]], functionWarming: Seq[Definition]) = {
+            function.warmerConfig match {
+              case WarmerConfig.Invocation(json) =>
+                (Seq(warmerVariable), WarmerComposer.composeWarmer(functionAlias, warmerVariable, json).definitions)
+              case WarmerConfig.NoOp =>
+                (Seq(warmerVariable), WarmerComposer.composeWarmer(functionAlias, warmerVariable, NoOp.json).definitions)
+              case WarmerConfig.ProvisionedConcurrency(concurrency) =>
+                (Nil, Seq(ProvisionedConcurrency(functionAlias, warmerVariable, concurrency)))
+              case WarmerConfig.Cold =>
+                (Nil, Nil)
+            }
+          }
+
+          val functionVariables = functionRoleVariables ++ functionEnvVariables ++ warmingVariables ++ subnetIdVariables ++ sgIdVariables
 
           /**
            * Define Terraform outputs for function
@@ -155,5 +165,42 @@ object LambdaComposer {
       )
 
     (lambdaFunctions, lambdaAliases, lambdaDependenciesLayer, lambdaWarmingResources, lambdaVariables.distinct, outputs)
+  }
+
+
+  private def composeSubnetIds(terraformFunctionName: String, approximateFunctionName: String, vpcConfig: VpcConf): (List[Variable[TArray[TString]]], TValue) = vpcConfig match {
+    case VpcConf.StaticVpcConf(subnetIds, securityGroupIds) =>
+      val variables = List.empty
+
+      variables -> TArray(subnetIds.map(TString): _*)
+    case VpcConf.VpcFromTF =>
+      val tf = Variable[TArray[TString]](
+        s"${terraformFunctionName}_subnet_ids",
+        description = Some(
+          s"Ids of subnets to place the ${approximateFunctionName} Lambda Function in."
+        ),
+        defaultValue = None
+      )
+
+      List(tf) -> tf.ref
+  }
+
+  private def composeSecurityGroupIds(terraformFunctionName: String, approximateFunctionName: String, vpcConfig: VpcConf): (List[Variable[TArray[TString]]], TValue) = {
+    vpcConfig match {
+      case VpcConf.StaticVpcConf(subnetIds, securityGroupIds) =>
+        val variables = List.empty
+
+        variables -> TArray(securityGroupIds.map(TString): _*)
+      case VpcConf.VpcFromTF =>
+        val tf = Variable[TArray[TString]](
+          s"${terraformFunctionName}_security_group_ids",
+          description = Some(
+            s"Ids of security groups to attach to the ${approximateFunctionName} Lambda Function."
+          ),
+          defaultValue = None
+        )
+
+        List(tf) -> tf.ref
+    }
   }
 }

@@ -1,6 +1,6 @@
 package io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources
 
-import io.carpe.scalambda.conf.ScalambdaFunction.ProjectFunction
+import io.carpe.scalambda.conf.ScalambdaFunction.DefinedFunction
 import io.carpe.scalambda.conf.function.EnvironmentVariable
 import io.carpe.scalambda.conf.function.ScalambdaRuntime.{Java11, Java8}
 import io.carpe.scalambda.terraform.ast.Definition.Resource
@@ -10,7 +10,9 @@ import io.carpe.scalambda.terraform.ast.providers.aws.BillingTag
 import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
 
 case class LambdaFunction(
-  scalambdaFunction: ProjectFunction,
+  scalambdaFunction: DefinedFunction,
+  subnetIds: TValue,
+  securityGroupIds: TValue,
   version: String,
   s3Bucket: S3Bucket,
   s3BucketItem: S3BucketItem,
@@ -84,8 +86,8 @@ case class LambdaFunction(
     }: _*)),
     // vpc configuration for the lambda
     "vpc_config" -> TBlock(
-      "subnet_ids" -> TArray(scalambdaFunction.vpcConfig.subnetIds.map(TString): _*),
-      "security_group_ids" -> TArray(scalambdaFunction.vpcConfig.securityGroupIds.map(TString): _*)
+      "subnet_ids" -> subnetIds,
+      "security_group_ids" -> securityGroupIds
     ),
     // sets the lambda function to publish a new version for each change
     "publish" -> TBool(true),

@@ -68,7 +68,7 @@ object ScalambdaPlugin extends AutoPlugin {
       val awsLambdaProxyPluginConfig = Seq(
         // add this lambda to the list of existing lambda definitions for this function
         scalambdaFunctions += {
-          ScalambdaFunction.Function(
+          ScalambdaFunction.DefinedFunction(
             naming = functionNaming,
             handlerPath = functionClasspath + "::handler",
             functionSource = IncludedInModule,
@@ -118,7 +118,7 @@ object ScalambdaPlugin extends AutoPlugin {
                           apiConfig: ApiGatewayConfig
                          ): Seq[Def.Setting[_]] = {
       // define the function as a normal scalambda function.
-      val function = ScalambdaFunction.Function(
+      val function = ScalambdaFunction.DefinedFunction(
         naming = functionNaming,
         handlerPath = functionClasspath + "::handler",
         functionSource = IncludedInModule,
