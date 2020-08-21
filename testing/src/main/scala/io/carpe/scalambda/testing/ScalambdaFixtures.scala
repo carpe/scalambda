@@ -52,7 +52,6 @@ trait ScalambdaFixtures extends LazyLogging {
    * @return the output provided by the handler
    */
   def testRequest[I, O](handler: Scalambda[I, O], serializedRequest: String)(implicit decoder: Decoder[O], requestContext: Context): O = {
-
     val testOutputStream  = new ByteArrayOutputStream()
 
     val testInput = streamFromString(serializedRequest)
