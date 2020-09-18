@@ -107,7 +107,7 @@ object LambdaComposer {
           val additionalBillingTagsVariable: Variable[TObject] = Variable[TObject](
             s"${function.terraformLambdaResourceName}_billing_tags",
             description = Some(
-              s"Additional billing tags for the function."
+              "Additional billing tags for the function."
             ),
             // set default to empty object
             defaultValue = Some(TObject())
