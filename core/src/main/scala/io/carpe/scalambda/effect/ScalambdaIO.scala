@@ -66,9 +66,6 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
           })
       )
 
-      // perform post processing
-      _ <- post(req, result, context)
-
     } yield {
       ()
     }
@@ -93,16 +90,4 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
       os.write(err.getMessage.getBytes)
     })
   }
-
-  /**
-   * A hook that you can provide that will run after the lambda provides a response to the client. This is useful if you
-   * want to calculate or log any metrics without impacting the Lambda's response time.
-   *
-   * @param input   that was originally provided in the invocation
-   * @param output  of the function
-   * @param context for the invocation
-   * @return
-   */
-  def post(input: Either[Throwable, I], output: Either[Throwable, O], context: Context): IO[Unit] = IO.unit
-
 }
