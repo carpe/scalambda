@@ -7,7 +7,7 @@ import io.carpe.scalambda.conf.utils.StringUtils
 import io.carpe.scalambda.terraform.ast.Definition
 import io.carpe.scalambda.terraform.ast.Definition.{Output, Variable}
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TBool, TResourceRef, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TBool, TObject, TResourceRef, TString}
 import io.carpe.scalambda.terraform.ast.providers.aws
 import io.carpe.scalambda.terraform.ast.providers.aws.BillingTag
 import io.carpe.scalambda.terraform.ast.providers.aws.lambda.LambdaFunctionAlias
@@ -70,7 +70,7 @@ object LambdaComposer {
 
           val (sgIdVariables, securityGroupIds) = composeSecurityGroupIds(function.terraformLambdaResourceName, function.approximateFunctionName, function.vpcConfig)
 
-          val functionRoleVariables = Seq(
+          val functionRoleVariables: Seq[Variable[TString]] = Seq(
             function.iamRole match {
               case fromVariable: FunctionRoleSource.RoleFromVariable.type =>
                 Some(
@@ -87,7 +87,7 @@ object LambdaComposer {
             }
           ).flatten
 
-          val functionEnvVariables = function
+          val functionEnvVariables: Seq[Variable[TString]] = function
             .environmentVariables
             .flatMap(_ match {
               case EnvironmentVariable.StaticVariable(key, value) =>
@@ -104,13 +104,22 @@ object LambdaComposer {
                 )
             )
 
+          val additionalBillingTagsVariable: Variable[TObject] = Variable[TObject](
+            s"${function.terraformLambdaResourceName}_billing_tags",
+            description = Some(
+              s"Additional billing tags for the function."
+            ),
+            // set default to empty object
+            defaultValue = Some(TObject())
+          )
+
 
           /**
            * Define Terraform resources for function
            */
 
           val functionResource =
-            LambdaFunction(function, subnetIds, securityGroupIds, version, s3Bucket, projectBucketItem, lambdaDependenciesLayer, isXrayEnabled, billingTags = billingTags)
+            LambdaFunction(function, subnetIds, securityGroupIds, version, s3Bucket, projectBucketItem, lambdaDependenciesLayer, isXrayEnabled, billingTags = billingTags, additionalBillingTagsVariable = additionalBillingTagsVariable.ref)
 
           val functionAlias = aws.lambda.resources.LambdaFunctionAliasResource(functionResource, version, "Managed by Scalambda. The name of this alias is the version of the code that this function is using. It is either a version of a commit SHA.")
 
@@ -157,7 +166,7 @@ object LambdaComposer {
             functionResources :+ functionResource,
             functionAliases :+ functionAlias,
             functionWarmingResources ++ functionWarming,
-            variables ++ functionVariables,
+            variables ++ functionVariables :+ additionalBillingTagsVariable,
             outputs ++ functionOutputs
           )
         }

@@ -6,7 +6,7 @@ import io.carpe.scalambda.conf.api.ApiGatewayEndpoint
 import io.carpe.scalambda.conf.function.FunctionNaming.Static
 import io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import io.carpe.scalambda.conf.function._
-import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TString, TVariableRef}
 import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.{LambdaFunction, LambdaLayerVersion}
 import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -60,8 +60,6 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
   lazy val sourcesBucketItem: S3BucketItem = S3BucketItem(s3Bucket, "sources", "sources.jar", "sources.jar", TString("sources.jar"), billingTags = Nil)
   lazy val dependenciesBucketItem: S3BucketItem = S3BucketItem(s3Bucket, "dependencies", "dependencies.zip", "dependencies.zip", TString("dependencies.jar"), billingTags = Nil)
   lazy val dependenciesLambdaLayer: LambdaLayerVersion = LambdaLayerVersion("testing", dependenciesBucketItem)
+  lazy val billingTagsVariable: TVariableRef = TVariableRef("moar_billing_tags")
 
-  def asLambdaFunction(scalambdaFunction: DefinedFunction): LambdaFunction = {
-    LambdaFunction(scalambdaFunction, subnetIds = TArray(TString("abc123")), securityGroupIds = TArray(TString("def456")), "1337", s3Bucket, sourcesBucketItem, dependenciesLambdaLayer, isXrayEnabled = false, billingTags = Nil)
-  }
 }

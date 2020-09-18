@@ -79,16 +79,19 @@ object TValue {
    * Objects
    */
 
-  trait TProperties { this: TValue =>
+  trait TProperties {
+    this: TValue =>
     def props: Seq[(String, TValue)]
-    lazy val propChain: Chain[(String, TValue)] = Chain.fromSeq(props)
 
+    protected def serializeEmpty: Chain[TLine]
+
+    lazy val propChain: Chain[(String, TValue)] = Chain.fromSeq(props)
 
     override def serialize(implicit level: Int): Chain[TLine] = {
       val serializedProperties = serializeProperties(level + 1)
 
       if (serializedProperties.isEmpty) {
-        return Chain.empty
+        return serializeEmpty
       }
 
       TInline("{") +: serializedProperties :+ TBlockLine(level, "}")
@@ -112,17 +115,22 @@ object TValue {
     }
   }
 
-  case class TBlock(props: (String, TValue)*) extends TValue(usesAssignment = false) with TProperties
+  case class TBlock(props: (String, TValue)*) extends TValue(usesAssignment = false) with TProperties {
+    override def serializeEmpty: Chain[TLine] = Chain.empty
+  }
 
   object TBlock {
     def optionally(props: (String, Option[TValue])*): TBlock = {
       new TBlock(props.toSeq.flatMap { case (key, maybeValue) => {
         maybeValue.map(key -> _)
-      } }: _*)
+      }
+      }: _*)
     }
   }
 
-  case class TObject(props: (String, TValue)*) extends TValue(usesAssignment = true) with TProperties
+  case class TObject(props: (String, TValue)*) extends TValue(usesAssignment = true) with TProperties {
+    override def serializeEmpty: Chain[TLine] = Chain.one(TInline("{}"))
+  }
 
   /**
    * Collections
@@ -179,7 +187,7 @@ object TValue {
   /**
    * Reference to property on a [[io.carpe.scalambda.terraform.ast.Definition.Data]]
    *
-   * @param data that is being referenced
+   * @param data     that is being referenced
    * @param property name of the property on the data resource type that is being referred to
    */
   case class TDataRef(data: Data, property: String) extends TRef {
@@ -196,11 +204,13 @@ object TValue {
    */
   case class TResourceRef(resource: Resource, property: String) extends TRef {
     type A = TResourceRef
+
     override def asInterpolatedRef: String = s"${resource.resourceType}.${resource.name}.${property}"
   }
 
   /**
    * Reference to a defined "variable"
+   *
    * @param name of the referenced variable
    */
   case class TVariableRef(name: String) extends TValue {
@@ -213,10 +223,41 @@ object TValue {
 
   /**
    * Used for edge cases such as the `type` property on a terraform `variable`
+   *
    * @param literal type
    */
   case class TLiteral(literal: String) extends TValue {
     override def serialize(implicit level: Int): Chain[TLine] = TLine(literal)
+  }
+
+  /**
+   * Represents the invocation of a function.
+   *
+   * Examples:
+   * - merge({a="b", c="d"}, {e="f", c="z"})
+   * - toset(["one", "two", "three"])
+   *
+   */
+  case class TFunctionInvocation(functionName: String, arguments: Seq[TValue]) extends TValue {
+    override def serialize(implicit level: Int): Chain[TLine] = {
+      // serialize each argument
+      val serializedArgs: Chain[TLine] = arguments match {
+        case Seq() =>
+          Chain.empty
+        case Seq(head) =>
+          head.serialize
+        case Seq(head, tail@_*) =>
+          tail.foldLeft(head.serialize)((prev, next) => {
+            prev ++ Chain.one(TInline(",")) ++ next.serialize
+          })
+      }
+
+      // create TF statement with the function name and serialized args
+        Chain.one(TInline(functionName)) ++
+          Chain.one(TInline("(")) ++
+          serializedArgs :+
+          TInline(")")
+    }
   }
 
   case object TNone extends TValue {

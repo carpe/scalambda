@@ -10,6 +10,7 @@ class S3BucketSpec extends AnyFlatSpec with TerraformBehaviors{
     """resource "aws_s3_bucket" "my_s3bucket" {
       |  bucket = "my-s3bucket-${terraform.workspace}"
       |  force_destroy = true
+      |  tags = {}
       |}""".stripMargin
   })
 

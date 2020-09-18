@@ -14,14 +14,15 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
     printableTerraform(
       LambdaFunction(
         driveCarFunction.copy(runtimeConfig = RuntimeConfig.default.copy(runtime = Java11)),
-        subnetIds = TArray(TString("abc123")),
-        securityGroupIds = TArray(TString("def456")),
+        subnetIds = TArray(),
+        securityGroupIds = TArray(),
         version = "42",
         s3Bucket = s3Bucket,
         s3BucketItem = sourcesBucketItem,
         dependenciesLayer = dependenciesLambdaLayer,
         isXrayEnabled = false,
-        billingTags = Nil
+        billingTags = Nil,
+        additionalBillingTagsVariable = billingTagsVariable
       ),
       """resource "aws_lambda_function" "drive_car_lambda" {
         |  layers = [
@@ -31,6 +32,7 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
         |  s3_bucket = aws_s3_bucket.testing.id
         |  role = "arn:aws:iam::12345678900:role/lambda_basic_execution"
         |  s3_key = aws_s3_bucket_object.sources.key
+        |  tags = merge({},var.moar_billing_tags)
         |  depends_on = [
         |    aws_lambda_layer_version.dependency_layer
         |  ]
@@ -54,7 +56,7 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
   ("LambdaFunction (when provided vpc_config)" should behave).like(
     printableTerraform(
       LambdaFunction(
-        driveCarFunction,
+        flyPlaneFunction,
         subnetIds = TArray(TString("abc123")),
         securityGroupIds = TArray(TString("def456")),
         version = "1337",
@@ -62,32 +64,41 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
         s3BucketItem = sourcesBucketItem,
         dependenciesLayer = dependenciesLambdaLayer,
         isXrayEnabled = false,
-        billingTags = Nil
+        billingTags = Nil,
+        additionalBillingTagsVariable = billingTagsVariable
       ),
-      """resource "aws_lambda_function" "drive_car_lambda" {
+      """resource "aws_lambda_function" "fly_plane_lambda" {
         |  layers = [
         |    aws_lambda_layer_version.dependency_layer.arn
         |  ]
-        |  function_name = "DriveCar"
+        |  function_name = "FlyPlane"
         |  s3_bucket = aws_s3_bucket.testing.id
+        |  vpc_config {
+        |    subnet_ids = [
+        |      "abc123"
+        |    ]
+        |    security_group_ids = [
+        |      "def456"
+        |    ]
+        |  }
         |  role = "arn:aws:iam::12345678900:role/lambda_basic_execution"
         |  s3_key = aws_s3_bucket_object.sources.key
+        |  tags = merge({},var.moar_billing_tags)
         |  depends_on = [
         |    aws_lambda_layer_version.dependency_layer
         |  ]
-        |  memory_size = 1536
+        |  memory_size = 256
         |  source_code_hash = filebase64sha256(aws_s3_bucket_object.sources.source)
         |  publish = true
         |  s3_object_version = aws_s3_bucket_object.sources.version_id
         |  environment {
         |    variables = {
-        |      API = "www.google.com"
         |      SCALAMBDA_VERSION = "1337"
         |    }
         |  }
-        |  timeout = 900
-        |  handler = "io.cars.lambda.DriveCar::handler"
-        |  runtime = "java8"
+        |  timeout = 30
+        |  handler = "io.plane.lambda.FlyPlane::handler"
+        |  runtime = "java11"
         |}""".stripMargin
     )
   )
@@ -96,14 +107,15 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
     printableTerraform(
       LambdaFunction(
         driveCarFunction,
-        subnetIds = TArray(TString("abc123")),
-        securityGroupIds = TArray(TString("def456")),
+        subnetIds = TArray(),
+        securityGroupIds = TArray(),
         version = "1337",
         s3Bucket = s3Bucket,
         s3BucketItem = sourcesBucketItem,
         dependenciesLayer = dependenciesLambdaLayer,
         isXrayEnabled = false,
-        billingTags = Seq(BillingTag("YourMomma", "SoFat"))
+        billingTags = Seq(BillingTag("YourMomma", "SoFat")),
+        additionalBillingTagsVariable = billingTagsVariable
       ),
       """resource "aws_lambda_function" "drive_car_lambda" {
         |  layers = [
@@ -113,9 +125,9 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
         |  s3_bucket = aws_s3_bucket.testing.id
         |  role = "arn:aws:iam::12345678900:role/lambda_basic_execution"
         |  s3_key = aws_s3_bucket_object.sources.key
-        |  tags = {
+        |  tags = merge({
         |    YourMomma = "SoFat"
-        |  }
+        |  },var.moar_billing_tags)
         |  depends_on = [
         |    aws_lambda_layer_version.dependency_layer
         |  ]
@@ -131,7 +143,7 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
         |  }
         |  timeout = 900
         |  handler = "io.cars.lambda.DriveCar::handler"
-        |  runtime = "java8"
+        |  runtime = "java11"
         |}""".stripMargin
     )
   )

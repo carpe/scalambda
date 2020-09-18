@@ -3,7 +3,7 @@ package io.carpe.scalambda.terraform.ast
 import cats.data.Chain
 import io.carpe.scalambda.terraform.ast.props.TLine.TBlockLine
 import io.carpe.scalambda.terraform.ast.props.{TLine, TValue}
-import io.carpe.scalambda.terraform.ast.props.TValue.{TBlock, TBool, TLiteral, TNone, TNumber, TString, TVariableRef}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TBlock, TBool, TLiteral, TNone, TNumber, TObject, TString, TVariableRef}
 
 /**
  * A single piece of HCL configuration. Such as a [[io.carpe.scalambda.terraform.ast.Definition.Resource]].
@@ -90,6 +90,7 @@ object Definition {
           case t if t =:= typeOf[TString] => Some(TLiteral("string"))
           case t if t =:= typeOf[TNumber] => Some(TLiteral("number"))
           case t if t =:= typeOf[TBool] => Some(TLiteral("bool"))
+          case t if t =:= typeOf[TObject] => Some(TLiteral("map"))
           case _ => None
         }
       },

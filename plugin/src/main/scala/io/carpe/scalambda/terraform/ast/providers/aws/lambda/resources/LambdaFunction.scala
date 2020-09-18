@@ -10,16 +10,17 @@ import io.carpe.scalambda.terraform.ast.providers.aws.BillingTag
 import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
 
 case class LambdaFunction(
-  scalambdaFunction: DefinedFunction,
-  subnetIds: TValue,
-  securityGroupIds: TValue,
-  version: String,
-  s3Bucket: S3Bucket,
-  s3BucketItem: S3BucketItem,
-  dependenciesLayer: LambdaLayerVersion,
-  isXrayEnabled: Boolean,
-  billingTags: Seq[BillingTag]
-) extends Resource {
+                           scalambdaFunction: DefinedFunction,
+                           subnetIds: TValue,
+                           securityGroupIds: TValue,
+                           version: String,
+                           s3Bucket: S3Bucket,
+                           s3BucketItem: S3BucketItem,
+                           dependenciesLayer: LambdaLayerVersion,
+                           isXrayEnabled: Boolean,
+                           billingTags: Seq[BillingTag],
+                           additionalBillingTagsVariable: TVariableRef
+                         ) extends Resource {
 
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
@@ -69,7 +70,7 @@ case class LambdaFunction(
     // runtime for the function
     "runtime" -> {
       scalambdaFunction.runtimeConfig.runtime match {
-        case Java8  => TString("java8")
+        case Java8 => TString("java8")
         case Java11 => TString("java11")
       }
     },
@@ -99,12 +100,15 @@ case class LambdaFunction(
         } else TNone
       }
     ),
-    // billing tags
-    "tags" -> TObject(
-      billingTags.map(billingTag => {
-        billingTag.name -> TString(billingTag.value)
-      })
-    : _*),
+    // billing tags is set to a function that merges both the billing tags provided by sbt, as well as the ones
+    // provided by the variable
+    "tags" -> TFunctionInvocation(functionName = "merge", arguments = Seq(
+      TObject(
+        billingTags.map(billingTag => {
+          billingTag.name -> TString(billingTag.value)
+        }): _*),
+      additionalBillingTagsVariable
+    )),
     "depends_on" -> TArray(
       TLiteral(s"${dependenciesLayer.resourceType}.${dependenciesLayer.name}")
     ),
