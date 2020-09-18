@@ -3,10 +3,10 @@ package io.carpe.scalambda.terraform.ast.providers.aws.s3
 import io.carpe.scalambda.conf.utils.StringUtils
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TBool, TObject, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TBool, TFunctionInvocation, TObject, TString, TVariableRef}
 import io.carpe.scalambda.terraform.ast.providers.aws.BillingTag
 
-case class S3Bucket(bucketName: String, billingTags: Seq[BillingTag]) extends Resource {
+case class S3Bucket(bucketName: String, billingTags: Seq[BillingTag], additionalBillingTagsVariable: TVariableRef) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    */
@@ -25,10 +25,14 @@ case class S3Bucket(bucketName: String, billingTags: Seq[BillingTag]) extends Re
   override def body: Map[String, TValue] = Map(
     "bucket" -> TString(name.replace('_', '-') + "-${terraform.workspace}"),
     "force_destroy" -> TBool(true),
-    "tags" -> TObject(
-      billingTags.map(billingTag => {
-        billingTag.name -> TString(billingTag.value)
-      }): _*
-    )
+    // billing tags is set to a function that merges both the billing tags provided by the user's configuration in sbt,
+    // as well as the ones provided by the tf variable
+    "tags" -> TFunctionInvocation(functionName = "merge", arguments = Seq(
+      TObject(
+        billingTags.map(billingTag => {
+          billingTag.name -> TString(billingTag.value)
+        }): _*),
+      additionalBillingTagsVariable
+    )),
   )
 }

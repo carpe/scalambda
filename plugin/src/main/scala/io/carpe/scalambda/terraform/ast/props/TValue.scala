@@ -248,7 +248,7 @@ object TValue {
           head.serialize
         case Seq(head, tail@_*) =>
           tail.foldLeft(head.serialize)((prev, next) => {
-            prev ++ Chain.one(TInline(",")) ++ next.serialize
+            prev ++ Chain.one(TInline(", ")) ++ next.serialize
           })
       }
 

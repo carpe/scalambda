@@ -6,8 +6,9 @@ import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.conf.ScalambdaFunction.DefinedFunction
 import io.carpe.scalambda.conf.api.{ApiDomain, ApiGatewayEndpoint}
 import io.carpe.scalambda.conf.utils.StringUtils
+import io.carpe.scalambda.terraform.ast.Definition.Variable
 import io.carpe.scalambda.terraform.ast.module.ScalambdaModule
-import io.carpe.scalambda.terraform.ast.props.TValue.TLiteral
+import io.carpe.scalambda.terraform.ast.props.TValue.{TLiteral, TObject, TVariableRef}
 import io.carpe.scalambda.terraform.ast.providers.aws.BillingTag
 import io.carpe.scalambda.terraform.ast.providers.aws.lambda.data
 import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
@@ -28,7 +29,13 @@ object ScalambdaTerraform {
                     ): Unit = {
 
     // create resource definitions for the s3 resources that will be used to store the function's source code
-    val (s3Bucket, projectBucketItem, dependenciesBucketItem) = defineS3Resources(s3BucketName, billingTags)
+    val s3BucketVariable = Variable[TObject](
+      name = "s3_billing_tags",
+      description = Some("AWS Billing tags to add to the S3 bucket that contains the compiled sources for your functions"),
+      // set default to empty object
+      defaultValue = Some(TObject())
+    )
+    val (s3Bucket, projectBucketItem, dependenciesBucketItem) = defineS3Resources(s3BucketName, billingTags, s3BucketVariable.ref)
 
     val projectFunctions = functions.flatMap(_ match {
       case function: DefinedFunction =>
@@ -96,7 +103,7 @@ object ScalambdaTerraform {
       apiGatewayDeployment = apiGatewayDeployment,
       apiGatewayStage = apiGatewayStage,
       domainResources = Seq(apiDomainName, apiPathMapping, apiRoute53Alias).flatten,
-      variables = lambdaVariables ++ apiVariables,
+      variables = lambdaVariables ++ apiVariables :+ s3BucketVariable,
       outputs = lambdaOutputs ++ apiOutputs
     )
 
@@ -104,9 +111,9 @@ object ScalambdaTerraform {
     ScalambdaModule.write(scalambdaModule, terraformOutput.getAbsolutePath)
   }
 
-  def defineS3Resources(bucketName: String, billingTags: Seq[BillingTag]): (S3Bucket, S3BucketItem, S3BucketItem) = {
+  def defineS3Resources(bucketName: String, billingTags: Seq[BillingTag], additionalBillingTagsVariable: TVariableRef): (S3Bucket, S3BucketItem, S3BucketItem) = {
     // create a new bucket
-    val newBucket = S3Bucket(bucketName, billingTags)
+    val newBucket = S3Bucket(bucketName, billingTags, additionalBillingTagsVariable)
 
     // create bucket items (to be placed into that bucket) that are pointed to the sources of each lambda function
     val sourceBucketItem =

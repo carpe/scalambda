@@ -10,7 +10,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 
 class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with TerraformBehaviors {
 
-  ("LambdaFunction" should behave).like(
+  "LambdaFunction" should behave like {
     printableTerraform(
       LambdaFunction(
         driveCarFunction.copy(runtimeConfig = RuntimeConfig.default.copy(runtime = Java11)),
@@ -32,7 +32,7 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
         |  s3_bucket = aws_s3_bucket.testing.id
         |  role = "arn:aws:iam::12345678900:role/lambda_basic_execution"
         |  s3_key = aws_s3_bucket_object.sources.key
-        |  tags = merge({},var.moar_billing_tags)
+        |  tags = merge({}, var.moar_billing_tags)
         |  depends_on = [
         |    aws_lambda_layer_version.dependency_layer
         |  ]
@@ -51,9 +51,9 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
         |  runtime = "java11"
         |}""".stripMargin
     )
-  )
+  }
 
-  ("LambdaFunction (when provided vpc_config)" should behave).like(
+  "LambdaFunction (when provided vpc_config)" should behave like {
     printableTerraform(
       LambdaFunction(
         flyPlaneFunction,
@@ -83,7 +83,7 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
         |  }
         |  role = "arn:aws:iam::12345678900:role/lambda_basic_execution"
         |  s3_key = aws_s3_bucket_object.sources.key
-        |  tags = merge({},var.moar_billing_tags)
+        |  tags = merge({}, var.moar_billing_tags)
         |  depends_on = [
         |    aws_lambda_layer_version.dependency_layer
         |  ]
@@ -101,9 +101,9 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
         |  runtime = "java11"
         |}""".stripMargin
     )
-  )
+  }
 
-  ("LambdaFunction (when provided billing tags)" should behave).like(
+  "LambdaFunction (when provided billing tags)" should behave like {
     printableTerraform(
       LambdaFunction(
         driveCarFunction,
@@ -127,7 +127,7 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
         |  s3_key = aws_s3_bucket_object.sources.key
         |  tags = merge({
         |    YourMomma = "SoFat"
-        |  },var.moar_billing_tags)
+        |  }, var.moar_billing_tags)
         |  depends_on = [
         |    aws_lambda_layer_version.dependency_layer
         |  ]
@@ -146,6 +146,6 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
         |  runtime = "java11"
         |}""".stripMargin
     )
-  )
+  }
 
 }

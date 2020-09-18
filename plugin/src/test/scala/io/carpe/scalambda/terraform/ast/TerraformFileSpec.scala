@@ -3,7 +3,7 @@ package io.carpe.scalambda.terraform.ast
 import io.carpe.scalambda.conf.function.RuntimeConfig
 import io.carpe.scalambda.fixtures.{ScalambdaFunctionFixtures, TerraformBehaviors}
 import io.carpe.scalambda.terraform.ast.Definition.Variable
-import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TString, TVariableRef}
 import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.LambdaFunction
 import io.carpe.scalambda.terraform.ast.providers.aws.s3.S3Bucket
 import org.scalatest.flatspec.AnyFlatSpec
@@ -36,7 +36,7 @@ class TerraformFileSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with 
         TerraformFile(
           Seq(
             Variable(name = "my_test_variable", description = Some("Some test variable"), defaultValue = None),
-            S3Bucket(bucketName = "test_bucket", billingTags = Nil)
+            S3Bucket(bucketName = "test_bucket", billingTags = Nil, TVariableRef("my_bucket_tags"))
           ),
           "stuff.tf"
         )
@@ -50,7 +50,7 @@ class TerraformFileSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with 
           |resource "aws_s3_bucket" "test_bucket" {
           |  bucket = "test-bucket-${terraform.workspace}"
           |  force_destroy = true
-          |  tags = {}
+          |  tags = merge({}, var.my_bucket_tags)
           |}
           |""".stripMargin
       }
