@@ -67,10 +67,10 @@ object APIGatewayProxyRequest {
         resource <- c.downField("resource").as[String]
         path <- c.downField("path").as[String]
         httpMethod <- c.downField("httpMethod").as[String]
-        headers <- c.downField("headers").as[Option[Map[String, String]]].map(_.getOrElse(Map()))
-        queryStringParameters <- c.downField("queryStringParameters").as[Option[Map[String, String]]].map(_.getOrElse(Map()))
-        pathParameters <- c.downField("pathParameters").as[Option[Map[String, String]]].map(_.getOrElse(Map()))
-        stageVariables <- c.downField("stageVariables").as[Option[Map[String, String]]].map(_.getOrElse(Map()))
+        headers <- c.downField("headers").as[Option[Map[String, String]]].map(_.getOrElse(Map.empty))
+        queryStringParameters <- c.downField("queryStringParameters").as[Option[Map[String, String]]].map(_.getOrElse(Map.empty))
+        pathParameters <- c.downField("pathParameters").as[Option[Map[String, String]]].map(_.getOrElse(Map.empty))
+        stageVariables <- c.downField("stageVariables").as[Option[Map[String, String]]].map(_.getOrElse(Map.empty))
         requestContext <- c.downField("requestContext").as[RequestContext]
         body <- c.downField("body").as[Option[String]].flatMap {
           case Some(stringlyJson) =>
@@ -102,10 +102,10 @@ object APIGatewayProxyRequest {
         resource <- c.downField("resource").as[String]
         path <- c.downField("path").as[String]
         httpMethod <- c.downField("httpMethod").as[String]
-        headers <- c.downField("headers").as[Option[Map[String, String]]].map(_.getOrElse(Map()))
-        queryStringParameters <- c.downField("queryStringParameters").as[Option[Map[String, String]]].map(_.getOrElse(Map()))
-        pathParameters <- c.downField("pathParameters").as[Option[Map[String, String]]].map(_.getOrElse(Map()))
-        stageVariables <- c.downField("stageVariables").as[Option[Map[String, String]]].map(_.getOrElse(Map()))
+        headers <- c.downField("headers").as[Option[Map[String, String]]].map(_.getOrElse(Map.empty))
+        queryStringParameters <- c.downField("queryStringParameters").as[Option[Map[String, String]]].map(_.getOrElse(Map.empty))
+        pathParameters <- c.downField("pathParameters").as[Option[Map[String, String]]].map(_.getOrElse(Map.empty))
+        stageVariables <- c.downField("stageVariables").as[Option[Map[String, String]]].map(_.getOrElse(Map.empty))
         requestContext <- c.downField("requestContext").as[RequestContext]
         isBase64Encoded <- c.downField("isBase64Encoded").as[Option[Boolean]]
       } yield {

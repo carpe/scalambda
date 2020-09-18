@@ -13,22 +13,12 @@ object Integration {
 
   implicit val encoder: Encoder[Integration] = {
     case LambdaIntegration(function) =>
-      function match {
-        case function: ScalambdaFunction.DefinedFunction =>
-          Json.obj(
-            "uri" -> Json.fromString("""${""" + function.swaggerVariableName  + """}"""),
-            "passthroughBehavior" -> Json.fromString("when_no_match"),
-            "httpMethod" -> Json.fromString("POST"),
-            "type" -> Json.fromString("aws_proxy")
-          )
-        case ScalambdaFunction.ReferencedFunction(functionName, _, apiGatewayConf) =>
-          Json.obj(
-            "uri" -> Json.fromString("""${""" + function.swaggerVariableName  + """}"""),
-            "passthroughBehavior" -> Json.fromString("when_no_match"),
-            "httpMethod" -> Json.fromString("POST"),
-            "type" -> Json.fromString("aws_proxy")
-          )
-      }
+      Json.obj(
+        "uri" -> Json.fromString("""${""" + function.swaggerVariableName + """}"""),
+        "passthroughBehavior" -> Json.fromString("when_no_match"),
+        "httpMethod" -> Json.fromString("POST"),
+        "type" -> Json.fromString("aws_proxy")
+      )
     case AllowOrigin(origin) =>
       Json.obj(
         "type" -> Json.fromString("mock"),
