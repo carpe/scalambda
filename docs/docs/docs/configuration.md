@@ -51,7 +51,7 @@ This is the full list of settings that are shared by all your functions.
 | Setting Key                     | Type            | Description                                             | Default Value                  |
 | ------------------------------- | --------------- | ------------------------------------------------------- | ------------------------------:|
 | s3BucketName                    | String          | Prefix for S3 bucket name to store binaries in          | `sbt.Keys.name`                |
-| billingTags                     | Seq[BillingTag] | AWS Billing Tags to apply to all terraformed resources  | `Nil` |
+| billingTags                     | Seq[BillingTag] | AWS Billing Tags to apply to all terraformed resources. You can also provide billing tags via a terraform variable in the generated module. See below for details. | `Nil` |
 | scalambdaTerraformPath          | File            | Path to where terraform should be written to            | `sbt.Keys.target / "terraform"` |
 | scalambdaDependenciesMergeStrat | MergeStrategy   | `sbt-assembly` MergeStrategy for your dependencies jar  |  [Check it out](https://github.com/carpe/scalambda/blob/develop/plugin/src/main/scala/io/carpe/scalambda/assembly/AssemblySettings.scala#L39-L46) |
 | enableXray                      | Boolean         | If set to true, injects AWS Xray SDK into your Lambda and enables Passthrough mode | `false` | 
@@ -71,8 +71,17 @@ Each `scalambda` function accepts a wide range of parameters. Although, the only
 | runtime                         | ScalambdaRuntime         | runtime for your function to use (Java8 or Java11) | `Java8` | 
 | concurrencyLimit                | Int                      | maximum number of concurrent instances of your Function | - |
 | warmWith                        | WarmerConfig             | controls how your lambda function will be kept "warm" | `WarmerConfig.Cold` |
-| vpcConfig                       | VpcConfig                | use this setting if you need to run your Lambda Function inside a VPC | `VpcConf.withoutVpc` |
+| vpcConfig                       | VpcConfig                | use this setting if you need to run your Lambda Function inside a VPC. Options are `StaticVpcConfig` and `VpcFromTF` | `VpcConf.withoutVpc` |
 | environmentVariables            | Seq[EnvironmentVariable] | use this to inject ENV variables into your Lambda Function. Options are `StaticVariable` and `VariableFromTF` | Nil |
+
+#### Terraform Module Settings
+
+When/if you run `scalambdaTerraform`, several variables will be generated in the outputted module.
+
+| Parameter                       | Type                     | Description                                             | Default Value                  |
+| ------------------------------- | ------------------------ | ------------------------------------------------------- | ------------------------------:|
+| your_function_name_billing_tags | map                      | Billing tags for the function. These will be merged with the billing tags provided via the plugin `billingTags` setting.  | {} |
+| s3_billing_tags                 | map                      | Billing tags for the S3 bucket. These will be merged with the billing tags provided via the plugin `billingTags` setting. | {} |
 
 ## Tasks
 

@@ -24,17 +24,17 @@ object ApiGatewayComposer {
 
   type ComposedApiGatewayResources = (
     Option[ApiGateway],
-      Option[TemplateFile],
-      Seq[LambdaFunctionAlias],
-      Seq[LambdaPermission],
-      Option[ApiGatewayDeployment],
-      Option[ApiGatewayStage],
-      Option[ApiGatewayDomainName],
-      Option[ApiGatewayBasePathMapping],
-      Option[Route53Record],
-      Seq[Variable[_]],
-      Seq[Output[_]]
-    )
+    Option[TemplateFile],
+    Seq[LambdaFunctionAlias],
+    Seq[LambdaPermission],
+    Option[ApiGatewayDeployment],
+    Option[ApiGatewayStage],
+    Option[ApiGatewayDomainName],
+    Option[ApiGatewayBasePathMapping],
+    Option[Route53Record],
+    Seq[Variable[_]],
+    Seq[Output[_]]
+  )
 
   def maybeDefineApiResources(isXrayEnabled: Boolean,
                               apiName: String,
