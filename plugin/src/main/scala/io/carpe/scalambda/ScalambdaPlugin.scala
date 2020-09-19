@@ -6,6 +6,7 @@ import _root_.io.carpe.scalambda.conf.api.{ApiGatewayConfig, ApiGatewayEndpoint}
 import _root_.io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import _root_.io.carpe.scalambda.conf.function._
 import _root_.io.carpe.scalambda.conf.keys.ScalambaKeys
+import _root_.io.carpe.scalambda.conf.function.ScalambdaRuntime
 import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
 import cats.data.Chain
 import com.typesafe.sbt.GitVersioning
@@ -21,11 +22,15 @@ object ScalambdaPlugin extends AutoPlugin {
   // get the current version of scalambda via the "sbt-buildinfo" plugin
   val currentScalambdaVersion: String = BuildInfo.version
 
-  lazy val scalambdaLibs = Seq(
+  lazy val jvmScalambdaLibs = Seq(
     // Scalambda is a lightweight library for building Lambda functions in Scala
     libraryDependencies += "io.carpe" %% "scalambda-core" % currentScalambdaVersion,
     // Testing utilities
     libraryDependencies += "io.carpe" %% "scalambda-testing" % currentScalambdaVersion % Test
+  )
+
+  lazy val nativeScalambdaLibs = Seq(
+    libraryDependencies += "io.carpe" %% "scalambda-native" % currentScalambdaVersion
   )
 
   object autoImport extends ScalambaKeys {
@@ -81,8 +86,18 @@ object ScalambdaPlugin extends AutoPlugin {
         }
       )
 
+      // dependencies that will automatically be injected based on the user's runtime choice
+      val runtimeDependencies = runtime match {
+        case ScalambdaRuntime.Java8 =>
+          jvmScalambdaLibs
+        case ScalambdaRuntime.Java11 =>
+          jvmScalambdaLibs
+        case ScalambdaRuntime.GraalNative =>
+          nativeScalambdaLibs
+      }
+
       // return a project
-      awsLambdaProxyPluginConfig ++ scalambdaLibs
+      awsLambdaProxyPluginConfig ++ runtimeDependencies
     }
 
     def foreignEndpoint(functionName: String,
@@ -102,7 +117,7 @@ object ScalambdaPlugin extends AutoPlugin {
       )
 
       // return a project
-      awsLambdaProxyPluginConfig ++ scalambdaLibs
+      awsLambdaProxyPluginConfig ++ jvmScalambdaLibs
     }
 
     @deprecated(message = "Use apiGatewayDefinition to define your api routes. See https://carpe.github.io/scalambda/docs/api/create-api/#defining-your-api for more info.", since = "5.0.0")
@@ -138,7 +153,7 @@ object ScalambdaPlugin extends AutoPlugin {
       )
 
       // return a project
-      awsLambdaProxyPluginConfig ++ scalambdaLibs
+      awsLambdaProxyPluginConfig ++ jvmScalambdaLibs
     }
 
     def apiGatewayDefinition(apiGatewayInstanceName: String)(routes: (ApiGatewayEndpoint, ScalambdaFunction)*): Seq[Def.Setting[_]] = {
@@ -150,7 +165,7 @@ object ScalambdaPlugin extends AutoPlugin {
         scalambdaApiEndpoints ++= Chain.fromSeq(routes),
       )
 
-      apiEndpointSettings ++ scalambdaLibs
+      apiEndpointSettings ++ jvmScalambdaLibs
     }
   }
 

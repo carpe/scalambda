@@ -10,6 +10,8 @@ ThisBuild / organization := "io.carpe"
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 
+version in ThisBuild := s"6.0.0-${git.gitHeadCommit.value.getOrElse("")}-SNAPSHOT"
+
 lazy val root = (project in file("."))
   .settings(name := "scalambda")
   .aggregate(plugin, core, testing)
@@ -38,6 +40,35 @@ lazy val core = project
 
     // Minimal set of interfaces for AWS Lambda
     libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
+
+    // Logging
+    libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
+
+    // Testing
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % Test,
+    libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test,
+    Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")
+  )
+
+lazy val native = project
+  .settings(name := "scalambda-native")
+  .settings(commonSettings)
+  .settings(
+    // Circe is a serialization library that we can use to serialize/deserialize requests
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-core",
+      "io.circe" %% "circe-parser",
+      "io.circe" %% "circe-generic"
+    ).map(_ % circeVersion),
+    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-generic-extras"
+    ).map(_ % circeGenericVersion),
+
+    // Cats Effect, used to control side effects and make managing resources (such as database connections) easier
+    libraryDependencies += "org.typelevel" %% "cats-effect" % "2.0.0",
+
+    // Requests is a simple lib for managing http requests that can be safely run in graal native
+    libraryDependencies += "com.lihaoyi" %% "requests" % "0.6.5",
 
     // Logging
     libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
@@ -93,7 +124,10 @@ lazy val plugin = project
         "com.eed3si9n" % "sbt-assembly" % "0.14.9",
 
         // Plugin for accessing git info, used to version lambda functions
-        "com.typesafe.sbt" % "sbt-git" % "1.0.0"
+        "com.typesafe.sbt" % "sbt-git" % "1.0.0",
+
+        // Used for graal-native assembly (if someone is crazy enough to use it for their lambdas)
+        "com.typesafe.sbt" % "sbt-native-packager" % "1.4.1"
       ).map(Defaults.sbtPluginExtra(_, sbtVersion, scalaVersion))
     },
 

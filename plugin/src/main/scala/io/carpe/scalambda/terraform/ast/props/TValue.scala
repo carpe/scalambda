@@ -68,9 +68,11 @@ object TValue {
         return Chain.empty
       }
 
+      import scala.collection.JavaConverters._
+
       TInline("<<EOF") +: Chain.fromSeq(
-        fileContents.lines.toSeq
-          .map(line => TBlockLine(indentationLevel = 0, contents = line))
+        fileContents.lines.iterator().asScala
+          .map(line => TBlockLine(indentationLevel = 0, contents = line)).toSeq
       ) :+ TBlockLine(0, "EOF")
     }
   }

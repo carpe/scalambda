@@ -68,12 +68,7 @@ case class LambdaFunction(
     // amount of memory, in MB, that the function can use at runtime
     "memory_size" -> TNumber(scalambdaFunction.runtimeConfig.memory),
     // runtime for the function
-    "runtime" -> {
-      scalambdaFunction.runtimeConfig.runtime match {
-        case Java8 => TString("java8")
-        case Java11 => TString("java11")
-      }
-    },
+    "runtime" -> TString(scalambdaFunction.runtimeConfig.runtime.identifier),
     // timeout for the function. should be 30 seconds max for api gateway lambdas
     "timeout" -> TNumber(scalambdaFunction.runtimeConfig.timeout),
     // environment variables to inject into the lambda
