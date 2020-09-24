@@ -13,6 +13,8 @@ import sbtassembly.{Assembly, MappingSet, MergeStrategy, PathList}
 
 object AssemblySettings {
 
+  lazy val defaultSettings: Seq[sbt.Setting[_]] = nativeImageAssemblySettings ++ functionJarAssemblySettings ++ dependencyAssemblySettings
+
   // builds the lambda function sources as a native image with graal native
   lazy val nativeImageAssemblySettings: Seq[Setting[_]] = Seq(
     scalambdaPackageNative := {
@@ -36,23 +38,8 @@ object AssemblySettings {
     }
   )
 
-  def scalambdaAssemblyTask(key: TaskKey[_]): Initialize[Task[java.io.File]] = Def.task {
-    val t = (test in key).value
-    val s = (streams in key).value
-    Assembly(
-      (assemblyOutputPath in key).value, (assemblyOption in key).value,
-      (packageOptions in key).value, (assembledMappings in key).value,
-      s.cacheDirectory, s.log)
-  }
-  def scalambdaAssembledMappingsTask(key: TaskKey[_]): Initialize[Task[Seq[MappingSet]]] = Def.task {
-    val s = (streams in key).value
-    Assembly.assembleMappings(
-      (fullClasspath in assembly).value, (externalDependencyClasspath in assembly).value,
-      (assemblyOption in key).value, s.log)
-  }
-
   // builds the lambda function jar without dependencies (so we can bake them in as a separate lambda layer)
-  lazy val sourceJarAssemblySettings: Seq[Setting[_]] = Seq(
+  lazy val functionJarAssemblySettings: Seq[Setting[_]] = Seq(
     scalambdaPackageMergeStrat := {
       case _ => MergeStrategy.last
     },
@@ -142,4 +129,19 @@ object AssemblySettings {
       name.value + "-assembly-" + version.value + "-deps.jar"
     }
   )
+
+  def scalambdaAssemblyTask(key: TaskKey[_]): Initialize[Task[java.io.File]] = Def.task {
+    val t = (test in key).value
+    val s = (streams in key).value
+    Assembly(
+      (assemblyOutputPath in key).value, (assemblyOption in key).value,
+      (packageOptions in key).value, (assembledMappings in key).value,
+      s.cacheDirectory, s.log)
+  }
+  def scalambdaAssembledMappingsTask(key: TaskKey[_]): Initialize[Task[Seq[MappingSet]]] = Def.task {
+    val s = (streams in key).value
+    Assembly.assembleMappings(
+      (fullClasspath in assembly).value, (externalDependencyClasspath in assembly).value,
+      (assemblyOption in key).value, s.log)
+  }
 }

@@ -177,15 +177,12 @@ object ScalambdaPlugin extends AutoPlugin {
 
   override def requires: Plugins = AssemblyPlugin && GitVersioning && JavaAppPackaging && GraalVMNativeImagePlugin
 
-  override def projectSettings: Seq[Def.Setting[_]] =
-    AssemblySettings.sourceJarAssemblySettings ++ AssemblySettings.dependencyAssemblySettings ++ Seq(
+  override def projectSettings: Seq[Def.Setting[_]] = Seq(
       // set scalambda functions to empty list initially. lambda functions can then be added by users
       scalambdaFunctions := List.empty,
       scalambdaApiEndpoints := Chain.empty,
       scalambdaTerraformPath := target.value / "terraform",
       scalambdaTerraform := {
-        lazy val runtimes: Seq[ScalambdaRuntime] = scalambdaFunctions.value.flatMap(_.runtime)
-
         // collection function sources
         val functionSources = FunctionSources(dependencyJar = scalambdaPackageDependencies.value, functionJar = scalambdaPackage.value, nativeImage = scalambdaPackageNative.value)
 
@@ -211,14 +208,8 @@ object ScalambdaPlugin extends AutoPlugin {
       libraryDependencies ++= {
         XRaySettings.xrayLibs(isXrayEnabled = enableXray.?.value.getOrElse(false))
       }
-    ) ++ LambdaLoggingSettings.loggingSettings
+    ) ++ LambdaLoggingSettings.loggingSettings ++ AssemblySettings.defaultSettings
 
-  override def globalSettings: Seq[Def.Setting[_]] = Seq(
-    credentials += Credentials(
-      new File(Properties.envOrElse("JENKINS_HOME", Properties.envOrElse("HOME", "")) + "/.sbt/.credentials")
-    ),
-    resolvers += "Carpe Artifactory Realm".at("https://bin.carpe.io/artifactory/sbt-release"),
-    resolvers += "Carpe Artifactory Realm Snapshots".at("https://bin.carpe.io/artifactory/sbt-dev")
-  )
+  override def globalSettings: Seq[Def.Setting[_]] = Seq()
 
 }
