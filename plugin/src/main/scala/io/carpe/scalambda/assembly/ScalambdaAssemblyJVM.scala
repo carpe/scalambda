@@ -12,7 +12,7 @@ import sbtassembly.Assembly.applyStrategies
 import sbtassembly.AssemblyPlugin.autoImport.{assembledMappings, assemblyOption, assemblyOutputPath}
 import sbtassembly.{Assembly, AssemblyOption, MappingSet, MergeStrategy}
 
-object ScalambdaAssembly {
+object ScalambdaAssemblyJVM {
 
   import Tracked.{inputChanged, outputChanged}
 

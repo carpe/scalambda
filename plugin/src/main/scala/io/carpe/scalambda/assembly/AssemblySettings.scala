@@ -25,7 +25,7 @@ object AssemblySettings {
         if (runtimes.contains(ScalambdaRuntime.GraalNative)) {
           Def.task {
             // create the native image
-            val nativeImage = (GraalVMNativeImage / packageBin).value
+            val nativeImage = ScalambdaAssemblyNative.packageNativeImage("function").value
             Some(nativeImage)
           }
         } else {
@@ -95,7 +95,7 @@ object AssemblySettings {
 
         if (runtimes.contains(ScalambdaRuntime.Java8) || runtimes.contains(ScalambdaRuntime.Java11)) {
           Def.task {
-            val dependenciesJar = ScalambdaAssembly.assembleLambdaLayerTask.value
+            val dependenciesJar = ScalambdaAssemblyJVM.assembleLambdaLayerTask.value
             Some(dependenciesJar)
           }
         } else {

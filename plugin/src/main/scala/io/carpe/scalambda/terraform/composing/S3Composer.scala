@@ -51,20 +51,20 @@ object S3Composer {
 
     // add native resources if there are any lambda functions with a native runtime
     if (containsNativeRuntime) {
-      defineS3ResourcesForGraalNativeRuntimes(createResourcesWithJvm, billingTags)
+      defineS3ResourcesForGraalNativeRuntimes(createResourcesWithJvm, s3Composable)
     } else {
       createResourcesWithJvm
     }
   }
 
-  private def defineS3ResourcesForGraalNativeRuntimes(base: S3Resources, billingTags: Seq[BillingTag]): S3Resources = {
+  private def defineS3ResourcesForGraalNativeRuntimes(base: S3Resources, s3Composable: S3Composable): S3Resources = {
     val nativeImageBucketItem = S3BucketItem(
       base.bucket,
       name = "sources",
-      key = "sources.jar",
-      source = "sources.jar",
-      etag = TLiteral("""filemd5("${path.module}/sources.jar")"""),
-      billingTags = billingTags
+      key = "function.zip",
+      source = """filemd5("${path.module}/function.zip")""",
+      etag = TLiteral("""filemd5("${path.module}/function.zip")"""),
+      billingTags = s3Composable.billingTags
     )
 
     base.copy(nativeImageBucketItem = Some(nativeImageBucketItem))
