@@ -31,7 +31,7 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
       // send the response back to the AWS lambda service
     } yield RequestEvent(r.text(), requestId)
 
-    lazy val runLoop: IO[Unit] = for {
+    lazy val program: IO[Unit] = for {
       // poll the AWS Lambda service for a request and handle it if one is returned
       event <- pollForEvent.handleErrorWith(err => {
         logger.error("A failure occurred that prevented the Lambda from being able to poll for an event. As such, there is no available request id for this failure", err)
@@ -63,11 +63,14 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
         requests.post(responseUrl, data = serializedServiceResponse)
       }
 
-      // trampoline and repeat the runLoop.
+      // trampoline and repeat the program endlessly
       // this allows us to continue checking for additional requests to process before AWS terminates this instance
       _ <- IO.shift
-      _ <- runLoop
+      _ <- program
     } yield ()
+
+    // start server
+    program.unsafeRunSync()
   }
 
   /**
