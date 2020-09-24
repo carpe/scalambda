@@ -9,14 +9,13 @@ import io.carpe.scalambda.terraform.ast.props.TValue._
 import io.carpe.scalambda.terraform.ast.providers.aws.BillingTag
 import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
 
-case class LambdaFunction(
-                           scalambdaFunction: DefinedFunction,
+case class LambdaFunction( scalambdaFunction: DefinedFunction,
                            subnetIds: TValue,
                            securityGroupIds: TValue,
                            version: String,
                            s3Bucket: S3Bucket,
                            s3BucketItem: S3BucketItem,
-                           dependenciesLayer: LambdaLayerVersion,
+                           dependenciesLayer: Option[LambdaLayerVersion],
                            isXrayEnabled: Boolean,
                            billingTags: Seq[BillingTag],
                            additionalBillingTagsVariable: TVariableRef
@@ -56,9 +55,7 @@ case class LambdaFunction(
     "s3_object_version" -> TResourceRef(s3BucketItem, "version_id"),
     "source_code_hash" -> TLiteral(s"filebase64sha256(aws_s3_bucket_object.${s3BucketItem.name}.source)"),
     // dependency layer
-    "layers" -> TArray(
-      TResourceRef(dependenciesLayer, "arn")
-    ),
+    "layers" -> dependenciesLayer.map(layer => TArray(TResourceRef(layer, "arn"))).getOrElse(TNone),
     // role for the lambda
     "role" -> scalambdaFunction.iamRole.asTFValue(scalambdaFunction),
     // name of the lambda
@@ -104,9 +101,9 @@ case class LambdaFunction(
         }): _*),
       additionalBillingTagsVariable
     )),
-    "depends_on" -> TArray(
-      TLiteral(s"${dependenciesLayer.resourceType}.${dependenciesLayer.name}")
-    ),
+    "depends_on" -> dependenciesLayer.map(dependenciesLayer => {
+      TArray(TLiteral(s"${dependenciesLayer.resourceType}.${dependenciesLayer.name}"))
+    }).getOrElse(TNone),
     "reserved_concurrent_executions" -> {
       if (scalambdaFunction.runtimeConfig.reservedConcurrency < 0) {
         TNone

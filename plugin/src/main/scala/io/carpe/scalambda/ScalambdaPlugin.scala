@@ -4,20 +4,23 @@ import _root_.io.carpe.scalambda.assembly.AssemblySettings
 import _root_.io.carpe.scalambda.conf.ScalambdaFunction
 import _root_.io.carpe.scalambda.conf.api.{ApiGatewayConfig, ApiGatewayEndpoint}
 import _root_.io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
-import _root_.io.carpe.scalambda.conf.function._
+import _root_.io.carpe.scalambda.conf.function.{ScalambdaRuntime, _}
 import _root_.io.carpe.scalambda.conf.keys.ScalambaKeys
-import _root_.io.carpe.scalambda.conf.function.ScalambdaRuntime
 import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
 import cats.data.Chain
 import com.typesafe.sbt.GitVersioning
 import com.typesafe.sbt.SbtGit.GitKeys.{formattedDateVersion, gitHeadCommit}
+import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
+import com.typesafe.sbt.packager.graalvmnativeimage.GraalVMNativeImagePlugin
 import sbt.Keys._
-import sbt.{Def, _}
+import sbt.{AutoPlugin, Def, Plugins}
 import sbtassembly._
 
 import scala.tools.nsc.Properties
 
 object ScalambdaPlugin extends AutoPlugin {
+
+  import sbt._
 
   // get the current version of scalambda via the "sbt-buildinfo" plugin
   val currentScalambdaVersion: String = BuildInfo.version
@@ -172,7 +175,7 @@ object ScalambdaPlugin extends AutoPlugin {
 
   import autoImport._
 
-  override def requires: Plugins = AssemblyPlugin && GitVersioning
+  override def requires: Plugins = AssemblyPlugin && GitVersioning && JavaAppPackaging && GraalVMNativeImagePlugin
 
   override def projectSettings: Seq[Def.Setting[_]] =
     AssemblySettings.sourceJarAssemblySettings ++ AssemblySettings.dependencyAssemblySettings ++ Seq(
@@ -181,13 +184,10 @@ object ScalambdaPlugin extends AutoPlugin {
       scalambdaApiEndpoints := Chain.empty,
       scalambdaTerraformPath := target.value / "terraform",
       scalambdaTerraform := {
-        // assemble both the project's source and dependencies sequentially to avoid problems with sbt-assembly
-        Def.sequential(
-          // assembly dependencies
-          scalambdaPackageDependencies,
-          // assemble source jar
-          scalambdaPackage
-        ).value
+        lazy val runtimes: Seq[ScalambdaRuntime] = scalambdaFunctions.value.flatMap(_.runtime)
+
+        // collection function sources
+        val functionSources = FunctionSources(dependencyJar = scalambdaPackageDependencies.value, functionJar = scalambdaPackage.value, nativeImage = scalambdaPackageNative.value)
 
         // write terraform
         ScalambdaTerraform.writeTerraform(
@@ -195,6 +195,7 @@ object ScalambdaPlugin extends AutoPlugin {
             sbt.Keys.name.value
           },
           functions = scalambdaFunctions.?.value.map(_.toList).getOrElse(List.empty).distinct,
+          functionSources = functionSources,
           endpointMappings = scalambdaApiEndpoints.?.value.map(_.toList).getOrElse(List.empty).distinct,
           version = gitHeadCommit.value.getOrElse({
             formattedDateVersion.value

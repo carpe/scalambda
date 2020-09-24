@@ -7,7 +7,7 @@ import io.carpe.scalambda.conf.utils.StringUtils
 
 sealed trait ScalambdaFunction {
   def environmentVariables: Seq[EnvironmentVariable]
-
+  def runtime: Option[ScalambdaRuntime]
   def terraformLambdaResourceName: String
 
   /**
@@ -61,6 +61,8 @@ object ScalambdaFunction {
     lazy val terraformS3BucketItemResourceName: String = {
       s"${StringUtils.toSnakeCase(approximateFunctionName)}_code"
     }
+
+    override def runtime: Option[ScalambdaRuntime] = Some(runtimeConfig.runtime)
   }
 
 
@@ -73,6 +75,8 @@ object ScalambdaFunction {
     override def environmentVariables: Seq[EnvironmentVariable] = Seq.empty
 
     override def terraformLambdaResourceName: String = StringUtils.toSnakeCase(functionName)
+
+    override def runtime: Option[ScalambdaRuntime] = None
   }
 
 }

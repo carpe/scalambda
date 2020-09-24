@@ -14,7 +14,7 @@ version in ThisBuild := s"6.0.0-${git.gitHeadCommit.value.getOrElse("")}-SNAPSHO
 
 lazy val root = (project in file("."))
   .settings(name := "scalambda")
-  .aggregate(plugin, core, testing)
+  .aggregate(plugin, core, testing, native)
   .settings(skip in publish := true, skip in publishLocal := true)
   .settings(sonarSettings, aggregate in sonarScan := false, sonarProperties ++= Map("sonar.modules" -> "core,testing,plugin"))
 
