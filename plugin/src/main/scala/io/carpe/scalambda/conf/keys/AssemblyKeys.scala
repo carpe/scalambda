@@ -1,6 +1,5 @@
 package io.carpe.scalambda.conf.keys
 
-import java.io.File
 import sbt._
 import sbtassembly.MergeStrategy
 

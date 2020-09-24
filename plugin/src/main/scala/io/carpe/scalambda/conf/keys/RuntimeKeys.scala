@@ -9,4 +9,6 @@ trait RuntimeKeys {
   lazy val Java8: ScalambdaRuntime = ScalambdaRuntime.Java8
 
   lazy val Java11: ScalambdaRuntime = ScalambdaRuntime.Java11
+
+  lazy val GraalNative: ScalambdaRuntime = ScalambdaRuntime.GraalNative
 }
