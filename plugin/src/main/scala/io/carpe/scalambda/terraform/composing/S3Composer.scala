@@ -62,7 +62,7 @@ object S3Composer {
       base.bucket,
       name = "sources",
       key = "function.zip",
-      source = """filemd5("${path.module}/function.zip")""",
+      source = """function.zip""",
       etag = TLiteral("""filemd5("${path.module}/function.zip")"""),
       billingTags = s3Composable.billingTags
     )
