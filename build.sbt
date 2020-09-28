@@ -109,8 +109,11 @@ lazy val plugin = project
     libraryDependencies += "io.circe" %% "circe-generic" % circeGenericVersion,
     libraryDependencies += "io.circe" %% "circe-yaml" % "0.12.0",
 
-      // Used for reading configuration values
+    // Used for reading configuration values
     libraryDependencies += "com.typesafe" % "config" % "1.2.1",
+
+    // used to create zip file for lambda source
+    libraryDependencies += "org.apache.commons" % "commons-compress" % "1.20",
 
     // Pre-loaded SBT Plugins
     libraryDependencies ++= {
@@ -125,9 +128,6 @@ lazy val plugin = project
 
         // Plugin for accessing git info, used to version lambda functions
         "com.typesafe.sbt" % "sbt-git" % "1.0.0",
-
-        // used to create zip file for lambda source
-        "org.apache.commons" % "commons-compress"  % "1.9",
 
         // Used for graal-native assembly (if someone is crazy enough to use it for their lambdas)
         "com.typesafe.sbt" % "sbt-native-packager" % "1.4.1"
