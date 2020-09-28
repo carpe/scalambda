@@ -5,7 +5,10 @@ import java.nio.file.attribute.{PosixFileAttributes, PosixFilePermission}
 
 import com.typesafe.sbt.packager.graalvmnativeimage.GraalVMNativeImagePlugin.autoImport.GraalVMNativeImage
 import io.carpe.scalambda.ScalambdaPlugin.autoImport.{scalambdaPackageDependencies, scalambdaTerraformPath}
-import sbt.{Def, Task, File, IO}
+import org.apache.commons.compress.archivers.ArchiveStreamFactory
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
+import org.apache.commons.compress.utils.IOUtils
+import sbt.{Def, File, IO, Task}
 import sbt.Keys.packageBin
 
 
@@ -57,16 +60,17 @@ object ScalambdaAssemblyNative {
     IO.createDirectory(zipOutput.getParentFile)
 
     // write zip
-    val zip = new ZipOutputStream(new FileOutputStream(zipOutput.getAbsolutePath))
-    zip.putNextEntry(new ZipEntry("bootstrap"))
-    val in = new BufferedInputStream(new FileInputStream(nativeImage))
-    var b = in.read()
-    while (b > -1) {
-      zip.write(b)
-      b = in.read()
-    }
-    in.close()
-    zip.closeEntry()
-    zip.close()
+    val archiveStream = new FileOutputStream(zipOutput.getAbsolutePath)
+    val archive = new ArchiveStreamFactory().createArchiveOutputStream(ArchiveStreamFactory.ZIP, archiveStream)
+
+    archive.putArchiveEntry(new ZipArchiveEntry("bootstrap"))
+    val input = new BufferedInputStream(new FileInputStream(nativeImage))
+
+    IOUtils.copy(input, archive)
+    input.close()
+    archive.closeArchiveEntry()
+
+    archive.finish()
+    archiveStream.close()
   }
 }
