@@ -26,7 +26,7 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
       }
 
       // decode inputs from the request event
-      requestId <- fetchRequiredHeader(r.headers, "Lambda-Runtime-Aws-Request-Id")
+      requestId <- fetchRequiredHeader(r.headers, "lambda-runtime-aws-request-id")
 
       // send the response back to the AWS lambda service
     } yield RequestEvent(r.text(), requestId)
