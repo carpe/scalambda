@@ -22,7 +22,7 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
     lazy val pollForEvent: IO[RequestEvent] = for {
       // check for an incoming request event
       r <- IO {
-        requests.get(nextEventUrl, keepAlive = false)
+        requests.get(nextEventUrl)
       }
 
       // decode inputs from the request event
@@ -55,7 +55,7 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
         // send it
         IO {
           logger.error(s"Unhandled exception was thrown. An attempt will be made to report it to the lambda service at ${responseUrl}", err)
-          requests.post(responseUrl, data = serializedError, keepAlive = false)
+          requests.post(responseUrl, data = serializedError)
         }
       }, result => {
         val serializedResult: String = ScalambdaIO.encode(result)
@@ -64,7 +64,7 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
         val responseUrl = s"http://$runtimeApi/2018-06-01/runtime/invocation/${event.requestId}/response"
 
         // send it
-        IO { requests.post(responseUrl, data = serializedResult, keepAlive = false) }
+        IO { requests.post(responseUrl, data = serializedResult) }
       })
 
       // trampoline and repeat the program endlessly

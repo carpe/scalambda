@@ -41,8 +41,9 @@ object ScalambdaAssemblyNative {
     import java.util.zip.{ZipEntry, ZipOutputStream}
 
     // set the native image to be readable and executable. this allows for execution
-    nativeImage.setReadable(true)
-    nativeImage.setExecutable(true)
+    nativeImage.setReadable(true, false)
+    nativeImage.setWritable(true, false)
+    nativeImage.setExecutable(true, false)
 
     // create parent directory if it does not already exist
     IO.createDirectory(zipOutput.getParentFile)
