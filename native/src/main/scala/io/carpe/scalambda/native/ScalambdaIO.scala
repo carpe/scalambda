@@ -4,7 +4,7 @@ import cats.effect.{ContextShift, IO}
 import com.typesafe.scalalogging.LazyLogging
 import io.carpe.scalambda.native.ScalambdaIO.RequestEvent
 import io.carpe.scalambda.native.exceptions.MissingHeaderException
-import io.carpe.scalambda.native.views.LambdaServiceResponse
+import io.carpe.scalambda.native.views.LambdaError
 import io.circe.{Decoder, Encoder, Printer}
 
 import scala.concurrent.ExecutionContext
@@ -22,11 +22,11 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
     lazy val pollForEvent: IO[RequestEvent] = for {
       // check for an incoming request event
       r <- IO {
-        requests.get(nextEventUrl)
+        requests.get(nextEventUrl, keepAlive = false)
       }
 
       // decode inputs from the request event
-      requestId <- fetchRequiredHeader(r.headers, "lambda-runtime-aws-request-id")
+      requestId <- fetchRequiredHeader(r.headers, "Lambda-Runtime-Aws-Request-Id")
 
       // send the response back to the AWS lambda service
     } yield RequestEvent(r.text(), requestId)
@@ -45,23 +45,27 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
       eventResponse <- eventBody.fold(IO.raiseError, run).attempt
 
       // send the result of the event back to the aws lambda service
-      serviceResponse: LambdaServiceResponse = eventResponse.fold(err => {
-        val serializedError = err.getMessage
-        LambdaServiceResponse(statusCode = "500", headers = Map("Content-Type" -> "text/plain"), body = serializedError, isBase64Encoded = false)
+      _ <- eventResponse.fold(err => {
+        val error = LambdaError(errorType = err.getClass.getCanonicalName, errorMessage = err.getMessage)
+        val serializedError = ScalambdaIO.encode(error)
+
+        // generate url to send the error to
+        val responseUrl = s"http://$runtimeApi/2018-06-01/runtime/invocation/${event.requestId}/error"
+
+        // send it
+        IO {
+          logger.error(s"Unhandled exception was thrown. An attempt will be made to report it to the lambda service at ${responseUrl}", err)
+          requests.post(responseUrl, data = serializedError, keepAlive = false)
+        }
       }, result => {
         val serializedResult: String = ScalambdaIO.encode(result)
-        LambdaServiceResponse(statusCode = "200", headers = Map("Content-Type" -> "application/json"), body = serializedResult, isBase64Encoded = false)
-      })
-      _ <- IO {
-        // serialize response
-        val serializedServiceResponse = ScalambdaIO.encode(serviceResponse)
 
         // generate url to send the result of the function invocation to
         val responseUrl = s"http://$runtimeApi/2018-06-01/runtime/invocation/${event.requestId}/response"
 
         // send it
-        requests.post(responseUrl, data = serializedServiceResponse)
-      }
+        IO { requests.post(responseUrl, data = serializedResult, keepAlive = false) }
+      })
 
       // trampoline and repeat the program endlessly
       // this allows us to continue checking for additional requests to process before AWS terminates this instance
@@ -126,8 +130,8 @@ object ScalambdaIO {
    */
   case class RequestEvent(eventRequestBody: String, requestId: String)
 
-  // printer we will use to print json
-  private lazy val printer: Printer = Printer.noSpaces.copy(dropNullValues = true)
+  // printer we will use to print/send responses
+  private val printer: Printer = Printer.noSpaces.copy(dropNullValues = true)
 
   /**
    * Helper to turn an object into JSON using some implicitly defined encoder.
