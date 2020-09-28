@@ -1,18 +1,15 @@
 package io.carpe.scalambda.assembly
 
+import java.nio.file.Files
+import java.nio.file.attribute.{PosixFileAttributes, PosixFilePermission}
+
 import com.typesafe.sbt.packager.graalvmnativeimage.GraalVMNativeImagePlugin.autoImport.GraalVMNativeImage
 import io.carpe.scalambda.ScalambdaPlugin.autoImport.{scalambdaPackageDependencies, scalambdaTerraformPath}
-import sbt.Keys.{packageBin, packageOptions, streams}
-import sbt.Tracked
-import sbt.util.FileInfo.exists
-import sbtassembly.AssemblyPlugin.autoImport.{assembledMappings, assemblyOption, assemblyOutputPath}
-import sbtassembly.{Assembly, AssemblyOption, MappingSet}
+import sbt.{Def, Task, File, IO}
+import sbt.Keys.packageBin
 
 
 object ScalambdaAssemblyNative {
-
-  import Tracked.{inputChanged, outputChanged}
-  import sbt._
 
   protected[scalambda] val assembleDepsKey = scalambdaPackageDependencies
 
@@ -22,6 +19,8 @@ object ScalambdaAssemblyNative {
    * @return
    */
   def packageNativeImage(functionName: String): Def.Initialize[Task[java.io.File]] = Def.task {
+    import sbt._
+
     val outputPath = scalambdaTerraformPath.value / s"${functionName}.zip"
 
     // assembly the native image
@@ -41,9 +40,18 @@ object ScalambdaAssemblyNative {
     import java.util.zip.{ZipEntry, ZipOutputStream}
 
     // set the native image to be readable and executable. this allows for execution
-    nativeImage.setReadable(true, false)
-    nativeImage.setWritable(true, false)
-    nativeImage.setExecutable(true, false)
+    val imagePath = nativeImage.toPath
+    val perms = Files.readAttributes(imagePath, classOf[PosixFileAttributes]).permissions()
+    perms.add(PosixFilePermission.OWNER_WRITE)
+    perms.add(PosixFilePermission.OWNER_READ)
+    perms.add(PosixFilePermission.OWNER_EXECUTE)
+    perms.add(PosixFilePermission.GROUP_WRITE)
+    perms.add(PosixFilePermission.GROUP_READ)
+    perms.add(PosixFilePermission.GROUP_EXECUTE)
+    perms.add(PosixFilePermission.OTHERS_WRITE)
+    perms.add(PosixFilePermission.OTHERS_READ)
+    perms.add(PosixFilePermission.OTHERS_EXECUTE)
+    Files.setPosixFilePermissions(imagePath, perms)
 
     // create parent directory if it does not already exist
     IO.createDirectory(zipOutput.getParentFile)
