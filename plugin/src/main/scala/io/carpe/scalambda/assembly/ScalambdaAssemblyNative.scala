@@ -63,7 +63,11 @@ object ScalambdaAssemblyNative {
     val archiveStream = new FileOutputStream(zipOutput.getAbsolutePath)
     val archive = new ArchiveStreamFactory().createArchiveOutputStream(ArchiveStreamFactory.ZIP, archiveStream)
 
-    archive.putArchiveEntry(new ZipArchiveEntry("bootstrap"))
+    // add executable as bootstrap executable
+    val bootstrap = new ZipArchiveEntry("bootstrap")
+    bootstrap.setUnixMode(755)
+    archive.putArchiveEntry(bootstrap)
+
     val input = new BufferedInputStream(new FileInputStream(nativeImage))
 
     IOUtils.copy(input, archive)
