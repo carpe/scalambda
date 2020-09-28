@@ -42,20 +42,6 @@ object ScalambdaAssemblyNative {
     import java.io.{BufferedInputStream, FileInputStream, FileOutputStream}
     import java.util.zip.{ZipEntry, ZipOutputStream}
 
-    // set the native image to be readable and executable. this allows for execution
-    val imagePath = nativeImage.toPath
-    val perms = Files.readAttributes(imagePath, classOf[PosixFileAttributes]).permissions()
-    perms.add(PosixFilePermission.OWNER_WRITE)
-    perms.add(PosixFilePermission.OWNER_READ)
-    perms.add(PosixFilePermission.OWNER_EXECUTE)
-    perms.add(PosixFilePermission.GROUP_WRITE)
-    perms.add(PosixFilePermission.GROUP_READ)
-    perms.add(PosixFilePermission.GROUP_EXECUTE)
-    perms.add(PosixFilePermission.OTHERS_WRITE)
-    perms.add(PosixFilePermission.OTHERS_READ)
-    perms.add(PosixFilePermission.OTHERS_EXECUTE)
-    Files.setPosixFilePermissions(imagePath, perms)
-
     // create parent directory if it does not already exist
     IO.createDirectory(zipOutput.getParentFile)
 
