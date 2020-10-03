@@ -22,7 +22,7 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
     lazy val pollForEvent: IO[RequestEvent] = for {
       // check for an incoming request event
       r <- IO {
-        requests.get(nextEventUrl)
+        requests.get(nextEventUrl, connectTimeout = 0)
       }
 
       // decode inputs from the request event
