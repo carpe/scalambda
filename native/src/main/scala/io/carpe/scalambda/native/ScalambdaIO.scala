@@ -6,6 +6,7 @@ import io.carpe.scalambda.native.ScalambdaIO.RequestEvent
 import io.carpe.scalambda.native.exceptions.MissingHeaderException
 import io.carpe.scalambda.native.views.LambdaError
 import io.circe.{Decoder, Encoder, Printer}
+import requests.Response
 
 import scala.concurrent.ExecutionContext
 
@@ -19,11 +20,25 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
     // The url used to retrieve request events
     val nextEventUrl: String = s"http://$runtimeApi/2018-06-01/runtime/invocation/next"
 
+    // create IO to represent polling the runtime api for a new event to handle
     lazy val pollForEvent: IO[RequestEvent] = for {
-      // check for an incoming request event
-      r <- IO {
-        //
-        requests.get(nextEventUrl, connectTimeout = 0, readTimeout = 0)
+      // continuously check for an incoming request event
+      r <- {
+        // Create endlessly looping request
+        lazy val fetchEvent: IO[Response] = IO {
+          logger.trace(s"Attempting to fetch event from ${nextEventUrl}")
+          requests.get(nextEventUrl)
+        }.handleErrorWith {
+          // Sometimes the lambda runtime will be left to run for a long time without incoming events. In this event, the
+          // lambda runtime api will simply not respond to requests, instead of returning an error.
+          case _: requests.TimeoutException =>
+            fetchEvent
+          case err: Throwable =>
+            IO.raiseError(err)
+        }
+
+        // return the endlessly looping request
+        fetchEvent
       }
 
       // decode inputs from the request event
@@ -65,7 +80,9 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
         val responseUrl = s"http://$runtimeApi/2018-06-01/runtime/invocation/${event.requestId}/response"
 
         // send it
-        IO { requests.post(responseUrl, data = serializedResult) }
+        IO {
+          requests.post(responseUrl, data = serializedResult)
+        }
       })
 
       // trampoline and repeat the program endlessly
@@ -100,8 +117,8 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
   /**
    * Helper function that is used to fetch headers from event requests
    *
-   * @param headers to fetch from
-   * @param targetHeader  name of the header to fetch
+   * @param headers      to fetch from
+   * @param targetHeader name of the header to fetch
    * @return
    */
   private def fetchRequiredHeader(headers: Map[String, Seq[String]], targetHeader: String): IO[String] = {
@@ -126,8 +143,9 @@ object ScalambdaIO {
 
   /**
    * Helper class for wrapping a single request event from the AWS Service
+   *
    * @param eventRequestBody body of the event
-   * @param requestId id of the event
+   * @param requestId        id of the event
    */
   case class RequestEvent(eventRequestBody: String, requestId: String)
 
@@ -137,7 +155,7 @@ object ScalambdaIO {
   /**
    * Helper to turn an object into JSON using some implicitly defined encoder.
    *
-   * @param obj to encode
+   * @param obj     to encode
    * @param encoder to encode with
    * @tparam T type of the object we are encoding
    * @return the object as JSON
