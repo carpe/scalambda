@@ -6,7 +6,6 @@ import io.carpe.scalambda.native.ScalambdaIO.RequestEvent
 import io.carpe.scalambda.native.exceptions.MissingHeaderException
 import io.carpe.scalambda.native.views.LambdaError
 import io.circe.{Decoder, Encoder, Printer}
-import requests.{Response, readTimeout}
 
 import scala.concurrent.ExecutionContext
 
@@ -25,7 +24,10 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
       // check for an incoming request event
       r <- IO {
         logger.trace(s"Attempting to fetch event from ${nextEventUrl}")
-        // Make request (without timeout as per AWS Custom Runtime documentation's request)
+        // Make request (without a timeout as prescribed by the AWS Custom Lambda Runtime documentation). This is due
+        // to the possibility of the runtime being frozen between lambda function invocations. Continuously polling also
+        // seems to cause issues with AWS's internal lambda state management service, so this definitely seems to be
+        // the best way of fetching the event.
         requests.get(nextEventUrl, connectTimeout = 0, readTimeout = 0)
       }
 
