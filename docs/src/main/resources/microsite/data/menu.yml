@@ -17,3 +17,6 @@ options:
        url: docs/api/create-api
      - title: Deploy an API
        url: docs/api/deploy-api
+
+  - title: Using Graal Native
+    url: docs/thegraaaaal/

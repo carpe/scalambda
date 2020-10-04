@@ -68,11 +68,13 @@ Each `scalambda` function accepts a wide range of parameters. Although, the only
 | functionNaming                  | FunctionNaming           | controls how your lambda function is named  | `WorkspaceBased` |
 | iamRoleSource                   | FunctionRoleSource       | controls how your lambda function receives it's IAM role. Options are `RoleFromVariable` or `RoleFromArn` | `RoleFromVariable` |
 | memory                          | Int                      | amount of memory for your function to use (in MBs)  | 1536 |
-| runtime                         | ScalambdaRuntime         | runtime for your function to use (Java8 or Java11) | `Java8` | 
+| runtime                         | ScalambdaRuntime         | runtime for your function to use. Options are `Java8`, `Java11`, or `GraalNative` | `Java8` | 
 | concurrencyLimit                | Int                      | maximum number of concurrent instances of your Function | - |
 | warmWith                        | WarmerConfig             | controls how your lambda function will be kept "warm" | `WarmerConfig.Cold` |
 | vpcConfig                       | VpcConfig                | use this setting if you need to run your Lambda Function inside a VPC. Options are `StaticVpcConfig` and `VpcFromTF` | `VpcConf.withoutVpc` |
 | environmentVariables            | Seq[EnvironmentVariable] | use this to inject ENV variables into your Lambda Function. Options are `StaticVariable` and `VariableFromTF` | Nil |
+
+Note: If you use the GraalNative runtime, please make sure to read [the documentation page](https://carpe.github.io/scalambda/docs/thegraaaaal/) for additional information (and a list of disclaimers a mile long). 
 
 #### Terraform Module Settings
 
@@ -80,7 +82,7 @@ When/if you run `scalambdaTerraform`, several variables will be generated in the
 
 | Parameter                       | Type                     | Description                                             | Default Value                  |
 | ------------------------------- | ------------------------ | ------------------------------------------------------- | ------------------------------:|
-| your_function_name_billing_tags | map                      | Billing tags for the function. These will be merged with the billing tags provided via the plugin `billingTags` setting.  | {} |
+| <your_function_name>_billing_tags | map                      | Billing tags for the function. These will be merged with the billing tags provided via the plugin `billingTags` setting.  | {} |
 | s3_billing_tags                 | map                      | Billing tags for the S3 bucket. These will be merged with the billing tags provided via the plugin `billingTags` setting. | {} |
 
 ## Tasks

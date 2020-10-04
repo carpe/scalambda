@@ -14,6 +14,7 @@ import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.graalvmnativeimage.GraalVMNativeImagePlugin
 import sbt.AutoPlugin
 import sbt.Keys._
+import sbtassembly.AssemblyKeys.assembly
 import sbtassembly._
 
 object ScalambdaPlugin extends AutoPlugin {
@@ -94,7 +95,11 @@ object ScalambdaPlugin extends AutoPlugin {
         case ScalambdaRuntime.Java11 =>
           jvmScalambdaLibs ++ LambdaLoggingSettings.jvmLoggingSettings
         case ScalambdaRuntime.GraalNative =>
-          nativeScalambdaLibs  ++ LambdaLoggingSettings.nativeLoggingSettings
+          // TODO: Set this setting for each unique Lambda to allow for more than 1 native lambda to be created from each project.
+          val mainClassSetting = (
+            mainClass in assembly := Some(functionClasspath)
+          )
+          nativeScalambdaLibs ++ LambdaLoggingSettings.nativeLoggingSettings :+ mainClassSetting
       }
 
       // return a project
