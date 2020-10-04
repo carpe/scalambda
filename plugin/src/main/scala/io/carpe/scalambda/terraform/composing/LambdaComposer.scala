@@ -2,7 +2,7 @@ package io.carpe.scalambda.terraform.composing
 
 import io.carpe.scalambda.conf.ScalambdaFunction.DefinedFunction
 import io.carpe.scalambda.conf.function.WarmerConfig.NoOp
-import io.carpe.scalambda.conf.function.{EnvironmentVariable, FunctionRoleSource, ScalambdaRuntime, VpcConf, WarmerConfig}
+import io.carpe.scalambda.conf.function._
 import io.carpe.scalambda.conf.utils.StringUtils
 import io.carpe.scalambda.terraform.ast.Definition
 import io.carpe.scalambda.terraform.ast.Definition.{Output, Variable}

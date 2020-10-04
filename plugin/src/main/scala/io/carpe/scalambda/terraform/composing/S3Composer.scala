@@ -3,7 +3,7 @@ package io.carpe.scalambda.terraform.composing
 
 import io.carpe.scalambda.conf.function.FunctionSources
 import io.carpe.scalambda.terraform.ast.Definition.Variable
-import io.carpe.scalambda.terraform.ast.props.TValue.{TLiteral, TObject, TVariableRef}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TLiteral, TObject}
 import io.carpe.scalambda.terraform.ast.providers.aws.BillingTag
 import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
 

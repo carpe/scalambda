@@ -1,7 +1,7 @@
 package io.carpe.scalambda.terraform.openapi
 
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.api.{ApiGatewayConfig, ApiGatewayEndpoint}
+import io.carpe.scalambda.conf.api.ApiGatewayEndpoint
 import io.carpe.scalambda.conf.function.Method
 
 case class ResourcePath(name: String, post: Option[ResourceMethod], get: Option[ResourceMethod], put: Option[ResourceMethod], patch: Option[ResourceMethod], delete: Option[ResourceMethod], head: Option[ResourceMethod], options: Option[ResourceMethod]) {

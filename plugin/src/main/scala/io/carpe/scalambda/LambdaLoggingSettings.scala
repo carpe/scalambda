@@ -1,9 +1,7 @@
 package io.carpe.scalambda
 
-import sbt.Keys.{excludeDependencies, libraryDependencies, printWarnings}
-import _root_.io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.function.ScalambdaRuntime
 import sbt.Def
+import sbt.Keys.{excludeDependencies, libraryDependencies}
 
 object LambdaLoggingSettings {
 

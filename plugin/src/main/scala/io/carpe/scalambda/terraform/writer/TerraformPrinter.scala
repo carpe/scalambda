@@ -6,7 +6,7 @@ import java.nio.file.Files
 import cats.data.Chain
 import io.carpe.scalambda.terraform.ast.TerraformFile
 import io.carpe.scalambda.terraform.ast.props.TLine
-import io.carpe.scalambda.terraform.ast.props.TLine.{TBlockLine, TEmptyLine}
+import io.carpe.scalambda.terraform.ast.props.TLine.TEmptyLine
 
 object TerraformPrinter {
 

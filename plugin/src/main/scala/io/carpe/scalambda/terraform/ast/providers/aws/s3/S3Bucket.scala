@@ -3,7 +3,7 @@ package io.carpe.scalambda.terraform.ast.providers.aws.s3
 import io.carpe.scalambda.conf.utils.StringUtils
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TBool, TFunctionInvocation, TObject, TString, TVariableRef}
+import io.carpe.scalambda.terraform.ast.props.TValue._
 import io.carpe.scalambda.terraform.ast.providers.aws.BillingTag
 
 case class S3Bucket(bucketName: String, billingTags: Seq[BillingTag], additionalBillingTagsVariable: TVariableRef) extends Resource {

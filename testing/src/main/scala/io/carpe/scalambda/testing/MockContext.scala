@@ -2,7 +2,7 @@ package io.carpe.scalambda.testing
 
 import java.util
 
-import com.amazonaws.services.lambda.runtime.{Client, ClientContext, CognitoIdentity, Context, LambdaLogger}
+import com.amazonaws.services.lambda.runtime._
 
 case class MockContext(functionName: String = "unit-test-function",
                        timeRemaining: Int = 5000,

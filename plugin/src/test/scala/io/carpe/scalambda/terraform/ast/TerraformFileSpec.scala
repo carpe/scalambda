@@ -1,10 +1,8 @@
 package io.carpe.scalambda.terraform.ast
 
-import io.carpe.scalambda.conf.function.RuntimeConfig
 import io.carpe.scalambda.fixtures.{ScalambdaFunctionFixtures, TerraformBehaviors}
 import io.carpe.scalambda.terraform.ast.Definition.Variable
-import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TString, TVariableRef}
-import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.LambdaFunction
+import io.carpe.scalambda.terraform.ast.props.TValue.TVariableRef
 import io.carpe.scalambda.terraform.ast.providers.aws.s3.S3Bucket
 import org.scalatest.flatspec.AnyFlatSpec
 

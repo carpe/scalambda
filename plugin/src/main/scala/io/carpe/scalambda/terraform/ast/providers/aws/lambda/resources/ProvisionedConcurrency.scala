@@ -2,7 +2,7 @@ package io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources
 
 import io.carpe.scalambda.terraform.ast.Definition.{Resource, Variable}
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TBool, TIf, TLiteral, TNumber, TResourceRef}
+import io.carpe.scalambda.terraform.ast.props.TValue._
 
 case class ProvisionedConcurrency(functionAlias: LambdaFunctionAliasResource, enableWarmers: Variable[TBool], desiredConcurrency: Int) extends Resource {
   /**

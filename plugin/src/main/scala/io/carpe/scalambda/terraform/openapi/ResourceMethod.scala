@@ -2,7 +2,6 @@ package io.carpe.scalambda.terraform.openapi
 
 import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.conf.api.ApiGatewayEndpoint
-import io.carpe.scalambda.terraform.ast.providers.aws.apigateway.ApiGateway
 import io.carpe.scalambda.terraform.openapi.resourcemethod.Integration.{AllowOrigin, LambdaIntegration}
 import io.carpe.scalambda.terraform.openapi.resourcemethod.{Integration, MethodResponse, Security}
 import io.circe.{Encoder, Json}

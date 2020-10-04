@@ -1,12 +1,9 @@
 package io.carpe.scalambda.terraform.ast.module
 
 import io.carpe.scalambda.terraform.ast.Definition.{Output, Variable}
-import io.carpe.scalambda.terraform.ast.{Definition, TerraformFile}
-import io.carpe.scalambda.terraform.ast.providers.aws.lambda.LambdaFunctionAlias
-import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.{LambdaFunction, LambdaLayerVersion, LambdaPermission, ProvisionedConcurrency}
 import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
-import io.carpe.scalambda.terraform.ast.providers.terraform.data.{ArchiveFile, TemplateFile}
-import io.carpe.scalambda.terraform.ast.providers.aws.apigateway._
+import io.carpe.scalambda.terraform.ast.providers.terraform.data.ArchiveFile
+import io.carpe.scalambda.terraform.ast.{Definition, TerraformFile}
 import io.carpe.scalambda.terraform.writer.TerraformPrinter
 
 case class ScalambdaModule( // lambda resources

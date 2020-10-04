@@ -1,8 +1,8 @@
 import sbt.Keys.libraryDependencies
 import sbt._
-import versions._
-import sonar._
 import scapegoat._
+import sonar._
+import versions._
 
 scapegoatVersion in ThisBuild := "1.4.1"
 ThisBuild / scalaVersion := "2.12.10"
@@ -47,7 +47,13 @@ lazy val core = project
     // Testing
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % Test,
     libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test,
-    Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")
+    Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports"),
+
+    // Logging in Test
+    libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.29" % Test,
+    libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.8.2" % Test,
+    libraryDependencies += "org.apache.logging.log4j" % "log4j-api" % "2.8.2" % Test,
+    libraryDependencies += "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.12.1" % Test
   )
 
 lazy val native = project
@@ -89,8 +95,10 @@ lazy val testing = project
     libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10",
 
     // Logging
+    libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.29",
     libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.8.2",
     libraryDependencies += "org.apache.logging.log4j" % "log4j-api" % "2.8.2",
+    libraryDependencies += "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.12.1",
 
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")
   ).dependsOn(core)

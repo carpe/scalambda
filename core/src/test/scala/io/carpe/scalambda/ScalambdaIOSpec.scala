@@ -1,8 +1,7 @@
 package io.carpe.scalambda
 
-import java.io.{ByteArrayOutputStream, IOException, OutputStream}
+import java.io.OutputStream
 
-import cats.effect.concurrent.Ref
 import cats.effect.{IO, Resource}
 import com.amazonaws.services.lambda.runtime.Context
 import io.carpe.scalambda.effect.ScalambdaIO

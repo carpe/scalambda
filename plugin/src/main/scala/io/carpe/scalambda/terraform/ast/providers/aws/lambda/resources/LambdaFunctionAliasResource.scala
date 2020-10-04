@@ -3,7 +3,7 @@ package io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources
 import io.carpe.scalambda.conf.utils.StringUtils
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TLiteral, TResourceRef, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TResourceRef, TString}
 import io.carpe.scalambda.terraform.ast.providers.aws.lambda.LambdaFunctionAlias
 
 /**

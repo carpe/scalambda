@@ -1,13 +1,12 @@
 package io.carpe.scalambda.fixtures
 
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.ScalambdaFunction.DefinedFunction
 import io.carpe.scalambda.conf.api.ApiGatewayEndpoint
 import io.carpe.scalambda.conf.function.FunctionNaming.Static
 import io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import io.carpe.scalambda.conf.function._
-import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TString, TVariableRef}
-import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.{LambdaFunction, LambdaLayerVersion}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TString, TVariableRef}
+import io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources.LambdaLayerVersion
 import io.carpe.scalambda.terraform.ast.providers.aws.s3.{S3Bucket, S3BucketItem}
 import org.scalatest.flatspec.AnyFlatSpec
 

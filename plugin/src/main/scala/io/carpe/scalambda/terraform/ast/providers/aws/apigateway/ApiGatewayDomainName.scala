@@ -2,7 +2,7 @@ package io.carpe.scalambda.terraform.ast.providers.aws.apigateway
 
 import io.carpe.scalambda.terraform.ast.Definition.{Resource, Variable}
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TBool, TLiteral, TString, TVariableRef}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TBool, TLiteral}
 
 case class ApiGatewayDomainName(name: String, domainName: TValue, certificateArn: TValue, toggle: Variable[TBool]) extends Resource {
   /**

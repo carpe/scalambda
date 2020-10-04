@@ -3,7 +3,7 @@ package io.carpe.scalambda.terraform.ast.providers.aws.lambda.data
 import io.carpe.scalambda.conf.ScalambdaFunction.ReferencedFunction
 import io.carpe.scalambda.terraform.ast.Definition.Data
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TDataRef, TResourceRef, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TDataRef, TString}
 import io.carpe.scalambda.terraform.ast.providers.aws.lambda.LambdaFunctionAlias
 
 case class LambdaFunctionAliasData(referencedFunction: ReferencedFunction) extends Data with LambdaFunctionAlias {

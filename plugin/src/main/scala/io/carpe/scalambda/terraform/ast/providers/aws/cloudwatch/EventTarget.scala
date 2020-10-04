@@ -3,7 +3,7 @@ package io.carpe.scalambda.terraform.ast.providers.aws.cloudwatch
 import io.carpe.scalambda.conf.utils.StringUtils
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{THeredoc, TResourceRef, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue.{THeredoc, TResourceRef}
 import io.circe.Json
 
 case class EventTarget(namePrefix: String, rule: EventRule, functionName: TValue, qualifiedArn: TValue, json: Json) extends Resource {

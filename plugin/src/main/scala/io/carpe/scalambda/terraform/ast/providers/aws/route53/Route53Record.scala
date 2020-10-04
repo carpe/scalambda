@@ -2,7 +2,7 @@ package io.carpe.scalambda.terraform.ast.providers.aws.route53
 
 import io.carpe.scalambda.terraform.ast.Definition.{Resource, Variable}
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TBlock, TBool, TLiteral, TObject, TResourceRef, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue._
 import io.carpe.scalambda.terraform.ast.providers.aws.apigateway.ApiGatewayDomainName
 
 case class Route53Record(name: String, apiGatewayDomainName: ApiGatewayDomainName, zoneId: TValue, toggle: Variable[TBool]) extends Resource {

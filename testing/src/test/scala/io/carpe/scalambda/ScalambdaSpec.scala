@@ -3,10 +3,9 @@ package io.carpe.scalambda
 import com.amazonaws.services.lambda.runtime.Context
 import io.carpe.scalambda.ScalambdaSpec.CarValidator
 import io.carpe.scalambda.fixtures.TestModels._
-import io.carpe.scalambda.testing.ScalambdaFixtures
 import org.scalatest.flatspec.AnyFlatSpec
 
-class ScalambdaSpec extends AnyFlatSpec with ScalambdaFixtures {
+class ScalambdaSpec extends AnyFlatSpec with testing.ScalambdaFixtures {
   "Scalambda" should "take in a request and provide a response" in {
 
     val response = testRequestJson(new CarValidator(), validCar)

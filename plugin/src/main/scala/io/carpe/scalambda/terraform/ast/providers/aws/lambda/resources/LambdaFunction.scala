@@ -2,7 +2,6 @@ package io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources
 
 import io.carpe.scalambda.conf.ScalambdaFunction.DefinedFunction
 import io.carpe.scalambda.conf.function.EnvironmentVariable
-import io.carpe.scalambda.conf.function.ScalambdaRuntime.{Java11, Java8}
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue._

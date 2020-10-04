@@ -19,7 +19,7 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
         version = "42",
         s3Bucket = s3Bucket,
         s3BucketItem = sourcesBucketItem,
-        dependenciesLayer = dependenciesLambdaLayer,
+        dependenciesLayer = Some(dependenciesLambdaLayer),
         isXrayEnabled = false,
         billingTags = Nil,
         additionalBillingTagsVariable = billingTagsVariable
@@ -62,7 +62,7 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
         version = "1337",
         s3Bucket = s3Bucket,
         s3BucketItem = sourcesBucketItem,
-        dependenciesLayer = dependenciesLambdaLayer,
+        dependenciesLayer = Some(dependenciesLambdaLayer),
         isXrayEnabled = false,
         billingTags = Nil,
         additionalBillingTagsVariable = billingTagsVariable
@@ -112,7 +112,7 @@ class LambdaFunctionSpec extends AnyFlatSpec with ScalambdaFunctionFixtures with
         version = "1337",
         s3Bucket = s3Bucket,
         s3BucketItem = sourcesBucketItem,
-        dependenciesLayer = dependenciesLambdaLayer,
+        dependenciesLayer = Some(dependenciesLambdaLayer),
         isXrayEnabled = false,
         billingTags = Seq(BillingTag("YourMomma", "SoFat")),
         additionalBillingTagsVariable = billingTagsVariable

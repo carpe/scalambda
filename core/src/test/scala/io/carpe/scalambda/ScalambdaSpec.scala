@@ -1,8 +1,6 @@
 package io.carpe.scalambda
 
-import cats.effect.IO
 import com.amazonaws.services.lambda.runtime.Context
-import io.carpe.scalambda.effect.ScalambdaIO
 import org.scalatest.flatspec.AnyFlatSpec
 
 class ScalambdaSpec extends AnyFlatSpec with ScalambdaFixtures {

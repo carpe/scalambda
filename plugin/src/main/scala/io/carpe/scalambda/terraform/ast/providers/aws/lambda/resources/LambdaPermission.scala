@@ -3,7 +3,6 @@ package io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue.TString
-import io.carpe.scalambda.terraform.ast.providers.aws.apigateway.ApiGateway
 
 case class LambdaPermission(lambdaResourceName: String, statementId: String, principal: String, functionName: TValue, qualifier: TValue, sourceArn: TValue) extends Resource {
   /**

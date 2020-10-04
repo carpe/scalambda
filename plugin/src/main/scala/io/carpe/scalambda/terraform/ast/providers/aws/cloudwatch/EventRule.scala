@@ -3,7 +3,7 @@ package io.carpe.scalambda.terraform.ast.providers.aws.cloudwatch
 import io.carpe.scalambda.conf.utils.StringUtils
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TBool, TString}
+import io.carpe.scalambda.terraform.ast.props.TValue.TString
 import io.carpe.scalambda.terraform.ast.providers.aws.cloudwatch.EventRule.Schedule
 
 case class EventRule(namePrefix: String, description: String, role: TValue, isEnabled: TValue, schedule: Schedule) extends Resource {

@@ -1,15 +1,12 @@
 package io.carpe.scalambda.assembly
 
-import java.nio.file.Files
-import java.nio.file.attribute.{PosixFileAttributes, PosixFilePermission}
-
 import com.typesafe.sbt.packager.graalvmnativeimage.GraalVMNativeImagePlugin.autoImport.GraalVMNativeImage
 import io.carpe.scalambda.ScalambdaPlugin.autoImport.{scalambdaPackageDependencies, scalambdaTerraformPath}
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.utils.IOUtils
-import sbt.{Def, File, IO, Task}
 import sbt.Keys.packageBin
+import sbt.{Def, File, IO, Task}
 
 
 object ScalambdaAssemblyNative {
@@ -40,7 +37,6 @@ object ScalambdaAssemblyNative {
                              nativeImage: File
                            ): Unit = {
     import java.io.{BufferedInputStream, FileInputStream, FileOutputStream}
-    import java.util.zip.{ZipEntry, ZipOutputStream}
 
     // create parent directory if it does not already exist
     IO.createDirectory(zipOutput.getParentFile)

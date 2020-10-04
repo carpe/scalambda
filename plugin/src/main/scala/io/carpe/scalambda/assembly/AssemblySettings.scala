@@ -1,12 +1,11 @@
 package io.carpe.scalambda.assembly
 
+import _root_.io.carpe.scalambda.conf.function.ScalambdaRuntime
 import io.carpe.scalambda.Log4j2MergeStrategy
-import _root_.io.carpe.scalambda.conf.function.{ScalambdaRuntime, _}
-import com.typesafe.sbt.packager.graalvmnativeimage.GraalVMNativeImagePlugin.autoImport.GraalVMNativeImage
-import io.carpe.scalambda.ScalambdaPlugin.autoImport.{scalambdaDependenciesMergeStrat, scalambdaFunctions, scalambdaPackage, scalambdaPackageDependencies, scalambdaPackageMergeStrat, scalambdaPackageNative, scalambdaTerraformPath}
+import io.carpe.scalambda.ScalambdaPlugin.autoImport._
+import sbt.Def.Initialize
 import sbt.Keys._
 import sbt._
-import sbt.Def.Initialize
 import sbtassembly.AssemblyKeys.assembledMappings
 import sbtassembly.AssemblyPlugin.autoImport._
 import sbtassembly.{Assembly, MappingSet, MergeStrategy, PathList}

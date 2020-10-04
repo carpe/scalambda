@@ -1,5 +1,5 @@
+import sbt.Keys.{name, scalaBinaryVersion, testOptions, version}
 import sbt._
-import sbt.Keys.{name, scalaBinaryVersion,version, testOptions}
 import sbtsonar.SonarPlugin.autoImport.sonarProperties
 
 object sonar {
