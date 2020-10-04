@@ -12,11 +12,9 @@ import com.typesafe.sbt.GitVersioning
 import com.typesafe.sbt.SbtGit.GitKeys.{formattedDateVersion, gitHeadCommit}
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.graalvmnativeimage.GraalVMNativeImagePlugin
+import sbt.AutoPlugin
 import sbt.Keys._
-import sbt.{AutoPlugin, Def, Plugins}
 import sbtassembly._
-
-import scala.tools.nsc.Properties
 
 object ScalambdaPlugin extends AutoPlugin {
 
@@ -92,11 +90,11 @@ object ScalambdaPlugin extends AutoPlugin {
       // dependencies that will automatically be injected based on the user's runtime choice
       val runtimeDependencies = runtime match {
         case ScalambdaRuntime.Java8 =>
-          jvmScalambdaLibs
+          jvmScalambdaLibs ++ LambdaLoggingSettings.jvmLoggingSettings
         case ScalambdaRuntime.Java11 =>
-          jvmScalambdaLibs
+          jvmScalambdaLibs ++ LambdaLoggingSettings.jvmLoggingSettings
         case ScalambdaRuntime.GraalNative =>
-          nativeScalambdaLibs
+          nativeScalambdaLibs  ++ LambdaLoggingSettings.nativeLoggingSettings
       }
 
       // return a project
@@ -208,7 +206,7 @@ object ScalambdaPlugin extends AutoPlugin {
       libraryDependencies ++= {
         XRaySettings.xrayLibs(isXrayEnabled = enableXray.?.value.getOrElse(false))
       }
-    ) ++ LambdaLoggingSettings.loggingSettings ++ AssemblySettings.defaultSettings
+    ) ++ LambdaLoggingSettings.jvmLoggingSettings ++ AssemblySettings.defaultSettings
 
   override def globalSettings: Seq[Def.Setting[_]] = Seq()
 
