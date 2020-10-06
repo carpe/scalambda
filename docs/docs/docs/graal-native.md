@@ -54,6 +54,35 @@ lazy val nativegreeter = (project in file("."))
 
 You will almost certainly need to tweak the configuration a bit depending on the needs for your function. You will almost certainly need to tweak the settings above in order for your code to successfully build. Checkout the [full list of available settings](https://sbt-native-packager.readthedocs.io/en/latest/formats/graalvm-native-image.html#settings) in sbt-native-packager's documentation.
 
+**Important Note:** Due to current limitations on how we assemble your native image, **each sub-project can only include one `GraalNative` Scalambda Function**.
+
+## Implementation
+
+In order to get your function to execute properly, **you only need to do two things**.
+
+1. Your main class must be an `object`.
+2. Your main class must extend either `io.carpe.scalambda.native.ScalambdaIO` or `io.carpe.scalambda.native.Scalambda`. 
+
+Scalambda automatically injects the library that includes the `io.carpe.scalambda.native` package when you set your function's runtime to `GraalNative`. 
+
+Other than these two things, you shouldn't need to change anything else at all from the usual code you'd use for a JVM-based Scalambda Function. Of course, you may want to tweak things later.
+
+```scala
+package science.doing.nativegreeter
+
+import cats.effect.IO
+import io.carpe.scalambda.native.ScalambdaIO
+
+// NOTE: we are using the `native` ScalambdaIO, not the JVM based one.
+object NativeGreeter extends ScalambdaIO[String, String] {
+
+  override def run(input: String): IO[String] = IO {
+    "Hello, " + input + "!"
+  }
+
+}
+```
+
 ## Building and Deploying
 
 Assuming you already have the prerequisites installed, you can try to deploy your new Graal Native Lambda function the same way as any other Scalambda Lambda Function. Just run `sbt scalambdaTerraform` to generate the terraform and then apply it. For further details, checkout [Deploying Functions](https://carpe.github.io/scalambda/docs/deploying-functions/) for a more in-depth explanation.
