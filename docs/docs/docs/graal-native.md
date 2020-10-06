@@ -47,8 +47,7 @@ lazy val nativegreeter = (project in file("."))
       "--static", // Forces statically-linked binary, requires libc installation. Comment this out if you're using OSX
       "--enable-url-protocols=http" // Enables http requests, which are required in order to communicate with the AWS Lambda Runtime API
       // "--enable-url-protocols=http,https" // Enables both http and https requests
-    ),
-    excludeDependencies += "io.symphonia.lambda-logging"
+    )
   )
 ```
 

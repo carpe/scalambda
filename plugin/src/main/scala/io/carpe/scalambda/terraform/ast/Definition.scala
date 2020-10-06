@@ -90,11 +90,12 @@ object Definition {
           case t if t =:= typeOf[TString] => Some(TLiteral("string"))
           case t if t =:= typeOf[TNumber] => Some(TLiteral("number"))
           case t if t =:= typeOf[TBool] => Some(TLiteral("bool"))
-          case t if t =:= typeOf[TObject] => Some(TLiteral("map"))
+          case t if t =:= typeOf[TObject] => Some(TLiteral("map(any)"))
           case _ => None
         }
       },
-      "description" -> description.map(TString)
+      "description" -> description.map(TString),
+      "default" -> defaultValue
     ).collect {
       case (k, Some(v)) => k -> v
     }

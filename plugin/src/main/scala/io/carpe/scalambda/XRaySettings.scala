@@ -10,7 +10,6 @@ object XRaySettings {
     if (isXrayEnabled) {
       return Seq(
         "com.amazonaws" % "aws-xray-recorder-sdk-core" % xrayRecorderVersion,
-        "com.amazonaws" % "aws-xray-recorder-sdk-aws-sdk-core" % xrayRecorderVersion,
         "com.amazonaws" % "aws-xray-recorder-sdk-aws-sdk-v2" % xrayRecorderVersion,
         "com.amazonaws" % "aws-xray-recorder-sdk-aws-sdk-v2-instrumentor" % xrayRecorderVersion
       )
