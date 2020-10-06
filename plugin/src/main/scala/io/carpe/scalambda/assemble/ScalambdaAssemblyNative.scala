@@ -1,4 +1,4 @@
-package io.carpe.scalambda.assembly
+package io.carpe.scalambda.assemble
 
 import com.typesafe.sbt.packager.graalvmnativeimage.GraalVMNativeImagePlugin.autoImport.GraalVMNativeImage
 import io.carpe.scalambda.ScalambdaPlugin.autoImport.{scalambdaPackageDependencies, scalambdaTerraformPath}

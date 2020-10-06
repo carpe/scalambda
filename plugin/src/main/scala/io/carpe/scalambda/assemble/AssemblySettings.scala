@@ -1,4 +1,4 @@
-package io.carpe.scalambda.assembly
+package io.carpe.scalambda.assemble
 
 import _root_.io.carpe.scalambda.conf.function.ScalambdaRuntime
 import io.carpe.scalambda.Log4j2MergeStrategy

@@ -1,4 +1,4 @@
-package io.carpe.scalambda.assembly
+package io.carpe.scalambda.assemble
 
 import java.io.File
 import java.security.MessageDigest

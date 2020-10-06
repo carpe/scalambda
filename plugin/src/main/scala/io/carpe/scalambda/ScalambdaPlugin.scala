@@ -1,6 +1,6 @@
 package io.carpe.scalambda
 
-import _root_.io.carpe.scalambda.assembly.AssemblySettings
+import _root_.io.carpe.scalambda.assemble.AssemblySettings
 import _root_.io.carpe.scalambda.conf.ScalambdaFunction
 import _root_.io.carpe.scalambda.conf.api.{ApiGatewayConfig, ApiGatewayEndpoint}
 import _root_.io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
