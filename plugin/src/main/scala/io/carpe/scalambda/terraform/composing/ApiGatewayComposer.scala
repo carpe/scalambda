@@ -220,6 +220,7 @@ object ApiGatewayComposer {
     Seq(
       Output("rest_api_id", Some("id of the created api gateway rest api"), isSensitive = false, TResourceRef(api, "id")),
       Output("rest_api_deployment_id", Some("id of the created api gateway rest api deployment"), isSensitive = false, TResourceRef(deployment, "id")),
+      Output("rest_api_deployment_url", Some("base url of the api's latest deployment"), isSensitive = false, TResourceRef(deployment, "invoke_url")),
       Output("rest_api_stage_name", Some("name of the created api gateway rest api stage"), isSensitive = false, TResourceRef(apiGatewayStage, "stage_name"))
     )
   }
