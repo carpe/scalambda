@@ -6,7 +6,7 @@ m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 
 ga('create', 'UA-85042842-3' , 'auto');
 ga('send', 'pageview');
-      </script></head><body class="docs"><div id="wrapper"><div id="sidebar-wrapper"><div id="sidebar-brand"><a href="/scalambda/" class="brand"><div class="brand-wrapper"></div><span>scalambda</span></a><button id="main-toggle" class="sidebar-toggle"><span class="close"></span></button></div><div class="sidebar-nav"> <div class="sidebar-nav-item  "><a href="/scalambda/docs/" title="Getting Started" class="">Getting Started</a></div> <div class="sidebar-nav-item active "><a href="/scalambda/docs/configuration" title="Configuring Functions" class="active">Configuring Functions</a></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/writing-functions" title="Writing Functions" class="">Writing Functions</a></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/deploying-functions" title="Deploying Functions" class="">Deploying Functions</a></div> <div class="sidebar-nav-item  "><button type="button" title="Api Gateway" class="button drop-nested">Api Gateway</button><i class="fa fa-angle-right"></i><div class="sub-section"> <a href="/scalambda/docs/api/create-api" title="Create an API" class="">Create an API</a> <a href="/scalambda/docs/api/deploy-api" title="Deploy an API" class="">Deploy an API</a></div></div></div></div><div id="page-content-wrapper"><div class="nav"><div class="container-fluid"><div class="row"><div class="col-lg-12"><div class="action-menu pull-left clearfix"><a href="#menu-toggle" id="menu-toggle"><i class="fa fa-bars" aria-hidden="true"></i></a></div><ul class="pull-right"><li id="gh-eyes-item" class="hidden-xs"><a href="https://github.com/carpe/scalambda" target="_blank" rel="noopener noreferrer"><i class="fa fa-eye"></i><span>Watchers<span id="eyes" class="label label-default">--</span></span></a></li><li id="gh-stars-item" class="hidden-xs"><a href="https://github.com/carpe/scalambda" target="_blank" rel="noopener noreferrer"><i class="fa fa-star-o"></i><span>Stars<span id="stars" class="label label-default">--</span></span></a></li></ul></div></div></div></div><div id="content" data-github-owner="carpe" data-github-repo="scalambda"><div class="content-wrapper"><section><h2 id="defining-scalambdas">Defining Scalambdas</h2>
+      </script></head><body class="docs"><div id="wrapper"><div id="sidebar-wrapper"><div id="sidebar-brand"><a href="/scalambda/" class="brand"><div class="brand-wrapper"></div><span>scalambda</span></a><button id="main-toggle" class="sidebar-toggle"><span class="close"></span></button></div><div class="sidebar-nav"> <div class="sidebar-nav-item  "><a href="/scalambda/docs/" title="Getting Started" class="">Getting Started</a></div> <div class="sidebar-nav-item active "><a href="/scalambda/docs/configuration" title="Configuring Functions" class="active">Configuring Functions</a></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/writing-functions" title="Writing Functions" class="">Writing Functions</a></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/deploying-functions" title="Deploying Functions" class="">Deploying Functions</a></div> <div class="sidebar-nav-item  "><button type="button" title="Api Gateway" class="button drop-nested">Api Gateway</button><i class="fa fa-angle-right"></i><div class="sub-section"> <a href="/scalambda/docs/api/create-api" title="Create an API" class="">Create an API</a> <a href="/scalambda/docs/api/deploy-api" title="Deploy an API" class="">Deploy an API</a></div></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/thegraaaaal/" title="Using Graal Native" class="">Using Graal Native</a></div></div></div><div id="page-content-wrapper"><div class="nav"><div class="container-fluid"><div class="row"><div class="col-lg-12"><div class="action-menu pull-left clearfix"><a href="#menu-toggle" id="menu-toggle"><i class="fa fa-bars" aria-hidden="true"></i></a></div><ul class="pull-right"><li id="gh-eyes-item" class="hidden-xs"><a href="https://github.com/carpe/scalambda" target="_blank" rel="noopener noreferrer"><i class="fa fa-eye"></i><span>Watchers<span id="eyes" class="label label-default">--</span></span></a></li><li id="gh-stars-item" class="hidden-xs"><a href="https://github.com/carpe/scalambda" target="_blank" rel="noopener noreferrer"><i class="fa fa-star-o"></i><span>Stars<span id="stars" class="label label-default">--</span></span></a></li></ul></div></div></div></div><div id="content" data-github-owner="carpe" data-github-repo="scalambda"><div class="content-wrapper"><section><h2 id="defining-scalambdas">Defining Scalambdas</h2>
 
 <p>After importing the plugin into your project, you can then use the <code class="highlighter-rouge">scalambda</code> function to define Lambda Functions from your project’s sources.</p>
 
@@ -68,7 +68,7 @@ ga('send', 'pageview');
     <tr>
       <td>billingTags</td>
       <td>Seq[BillingTag]</td>
-      <td>AWS Billing Tags to apply to all terraformed resources</td>
+      <td>AWS Billing Tags to apply to all terraformed resources. You can also provide billing tags via a terraform variable in the generated module. See below for details.</td>
       <td style="text-align: right"><code class="highlighter-rouge">Nil</code></td>
     </tr>
     <tr>
@@ -145,7 +145,7 @@ ga('send', 'pageview');
     <tr>
       <td>runtime</td>
       <td>ScalambdaRuntime</td>
-      <td>runtime for your function to use (Java8 or Java11)</td>
+      <td>runtime for your function to use. Options are <code class="highlighter-rouge">Java8</code>, <code class="highlighter-rouge">Java11</code>, or <code class="highlighter-rouge">GraalNative</code></td>
       <td style="text-align: right"><code class="highlighter-rouge">Java8</code></td>
     </tr>
     <tr>
@@ -163,7 +163,7 @@ ga('send', 'pageview');
     <tr>
       <td>vpcConfig</td>
       <td>VpcConfig</td>
-      <td>use this setting if you need to run your Lambda Function inside a VPC</td>
+      <td>use this setting if you need to run your Lambda Function inside a VPC. Options are <code class="highlighter-rouge">StaticVpcConfig</code> and <code class="highlighter-rouge">VpcFromTF</code></td>
       <td style="text-align: right"><code class="highlighter-rouge">VpcConf.withoutVpc</code></td>
     </tr>
     <tr>
@@ -171,6 +171,37 @@ ga('send', 'pageview');
       <td>Seq[EnvironmentVariable]</td>
       <td>use this to inject ENV variables into your Lambda Function. Options are <code class="highlighter-rouge">StaticVariable</code> and <code class="highlighter-rouge">VariableFromTF</code></td>
       <td style="text-align: right">Nil</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Note: If you use the GraalNative runtime, please make sure to read <a href="https://carpe.github.io/scalambda/docs/thegraaaaal/">the documentation page</a> for additional information (and a list of disclaimers a mile long).</p>
+
+<h4 id="terraform-module-settings">Terraform Module Settings</h4>
+
+<p>When/if you run <code class="highlighter-rouge">scalambdaTerraform</code>, several variables will be generated in the outputted module.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Parameter</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th style="text-align: right">Default Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><your_function_name>_billing_tags</your_function_name></td>
+      <td>map</td>
+      <td>Billing tags for the function. These will be merged with the billing tags provided via the plugin <code class="highlighter-rouge">billingTags</code> setting.</td>
+      <td style="text-align: right">{}</td>
+    </tr>
+    <tr>
+      <td>s3_billing_tags</td>
+      <td>map</td>
+      <td>Billing tags for the S3 bucket. These will be merged with the billing tags provided via the plugin <code class="highlighter-rouge">billingTags</code> setting.</td>
+      <td style="text-align: right">{}</td>
     </tr>
   </tbody>
 </table>
