@@ -23,7 +23,7 @@ You can check out the repository as well if you'd like [here](https://github.com
 Add the plugin to your project in the `project/plugins.sbt` file:
 
 ```scala
-addSbtPlugin("io.carpe" % "sbt-scalambda" % "5.0.0")
+addSbtPlugin("io.carpe" % "sbt-scalambda" % "6.0.0")
 ```
 
 After you add the plugin, you'll probably wanna read through the [documentation](https://carpe.github.io/scalambda/docs/configuration/) for how to configure your Lambda Functions.

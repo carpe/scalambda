@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [6.0.0] - 2020-10-06
+## Added
+- `GraalNative` runtime support.
+- VPC configuration such as security groups and subnets can now be configured via terraform variables
+- AWS Billing Tags for Lambdas and the S3 bucket can be provided via terraform variables
+
+## Changed
+- ScalambdaIO no longer extends Scalambda. This eliminates the need for nested unsafeRunSync calls :tada:
+
+## Fixed
+- The existing `enable_warmers` terraform variable now enables/disables provisioned concurrency
+
 ## [5.0.0] - 2020-07-22
 
 ## Added
