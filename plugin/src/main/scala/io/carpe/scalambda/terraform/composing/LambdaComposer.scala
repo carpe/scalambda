@@ -81,7 +81,18 @@ object LambdaComposer {
           }
 
           val functionResource =
-            LambdaFunction(function, subnetIds, securityGroupIds, version, s3Resources.bucket, sourceBucketItem, maybeDependencyLayer, isXrayEnabled, billingTags = billingTags, additionalBillingTagsVariable = additionalBillingTagsVariable.ref)
+            LambdaFunction(
+              function,
+              subnetIds,
+              securityGroupIds,
+              version,
+              s3Resources.bucket,
+              sourceBucketItem,
+              maybeDependencyLayer,
+              isXrayEnabled,
+              billingTags = billingTags,
+              additionalBillingTagsVariable = additionalBillingTagsVariable.ref
+            )
 
           val functionAlias = aws.lambda.resources.LambdaFunctionAliasResource(functionResource, version, "Managed by Scalambda. The name of this alias is the version of the code that this function is using. It is either a version of a commit SHA.")
 
