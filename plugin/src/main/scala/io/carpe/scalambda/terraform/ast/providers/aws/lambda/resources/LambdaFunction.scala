@@ -1,7 +1,7 @@
 package io.carpe.scalambda.terraform.ast.providers.aws.lambda.resources
 
 import io.carpe.scalambda.conf.ScalambdaFunction.DefinedFunction
-import io.carpe.scalambda.conf.function.EnvironmentVariable
+import io.carpe.scalambda.conf.function.{EnvironmentVariable, ScalambdaRuntime}
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
 import io.carpe.scalambda.terraform.ast.props.TValue._
@@ -44,6 +44,27 @@ case class LambdaFunction( scalambdaFunction: DefinedFunction,
     s"${name}_invoke_arn"
   }
 
+  private val runtime: TValue = TString(scalambdaFunction.runtimeConfig.runtime.identifier)
+  private val dependencyLayers: TValue = scalambdaFunction.runtimeConfig.runtime match {
+    case ScalambdaRuntime.Java8 =>
+      dependenciesLayer.map(layer => TArray(TResourceRef(layer, "arn"))).getOrElse(TNone)
+    case ScalambdaRuntime.Java11 =>
+      dependenciesLayer.map(layer => TArray(TResourceRef(layer, "arn"))).getOrElse(TNone)
+    case ScalambdaRuntime.GraalNative =>
+      TNone
+  }
+
+  private val environment: TValue = {
+    TBlock("variables" -> TObject({
+      scalambdaFunction.environmentVariables :+ (EnvironmentVariable.StaticVariable("SCALAMBDA_VERSION", version))
+    }.map {
+      case EnvironmentVariable.StaticVariable(key, value) =>
+        key -> TString(value)
+      case EnvironmentVariable.VariableFromTF(key, variableName) =>
+        key -> TVariableRef(variableName)
+    }: _*))
+  }
+
   /**
    * Properties of the definition
    */
@@ -54,7 +75,7 @@ case class LambdaFunction( scalambdaFunction: DefinedFunction,
     "s3_object_version" -> TResourceRef(s3BucketItem, "version_id"),
     "source_code_hash" -> TLiteral(s"filebase64sha256(aws_s3_bucket_object.${s3BucketItem.name}.source)"),
     // dependency layer
-    "layers" -> dependenciesLayer.map(layer => TArray(TResourceRef(layer, "arn"))).getOrElse(TNone),
+    "layers" -> dependencyLayers,
     // role for the lambda
     "role" -> scalambdaFunction.iamRole.asTFValue(scalambdaFunction),
     // name of the lambda
@@ -64,18 +85,11 @@ case class LambdaFunction( scalambdaFunction: DefinedFunction,
     // amount of memory, in MB, that the function can use at runtime
     "memory_size" -> TNumber(scalambdaFunction.runtimeConfig.memory),
     // runtime for the function
-    "runtime" -> TString(scalambdaFunction.runtimeConfig.runtime.identifier),
+    "runtime" -> runtime,
     // timeout for the function. should be 30 seconds max for api gateway lambdas
     "timeout" -> TNumber(scalambdaFunction.runtimeConfig.timeout),
     // environment variables to inject into the lambda
-    "environment" -> TBlock("variables" -> TObject({
-      scalambdaFunction.environmentVariables :+ (EnvironmentVariable.StaticVariable("SCALAMBDA_VERSION", version))
-    }.map {
-      case EnvironmentVariable.StaticVariable(key, value) =>
-        key -> TString(value)
-      case EnvironmentVariable.VariableFromTF(key, variableName) =>
-        key -> TVariableRef(variableName)
-    }: _*)),
+    "environment" -> environment,
     // vpc configuration for the lambda
     "vpc_config" -> TBlock(
       "subnet_ids" -> subnetIds,
