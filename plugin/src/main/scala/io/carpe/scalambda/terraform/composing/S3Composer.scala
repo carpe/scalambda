@@ -60,7 +60,7 @@ object S3Composer {
   private def defineS3ResourcesForGraalNativeRuntimes(base: S3Resources, s3Composable: S3Composable): S3Resources = {
     val nativeImageBucketItem = S3BucketItem(
       base.bucket,
-      name = "sources",
+      name = "native_sources",
       key = "function.zip",
       source = """function.zip""",
       etag = TLiteral("""filemd5("${path.module}/function.zip")"""),
