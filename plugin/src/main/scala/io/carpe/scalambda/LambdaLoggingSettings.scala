@@ -15,11 +15,17 @@ object LambdaLoggingSettings {
 
     Seq(
       libraryDependencies ++= Seq(
+        // provides LazyLogging trait and more
         "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
+        // comes with custom logger that logs the Request ID and more
         "io.symphonia" % "lambda-logging" % "1.0.3",
-        "org.apache.logging.log4j" % "log4j-api" % log4jVersion
+        // allows us to route log4j logs over to slf4j
+        "org.apache.logging.log4j" % "log4j-api" % log4jVersion,
+        "org.apache.logging.log4j" % "log4j-to-slf4j" % log4jVersion
       ),
-
+      // exclude dependencies aren't compatible with logback
+      excludeDependencies += "org.apache.logging.log4j" % "log4j-core",
+      excludeDependencies += "org.apache.logging.log4j" % "log4j-slf4j-impl",
       excludeDependencies += "org.slf4j.slf4j-simple"
     )
   }
