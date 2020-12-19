@@ -30,7 +30,7 @@ trait ApiGatewayKeys {
 
   lazy val Auth: io.carpe.scalambda.conf.api.Auth.type = io.carpe.scalambda.conf.api.Auth
 
-  lazy val CORS: CORS.type = CORS
+  lazy val CORS: io.carpe.scalambda.conf.api.CORS.type = io.carpe.scalambda.conf.api.CORS
 
 
   /**
