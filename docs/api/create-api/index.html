@@ -127,6 +127,46 @@ ga('send', 'pageview');
 <span class="o">)</span>
 </code></pre></div></div>
 
+<h2 id="handling-cors">Handling CORS</h2>
+
+<p><strong>Scalambda automatically adds OPTIONS request handling to each endpoint in your API</strong>. If you prefer to handle CORS yourself, you have a few options.</p>
+
+<h4 id="disable-scalambdas-automatic-handling-of-cors">Disable Scalambda’s automatic handling of CORS</h4>
+
+<p>Here is an example of how you can disable OPTIONS request handling for the <code class="highlighter-rouge">/pets</code> route:</p>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">lazy</span> <span class="k">val</span> <span class="nv">petstore</span> <span class="k">=</span> <span class="n">project</span>
+  <span class="o">.</span><span class="py">enablePlugins</span><span class="o">(</span><span class="nc">ScalambdaPlugin</span><span class="o">)</span>
+  <span class="o">.</span><span class="py">settings</span><span class="o">({</span>
+    <span class="k">val</span> <span class="nv">petsHandler</span> <span class="k">=</span> <span class="o">???</span>
+    
+    <span class="nf">apiGatewayDefinition</span><span class="o">(</span><span class="n">apiGatewayInstanceName</span> <span class="k">=</span> <span class="s">"petstore-api-${terraform.workspace}"</span><span class="o">)(</span>
+      <span class="c1">// setting to CORS.AllowNone will prevent scalambda from adding a default OPTIONS request handler for "/pets"</span>
+      <span class="nc">POST</span><span class="o">(</span><span class="s">"/pets"</span><span class="o">,</span> <span class="n">cors</span> <span class="k">=</span> <span class="nv">CORS</span><span class="o">.</span><span class="py">AllowNone</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">petsHandler</span><span class="o">,</span>
+      <span class="nc">GET</span><span class="o">(</span><span class="s">"/pets"</span><span class="o">,</span> <span class="n">cors</span> <span class="k">=</span> <span class="nv">CORS</span><span class="o">.</span><span class="py">AllowNone</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">petsHandler</span>
+    <span class="o">)</span>
+  <span class="o">})</span>
+</code></pre></div></div>
+
+<h4 id="create-a-lambda-to-handle-options-requests">Create a Lambda to handle OPTIONS requests</h4>
+
+<p>Here is an example of how you use your own Lambda to handle OPTIONS requests for the <code class="highlighter-rouge">/pets</code> route:</p>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">lazy</span> <span class="k">val</span> <span class="nv">petstore</span> <span class="k">=</span> <span class="n">project</span>
+  <span class="o">.</span><span class="py">enablePlugins</span><span class="o">(</span><span class="nc">ScalambdaPlugin</span><span class="o">)</span>
+  <span class="o">.</span><span class="py">settings</span><span class="o">({</span>
+    <span class="k">val</span> <span class="nv">petsHandler</span> <span class="k">=</span> <span class="o">???</span>
+    <span class="k">val</span> <span class="nv">optionsHandler</span> <span class="k">=</span> <span class="o">???</span>
+    
+    <span class="nf">apiGatewayDefinition</span><span class="o">(</span><span class="n">apiGatewayInstanceName</span> <span class="k">=</span> <span class="s">"petstore-api-${terraform.workspace}"</span><span class="o">)(</span>
+      <span class="nc">POST</span><span class="o">(</span><span class="s">"/pets"</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">petsHandler</span><span class="o">,</span>
+      <span class="nc">GET</span><span class="o">(</span><span class="s">"/pets"</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">petsHandler</span>
+      <span class="c1">// this OPTIONS request handler will override the one scalambda provides by default for "/pets" </span>
+      <span class="nc">OPTIONS</span><span class="o">(</span><span class="s">"/pets"</span><span class="o">)(</span><span class="nv">Auth</span><span class="o">.</span><span class="py">AllowAll</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="n">optionsHandler</span>
+    <span class="o">)</span>
+  <span class="o">})</span>
+</code></pre></div></div>
+
 <h2 id="defining-lambdas-for-apigateway">Defining Lambdas for ApiGateway</h2>
 
 <p>When Api Gateway receives a request, it will invoke the configured Lambda Function with what AWS calls an “Api Gateway Proxy Request”. They also expect your function to provide a response in the form of an “Api Gateway Proxy Response”.</p>
