@@ -1,7 +1,7 @@
 package io.carpe.scalambda.fixtures
 
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.api.ApiGatewayEndpoint
+import io.carpe.scalambda.conf.api.{ApiGatewayEndpoint, Auth, CORS}
 import io.carpe.scalambda.conf.function.FunctionNaming.Static
 import io.carpe.scalambda.conf.function.FunctionSource.IncludedInModule
 import io.carpe.scalambda.conf.function._
@@ -24,7 +24,7 @@ trait ScalambdaFunctionFixtures { this: AnyFlatSpec =>
     )
   }
 
-  lazy val carsIndexEndpoint: ApiGatewayEndpoint = ApiGatewayEndpoint(url = "/cars", method = Method.GET, auth = Auth.TokenAuthorizer("my_authorizer"))
+  lazy val carsIndexEndpoint: ApiGatewayEndpoint = ApiGatewayEndpoint(url = "/cars", method = Method.GET, auth = Auth.TokenAuthorizer("my_authorizer"), cors = CORS.AllowAll)
 
   lazy val driveCarFunction: ScalambdaFunction.DefinedFunction = {
     ScalambdaFunction.DefinedFunction(

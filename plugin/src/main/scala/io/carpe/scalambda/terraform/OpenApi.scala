@@ -3,12 +3,17 @@ package io.carpe.scalambda.terraform
 import cats.Eval
 import cats.data.NonEmptyList
 import io.carpe.scalambda.conf.ScalambdaFunction
-import io.carpe.scalambda.conf.api.ApiGatewayEndpoint
+import io.carpe.scalambda.conf.api.{ApiGatewayEndpoint, CORS}
 import io.carpe.scalambda.terraform.openapi.{ResourceMethod, ResourcePath, SecurityDefinition}
+import org.apache.http.client.methods.RequestBuilder.options
 
 case class OpenApi(paths: Seq[ResourcePath], securityDefinitions: Seq[SecurityDefinition])
 
 object OpenApi {
+
+  // a default OPTIONS request handler that gives browsers the permission needed to make special requests;
+  // this is needed by almost all API requests thanks to some arguably bad decisions made many years ago.
+  private val defaultOptionsMethod: ResourceMethod = ResourceMethod.optionsMethod
 
   /**
    * Helper for creating [[OpenApi]] from list of functions.
@@ -23,23 +28,20 @@ object OpenApi {
       endpoint.url
     })
 
-    val resourcePaths: List[ResourcePath] = functionsByRoute.map({ case (resourcePath, functions) =>
-      val resourceDefinition = functions.foldRight(Eval.now(ResourcePath(resourcePath, post = None, get = None, put = None, patch = None, delete = None, head = None, options = None)))((endpointMapping, resourcePath) => {
-        resourcePath.map(_.addFunction(endpointMapping._1, endpointMapping._2))
+    val resourcePaths: List[ResourcePath] = functionsByRoute.map({ case (route, functions) =>
+      functions.foldRight(Eval.now(ResourcePath.empty(route)))((endpointMapping, resourcePath) => {
+        resourcePath
+          // add the function to the resource
+          .map(_.addFunction(endpointMapping._1, endpointMapping._2))
+          // provide a default OPTIONS method handler, if one has not yet been defined and the function is set to AllowAll
+          .map(resource => {
+            if (resource.options.isEmpty && endpointMapping._1.cors == CORS.AllowAll) {
+              resource.copy(options = Some(defaultOptionsMethod))
+            } else {
+              resource
+            }
+          })
       }).value
-
-      // provide a default OPTIONS method handler, if one has not yet been defined
-      resourceDefinition.options match {
-        case Some(optionsMethod) =>
-          // since a custom OPTIONS handler was already added, make no further modifications to the resource.
-          resourceDefinition
-        case None =>
-          // TODO: Provide the option to remove this OPTIONS request
-          // add a default OPTIONS request handler that gives browsers the permission needed to make special requests;
-          // this is needed by almost all API requests thanks to some arguably bad decisions made many years ago.
-          val defaultOptionsMethod = Some(ResourceMethod.optionsMethod)
-          resourceDefinition.copy(options = defaultOptionsMethod)
-      }
     }).toList
 
     // get all the unique security definitions for all the functions

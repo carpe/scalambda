@@ -128,6 +128,47 @@ implicit val requireApiKeyAndRequestAuthorizer: Auth = Auth.Multiple(
 )
 ```
 
+## Handling CORS
+
+**Scalambda automatically adds OPTIONS request handling to each endpoint in your API**. If you prefer to handle CORS yourself, you have a few options.
+
+#### Disable Scalambda's automatic handling of CORS
+
+Here is an example of how you can disable OPTIONS request handling for the `/pets` route:
+
+```scala
+lazy val petstore = project
+  .enablePlugins(ScalambdaPlugin)
+  .settings({
+    val petsHandler = ???
+    
+    apiGatewayDefinition(apiGatewayInstanceName = "petstore-api-${terraform.workspace}")(
+      // setting to CORS.AllowNone will prevent scalambda from adding a default OPTIONS request handler for "/pets"
+      POST("/pets", cors = CORS.AllowNone) -> petsHandler,
+      GET("/pets", cors = CORS.AllowNone) -> petsHandler
+    )
+  })
+```
+
+#### Create a Lambda to handle OPTIONS requests
+
+Here is an example of how you use your own Lambda to handle OPTIONS requests for the `/pets` route:
+
+```scala
+lazy val petstore = project
+  .enablePlugins(ScalambdaPlugin)
+  .settings({
+    val petsHandler = ???
+    val optionsHandler = ???
+    
+    apiGatewayDefinition(apiGatewayInstanceName = "petstore-api-${terraform.workspace}")(
+      POST("/pets") -> petsHandler,
+      GET("/pets") -> petsHandler
+      // this OPTIONS request handler will override the one scalambda provides by default for "/pets" 
+      OPTIONS("/pets")(Auth.AllowAll) -> optionsHandler
+    )
+  })
+```
 
 ## Defining Lambdas for ApiGateway 
 
