@@ -155,7 +155,7 @@ object ScalambdaPlugin extends AutoPlugin {
         scalambdaFunctions += function,
 
         // add this lambda the list of api gateway endpoints that will be generated
-        scalambdaApiEndpoints ++= Chain.one(ApiGatewayEndpoint(apiConfig.route, apiConfig.method, apiConfig.authConf) -> function)
+        scalambdaApiEndpoints ++= Chain.one(ApiGatewayEndpoint(apiConfig.route, apiConfig.method, apiConfig.authConf, apiConfig.cors) -> function)
       )
 
       // return a project

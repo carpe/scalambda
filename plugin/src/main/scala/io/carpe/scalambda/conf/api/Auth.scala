@@ -1,4 +1,4 @@
-package io.carpe.scalambda.conf.function
+package io.carpe.scalambda.conf.api
 
 import io.carpe.scalambda.terraform.openapi.SecurityDefinition
 

@@ -30,6 +30,8 @@ object ResourcePath {
 
   import io.circe._
 
+  def empty(resourcePath: String): ResourcePath = ResourcePath(resourcePath, post = None, get = None, put = None, patch = None, delete = None, head = None, options = None)
+
   implicit val encoder: Encoder[ResourcePath] = (api: ResourcePath) => {
     val paths = List(
       api.post.map("post" -> ResourceMethod.encoder.apply(_)),

@@ -1,6 +1,7 @@
 package io.carpe.scalambda.terraform
 
 import cats.data.NonEmptyList
+import io.carpe.scalambda.conf.api.CORS
 import io.carpe.scalambda.fixtures.ScalambdaFunctionFixtures
 import org.scalatest.flatspec.AnyFlatSpec
 
@@ -91,5 +92,58 @@ class OpenApiSpec extends AnyFlatSpec with ScalambdaFunctionFixtures {
     assert(actual === expectedOutput)
   }
 
+  it should "not create OPTIONS requests for endpoints that are configured to ignore CORS" in {
+    val endpointWithoutCors = carsIndexEndpoint.copy(cors = CORS.AllowNone)
+
+    val carsIndexEndpointMapping = endpointWithoutCors -> carsIndexFunction
+
+    val functions = NonEmptyList.one(
+      carsIndexEndpointMapping
+    )
+
+    val testApi = OpenApi.forFunctions(functions)
+
+    val expectedOutput =
+      """swagger: '2.0'
+        |info:
+        |  version: latest
+        |  title: ${api_name}
+        |schemes:
+        |- https
+        |paths:
+        |  /cars:
+        |    get:
+        |      tags: []
+        |      description: TBD
+        |      consumes:
+        |      - application/json
+        |      security:
+        |      - my_authorizer: []
+        |      responses:
+        |        '200':
+        |          description: Request completed without errors!
+        |      x-amazon-apigateway-integration:
+        |        uri: ${cars_index_lambda_invoke_arn}
+        |        passthroughBehavior: when_no_match
+        |        httpMethod: POST
+        |        type: aws_proxy
+        |securityDefinitions:
+        |  my_authorizer:
+        |    type: apiKey
+        |    name: Authorization
+        |    in: header
+        |    x-amazon-apigateway-authtype: custom
+        |    x-amazon-apigateway-authorizer:
+        |      authorizerUri: ${my_authorizer_uri}
+        |      authorizerCredentials: ${my_authorizer_role}
+        |      authorizerResultTtlInSeconds: 300
+        |      identityValidationExpression: ^Bearer [-0-9a-zA-z\.]*$
+        |      type: token
+        |""".stripMargin
+
+    val actual = OpenApi.apiToYaml(testApi)
+
+    assert(actual == expectedOutput)
+  }
 
 }

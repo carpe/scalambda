@@ -1,8 +1,8 @@
 package io.carpe.scalambda.conf.keys
 
 import cats.data.Chain
-import io.carpe.scalambda.conf.api.{ApiDomain, ApiGatewayConfig, ApiGatewayEndpoint}
-import io.carpe.scalambda.conf.function.{Auth, Method}
+import io.carpe.scalambda.conf.api.{ApiDomain, ApiGatewayConfig, ApiGatewayEndpoint, Auth, CORS}
+import io.carpe.scalambda.conf.function.Method
 import io.carpe.scalambda.conf.{ScalambdaFunction, api}
 import sbt.settingKey
 
@@ -28,42 +28,42 @@ trait ApiGatewayKeys {
    * Helpers for auth
    */
 
-  lazy val Auth: io.carpe.scalambda.conf.function.Auth.type = io.carpe.scalambda.conf.function.Auth
+  lazy val Auth: io.carpe.scalambda.conf.api.Auth.type = io.carpe.scalambda.conf.api.Auth
+
+  lazy val CORS: CORS.type = CORS
 
 
   /**
    * Old methods for endpoint configuration
    */
 
-  def post(route: String, authConf: Auth = Auth.AllowAll): ApiGatewayConfig = {
-    api.ApiGatewayConfig(route = route, method = Method.POST, authConf)
+  def post(route: String, authConf: Auth = Auth.AllowAll, cors: CORS = CORS.AllowAll): ApiGatewayConfig = {
+    api.ApiGatewayConfig(route = route, method = Method.POST, authConf, cors)
   }
 
-  def get(route: String, authConf: Auth = Auth.AllowAll): ApiGatewayConfig = {
-    api.ApiGatewayConfig(route = route, method = Method.GET, authConf)
+  def get(route: String, authConf: Auth = Auth.AllowAll, cors: CORS = CORS.AllowAll): ApiGatewayConfig = {
+    api.ApiGatewayConfig(route = route, method = Method.GET, authConf, cors)
   }
 
-  def put(route: String, authConf: Auth = Auth.AllowAll): ApiGatewayConfig = {
-    api.ApiGatewayConfig(route = route, method = Method.PUT, authConf)
+  def put(route: String, authConf: Auth = Auth.AllowAll, cors: CORS = CORS.AllowAll): ApiGatewayConfig = {
+    api.ApiGatewayConfig(route = route, method = Method.PUT, authConf, cors)
   }
 
-  def delete(route: String, authConf: Auth = Auth.AllowAll): ApiGatewayConfig = {
-    api.ApiGatewayConfig(route = route, method = Method.DELETE, authConf)
+  def delete(route: String, authConf: Auth = Auth.AllowAll, cors: CORS = CORS.AllowAll): ApiGatewayConfig = {
+    api.ApiGatewayConfig(route = route, method = Method.DELETE, authConf, cors)
   }
 
   /**
-   * Helplers for Endpoint Configuration
+   * Helpers for Endpoint Configuration
    */
 
-  def POST(route: String)(implicit authConfig: Auth = Auth.AllowAll): ApiGatewayEndpoint = api.ApiGatewayEndpoint(route, method = Method.POST, authConfig)
-  def GET(route: String)(implicit authConfig: Auth = Auth.AllowAll): ApiGatewayEndpoint = api.ApiGatewayEndpoint(route, method = Method.GET, authConfig)
-  def PUT(route: String)(implicit authConfig: Auth = Auth.AllowAll): ApiGatewayEndpoint = api.ApiGatewayEndpoint(route, method = Method.PUT, authConfig)
-  def PATCH(route: String)(implicit authConfig: Auth = Auth.AllowAll): ApiGatewayEndpoint = api.ApiGatewayEndpoint(route, method = Method.PATCH, authConfig)
-  def DELETE(route: String)(implicit authConfig: Auth = Auth.AllowAll): ApiGatewayEndpoint = api.ApiGatewayEndpoint(route, method = Method.DELETE, authConfig)
-  def HEAD(route: String)(implicit authConfig: Auth = Auth.AllowAll): ApiGatewayEndpoint = api.ApiGatewayEndpoint(route, method = Method.HEAD, authConfig)
-  def OPTIONS(route: String)(implicit authConfig: Auth = Auth.AllowAll): ApiGatewayEndpoint = api.ApiGatewayEndpoint(route, method = Method.OPTIONS, authConfig)
-
-
+  def POST(route: String, cors: CORS = CORS.AllowAll)(implicit authConfig: Auth = Auth.AllowAll): ApiGatewayEndpoint = api.ApiGatewayEndpoint(route, method = Method.POST, authConfig, cors)
+  def GET(route: String, cors: CORS = CORS.AllowAll)(implicit authConfig: Auth = Auth.AllowAll): ApiGatewayEndpoint = api.ApiGatewayEndpoint(route, method = Method.GET, authConfig, cors)
+  def PUT(route: String, cors: CORS = CORS.AllowAll)(implicit authConfig: Auth = Auth.AllowAll): ApiGatewayEndpoint = api.ApiGatewayEndpoint(route, method = Method.PUT, authConfig, cors)
+  def PATCH(route: String, cors: CORS = CORS.AllowAll)(implicit authConfig: Auth = Auth.AllowAll): ApiGatewayEndpoint = api.ApiGatewayEndpoint(route, method = Method.PATCH, authConfig, cors)
+  def DELETE(route: String, cors: CORS = CORS.AllowAll)(implicit authConfig: Auth = Auth.AllowAll): ApiGatewayEndpoint = api.ApiGatewayEndpoint(route, method = Method.DELETE, authConfig, cors)
+  def HEAD(route: String, cors: CORS = CORS.AllowAll)(implicit authConfig: Auth = Auth.AllowAll): ApiGatewayEndpoint = api.ApiGatewayEndpoint(route, method = Method.HEAD, authConfig, cors)
+  def OPTIONS(route: String)(implicit authConfig: Auth = Auth.AllowAll): ApiGatewayEndpoint = api.ApiGatewayEndpoint(route, method = Method.OPTIONS, authConfig, cors = CORS.AllowNone)
 
 }
 
