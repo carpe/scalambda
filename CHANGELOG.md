@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.1.1] - 2021-01-08
+## Fixed
+- Issue with lambda errors failing to encode due to using reflection to fetch the exception's canonical name.
+
 ## [6.1.0] - 2020-10-06
 ## Added
 - New ways of handling CORS requests for APIs. See documentation for details!
