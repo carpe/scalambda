@@ -52,7 +52,7 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
 
       // send the result of the event back to the aws lambda service
       _ <- eventResponse.fold(err => {
-        val error = LambdaError(errorType = err.getClass.getCanonicalName, errorMessage = err.getMessage)
+        val error = LambdaError(errorType = err.getClass.getName, errorMessage = err.getMessage)
         val serializedError = ScalambdaIO.encode(error)
 
         // generate url to send the error to
