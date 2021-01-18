@@ -10,7 +10,7 @@ ThisBuild / organization := "io.carpe"
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 
-version in ThisBuild := s"6.1.0"
+version in ThisBuild := s"6.2.0"
 
 lazy val root = (project in file("."))
   .settings(name := "scalambda")
@@ -36,7 +36,7 @@ lazy val core = project
     ).map(_ % circeGenericVersion),
 
     // Cats Effect, used to control side effects and make managing resources (such as database connections) easier
-    libraryDependencies += "org.typelevel" %% "cats-effect" % "2.0.0",
+    libraryDependencies += "org.typelevel" %% "cats-effect" % catsVersion,
 
     // Minimal set of interfaces for AWS Lambda
     libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
@@ -65,7 +65,7 @@ lazy val native = project
     ).map(_ % circeGenericVersion),
 
     // Cats Effect, used to control side effects and make managing resources (such as database connections) easier
-    libraryDependencies += "org.typelevel" %% "cats-effect" % "2.0.0",
+    libraryDependencies += "org.typelevel" %% "cats-effect" % catsVersion,
 
     // Requests is a simple lib for managing http requests that can be safely run in graal native
     libraryDependencies += "com.lihaoyi" %% "requests" % "0.6.5",
