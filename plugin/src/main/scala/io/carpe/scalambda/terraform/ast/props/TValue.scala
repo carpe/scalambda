@@ -4,6 +4,8 @@ import cats.data.Chain
 import io.carpe.scalambda.terraform.ast.Definition.{Data, Resource}
 import io.carpe.scalambda.terraform.ast.props.TLine.{TBlockLine, TEmptyLine, TInline}
 
+import java.util.stream.Collectors
+
 /**
  * Represents a node in the Terraform AST. Specifically a value that is assigned to some definition.
  *
@@ -69,8 +71,8 @@ object TValue {
       }
 
       TInline("<<EOF") +: Chain.fromSeq(
-        fileContents.lines
-          .map(line => TBlockLine(indentationLevel = 0, contents = line)).toSeq
+        fileContents.linesIterator.toSeq
+          .map(line => TBlockLine(indentationLevel = 0, contents = line))
       ) :+ TBlockLine(0, "EOF")
     }
   }
