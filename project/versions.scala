@@ -1,5 +1,5 @@
 object versions {
-  lazy val circeVersion = "0.12.3"
-  lazy val circeGenericVersion = "0.12.2"
-  lazy val catsVersion = "2.0.0"
+  lazy val circeVersion = "0.13.0"
+  lazy val circeGenericVersion = "0.13.0"
+  lazy val catsVersion = "2.2.0"
 }

@@ -12,7 +12,7 @@ import com.typesafe.sbt.GitVersioning
 import com.typesafe.sbt.SbtGit.GitKeys.{formattedDateVersion, gitHeadCommit}
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.graalvmnativeimage.GraalVMNativeImagePlugin
-import sbt.AutoPlugin
+import sbt.{AutoPlugin, Def}
 import sbt.Keys._
 import sbtassembly.AssemblyKeys.assembly
 import sbtassembly._
@@ -171,7 +171,14 @@ object ScalambdaPlugin extends AutoPlugin {
         scalambdaApiEndpoints ++= Chain.fromSeq(routes),
       )
 
-      apiEndpointSettings ++ jvmScalambdaLibs
+      routes.flatMap(_._2.runtime) match {
+        case runtimes if (runtimes.contains(ScalambdaRuntime.Java8) || runtimes.contains(ScalambdaRuntime.Java11)) && runtimes.contains(ScalambdaRuntime.GraalNative) =>
+          apiEndpointSettings ++ jvmScalambdaLibs ++ nativeScalambdaLibs ++ LambdaLoggingSettings.nativeLoggingSettings
+        case runtimes if runtimes.contains(ScalambdaRuntime.GraalNative) =>
+          apiEndpointSettings ++ nativeScalambdaLibs ++ LambdaLoggingSettings.nativeLoggingSettings
+        case runtimes if runtimes.contains(ScalambdaRuntime.Java8) || runtimes.contains(ScalambdaRuntime.Java11) =>
+          apiEndpointSettings ++ jvmScalambdaLibs
+      }
     }
   }
 
