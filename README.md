@@ -19,7 +19,7 @@ Check it out at https://github.com/carpe/scalambda.g8
 Add the plugin to your project in the `project/plugins.sbt` file:
 
 ```scala
-addSbtPlugin("io.carpe" % "sbt-scalambda" % "6.1.0")
+addSbtPlugin("io.carpe" % "sbt-scalambda" % "6.2.1")
 ```
 
 ## Motivation
