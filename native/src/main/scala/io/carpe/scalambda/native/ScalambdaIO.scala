@@ -52,7 +52,15 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
 
       // send the result of the event back to the aws lambda service
       _ <- eventResponse.fold(err => {
-        val error = LambdaError(errorType = err.getClass.getCanonicalName, errorMessage = err.getMessage)
+        // "Class::getCanonicalName" uses reflection, which may or may not be available at runtime depending on the
+        // application's configuration. So as a fallback option, we use getName. Should that fail, we use a static
+        // String of "runtimeexception".
+        val errorType = Option(err.getClass.getCanonicalName)
+          .orElse(Option(err.getClass.getName))
+          .getOrElse("runtimeexception")
+
+        // use the error type and the error message to construct a LambdaError view, then encode it
+        val error = LambdaError(errorType = errorType, errorMessage = err.getMessage)
         val serializedError = ScalambdaIO.encode(error)
 
         // generate url to send the error to
