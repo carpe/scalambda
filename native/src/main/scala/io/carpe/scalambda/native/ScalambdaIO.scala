@@ -1,10 +1,12 @@
 package io.carpe.scalambda.native
 
+import cats.data.NonEmptyList
 import cats.effect.{ContextShift, IO}
 import com.typesafe.scalalogging.LazyLogging
 import io.carpe.scalambda.native.ScalambdaIO.RequestEvent
 import io.carpe.scalambda.native.exceptions.MissingHeaderException
 import io.carpe.scalambda.native.views.LambdaError
+import io.circe
 import io.circe.{Decoder, Encoder, Printer}
 
 import scala.concurrent.ExecutionContext
@@ -48,7 +50,21 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
       eventBody <- decodeInput(event.eventRequestBody).attempt
 
       // execute the function's defined logic
-      eventResponse <- eventBody.fold(IO.raiseError, run).attempt
+      eventResponse <- eventBody.fold({
+        case circeError: circe.Error =>
+          // pass circe error to handle invalid input function
+          val errorList = NonEmptyList.one(circeError)
+          handleInvalidInput(errorList)
+        case circeErrors: circe.Errors =>
+          // pass circe error to handle invalid input function
+          handleInvalidInput(circeErrors.errors)
+        case other: Throwable =>
+          // other exceptions are raised so that they can be sent to lambda service later on
+          IO.raiseError(other)
+      }, input => {
+        // use decoded input to run the lambda function
+        run(input)
+      }).attempt
 
       // send the result of the event back to the aws lambda service
       _ <- eventResponse.fold(err => {
@@ -124,6 +140,31 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
       logger.error(s"An event request didn't include the required `$targetHeader` header. The full list of provided headers was ${headers.keySet.mkString(", ")}")
       IO.raiseError(MissingHeaderException(targetHeader))
     })(header => IO.pure(header))
+  }
+
+  /**
+   * This is the function that Scalambda will call in the event of invalid input.
+   *
+   * You can override this to modify what is returned when invalid input is provided.
+   *
+   * @param errors       encountered when parsing the input
+   * @return
+   */
+  protected def handleInvalidInput(errors: NonEmptyList[circe.Error]): IO[O] = {
+    import cats.implicits._
+
+    errors.map(err => IO {
+      logger.error("Failed to parse input.", err)
+    }).sequence
+
+    for {
+      // log errors
+      logErrors <- errors.map(err => IO {
+        logger.error("Failed to parse input.", err)
+      }).sequence
+      // throw exception so that it is sent to lambda service
+      throwError <- IO.raiseError[O](errors.head)
+    } yield throwError
   }
 
 
