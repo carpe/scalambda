@@ -1,9 +1,8 @@
 package io.carpe.scalambda.terraform.ast
 
 import io.carpe.scalambda.terraform.ast.Definition.Resource
+import io.carpe.scalambda.terraform.ast.props.TValue._
 import io.carpe.scalambda.terraform.ast.props.{TDynamicBlock, TValue}
-import io.carpe.scalambda.terraform.ast.props.TValue.{TArray, TBool, TIf, TLiteral, TNumber, TSet, TString, TVariableRef}
-import io.carpe.scalambda.terraform.ast.providers.aws.apigateway.ApiGatewayStage
 import io.carpe.scalambda.terraform.writer.TerraformPrinter
 import org.scalatest.flatspec.AnyFlatSpec
 

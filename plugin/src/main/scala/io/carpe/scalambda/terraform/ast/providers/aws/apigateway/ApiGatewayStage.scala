@@ -1,9 +1,8 @@
 package io.carpe.scalambda.terraform.ast.providers.aws.apigateway
 
 import io.carpe.scalambda.terraform.ast.Definition.Resource
-import io.carpe.scalambda.terraform.ast.props.TLine.TInline
+import io.carpe.scalambda.terraform.ast.props.TValue._
 import io.carpe.scalambda.terraform.ast.props.{TDynamicBlock, TValue}
-import io.carpe.scalambda.terraform.ast.props.TValue.{InfixExpression, TArray, TBool, TIf, TLiteral, TNumber, TResourceRef, TString, TVariableRef}
 
 case class ApiGatewayStage(restApi: ApiGateway, apiGatewayDeployment: ApiGatewayDeployment, xrayToggle: TVariableRef, accessLogGroupArn: TVariableRef, accessLogFormat: TVariableRef) extends Resource {
   /**

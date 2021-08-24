@@ -191,36 +191,6 @@ object TValue {
     }
   }
 
-  case class TSet[A <: TValue](values: A*) extends TValue {
-    lazy val valueChain: Chain[TValue] = Chain.fromSeq(values)
-
-    override def serialize(implicit level: Int): Chain[TLine] = {
-      val innerValueChains = valueChain.map(value => {
-        val innerArrayLevel = level + 1
-        val chain = value.serialize(innerArrayLevel)
-
-        chain.uncons.map {
-          case (TInline(contents), tail: Chain[TLine]) =>
-            Chain.concat(
-              Chain.one(TBlockLine(innerArrayLevel, contents)),
-              tail
-            )
-          case (TBlockLine(indentationLevel, contents), tail: Chain[TLine]) =>
-            chain
-          case (TEmptyLine, _) =>
-            chain
-        }.getOrElse(Chain.empty)
-      })
-
-      innerValueChains.initLast.map({ case (initChains, lastChain) =>
-        // append a comma to each element except the last
-        (initChains.flatMap(innerValueChain => innerValueChain :+ TInline(",\n"))) ++ lastChain
-      }).map(innerValuesChain => {
-        // add array brackets
-        TInline("toset([") +: innerValuesChain :+ TBlockLine(level, "])")
-      }).getOrElse(Chain.empty)
-    }
-  }
 
   /**
    * References
