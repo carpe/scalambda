@@ -3,7 +3,7 @@ package io.carpe.scalambda.terraform.ast
 import cats.data.Chain
 import io.carpe.scalambda.terraform.ast.props.TLine.TBlockLine
 import io.carpe.scalambda.terraform.ast.props.TValue._
-import io.carpe.scalambda.terraform.ast.props.{TLine, TValue}
+import io.carpe.scalambda.terraform.ast.props.{TDynamicBlock, TLine, TValue}
 
 /**
  * A single piece of HCL configuration. Such as a [[io.carpe.scalambda.terraform.ast.Definition.Resource]].
@@ -26,16 +26,20 @@ trait Definition {
    */
   def name: String
 
-
   /**
    * Properties of the definition
    */
   def body: Map[String, TValue]
 
+  /**
+   * Dynamic blocks. Reference: https://www.terraform.io/docs/language/expressions/dynamic-blocks.html
+   */
+  def dynamicBlocks: Seq[TDynamicBlock] = Nil
+
   def serialize: Chain[TLine] = {
     val headerContent = Seq(Some(definitionType), getResourceType.map(r => s""""$r""""), Some(s""""$name"""")).flatten.mkString(" ")
 
-    val bodyChain = TBlock(body.toSeq: _*).serialize(level = 0)
+    val bodyChain = TBlock(body.toSeq, dynamicBlocks).serialize(level = 0)
 
     TBlockLine(0, headerContent + " ") +: bodyChain
   }
@@ -99,6 +103,11 @@ object Definition {
     ).collect {
       case (k, Some(v)) => k -> v
     }
+
+    /**
+     * Dynamic blocks cannot exist within variables
+     */
+    override final def dynamicBlocks: Seq[TDynamicBlock] = Seq()
   }
 
   case class Output[T <: TValue](name: String, description: Option[String], isSensitive: Boolean, value: T) extends Definition {
@@ -120,5 +129,10 @@ object Definition {
       "description" -> description.map(TString).getOrElse(TNone),
       "sensitive" -> TBool(isSensitive)
     )
+
+    /**
+     * Dynamic blocks cannot exist within Outputs
+     */
+    override final def dynamicBlocks: Seq[TDynamicBlock] = Seq()
   }
 }

@@ -83,7 +83,9 @@ When/if you run `scalambdaTerraform`, several variables will be generated in the
 | --------------------------------- | ------------------------ | ------------------------------------------------------- | ------------------------------:|
 | your_function_name_billing_tags   | map                      | Billing tags for the function. These will be merged with the billing tags provided via the plugin `billingTags` setting.  | {} |
 | s3_billing_tags                   | map                      | Billing tags for the S3 bucket. These will be merged with the billing tags provided via the plugin `billingTags` setting. | {} |
-| enable_xray                       | boolean                  | If enabled, your Api Gateway instance will create traces in AWS X-Ray for each request. | false |
+| enable_xray                       | boolean                  | If enabled, the Api Gateway stage in this module will create traces in AWS X-Ray for each request. | false |
+| access_log_cloudwatch_arn         | string                   | The arn of a Cloudwatch Log Group that you'd like the Api Gateway stage to send access logs to. Make sure that you have [set up a proper role](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-logging.html#set-up-access-logging-permissions) for ApiGateway to use to log before using this setting. | - |
+| access_log_format                 | string                   | The format for the Api Gateway stage's access logs. Check the [docs](https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-logging.html) to see how to customize this. | - |
 
 ## Tasks
 

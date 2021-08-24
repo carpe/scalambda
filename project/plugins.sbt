@@ -22,4 +22,4 @@ addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "3.9.2")
 addSbtPlugin("com.jsuereth" % "sbt-pgp" % "2.0.0-M2")
 
 // used to generate the companion site to house documentation
-addSbtPlugin("com.47deg"  % "sbt-microsites" % "1.2.0")
+addSbtPlugin("com.47deg"  % "sbt-microsites" % "1.3.4")

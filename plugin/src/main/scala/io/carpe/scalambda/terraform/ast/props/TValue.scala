@@ -32,6 +32,10 @@ object TValue {
     override def serialize(implicit level: Int): Chain[TLine] = (predicate.serialize :+ TInline(" ? ")) ++ (ifTrue.serialize :+ TInline(" : ")) ++ ifFalse.serialize
   }
 
+  case class InfixExpression(left: TValue, operator: String, right: TValue) extends TValue {
+    override def serialize(implicit level: Int): Chain[TLine] = (left.serialize :+ TInline(s" ${operator} ")) ++ right.serialize
+  }
+
   case class TString(string: String) extends TValue {
     lazy val escapedString: String = {
       import io.circe.syntax._
@@ -84,10 +88,11 @@ object TValue {
   trait TProperties {
     this: TValue =>
     def props: Seq[(String, TValue)]
+    lazy val propChain: Chain[(String, TValue)] = Chain.fromSeq(props)
+    def dynamicBlocks: Seq[TDynamicBlock]
+    lazy val dynamicBlockChain: Chain[TDynamicBlock] = Chain.fromSeq(dynamicBlocks)
 
     protected def serializeEmpty: Chain[TLine]
-
-    lazy val propChain: Chain[(String, TValue)] = Chain.fromSeq(props)
 
     override def serialize(implicit level: Int): Chain[TLine] = {
       val serializedProperties = serializeProperties(level + 1)
@@ -96,7 +101,9 @@ object TValue {
         return serializeEmpty
       }
 
-      TInline("{") +: serializedProperties :+ TBlockLine(level, "}")
+      val serializedDynamicBlocks = serializeDynamicBlocks(level + 1)
+
+      TInline("{") +: (serializedProperties ++ serializedDynamicBlocks) :+ TBlockLine(level, "}")
     }
 
     def serializeProperties(implicit level: Int): Chain[TLine] = {
@@ -115,23 +122,38 @@ object TValue {
         }
       })
     }
+
+    def serializeDynamicBlocks(implicit level: Int): Chain[TLine] = {
+      dynamicBlockChain.flatMap(dynamicBlock => {
+        TDynamicBlock.serializeDynamicBlock(dynamicBlock)
+      })
+    }
   }
 
-  case class TBlock(props: (String, TValue)*) extends TValue(usesAssignment = false) with TProperties {
+  case class TBlock(props: Seq[(String, TValue)], dynamicBlocks: Seq[TDynamicBlock]) extends TValue(usesAssignment = false) with TProperties {
     override def serializeEmpty: Chain[TLine] = Chain.empty
   }
 
   object TBlock {
+
+    def apply(props: (String, TValue)*): TBlock = {
+      new TBlock(props = props, dynamicBlocks = Nil)
+    }
+
     def optionally(props: (String, Option[TValue])*): TBlock = {
-      new TBlock(props.toSeq.flatMap { case (key, maybeValue) => {
+      new TBlock(props.toSeq.flatMap { case (key, maybeValue) =>
         maybeValue.map(key -> _)
-      }
-      }: _*)
+      }, dynamicBlocks = Nil)
     }
   }
 
   case class TObject(props: (String, TValue)*) extends TValue(usesAssignment = true) with TProperties {
     override def serializeEmpty: Chain[TLine] = Chain.one(TInline("{}"))
+
+    /**
+     * Dynamic blocks are not allowed within objects
+     */
+    override final def dynamicBlocks: Seq[TDynamicBlock] = Nil
   }
 
   /**
@@ -161,10 +183,41 @@ object TValue {
 
       innerValueChains.initLast.map({ case (initChains, lastChain) =>
         // append a comma to each element except the last
-        (initChains.flatMap(innerValueChain => innerValueChain :+ TInline(",\n"))) ++ lastChain
+        (initChains.flatMap(innerValueChain => innerValueChain :+ TInline(","))) ++ lastChain
       }).map(innerValuesChain => {
         // add array brackets
         TInline("[") +: innerValuesChain :+ TBlockLine(level, "]")
+      }).getOrElse(Chain.empty)
+    }
+  }
+
+  case class TSet[A <: TValue](values: A*) extends TValue {
+    lazy val valueChain: Chain[TValue] = Chain.fromSeq(values)
+
+    override def serialize(implicit level: Int): Chain[TLine] = {
+      val innerValueChains = valueChain.map(value => {
+        val innerArrayLevel = level + 1
+        val chain = value.serialize(innerArrayLevel)
+
+        chain.uncons.map {
+          case (TInline(contents), tail: Chain[TLine]) =>
+            Chain.concat(
+              Chain.one(TBlockLine(innerArrayLevel, contents)),
+              tail
+            )
+          case (TBlockLine(indentationLevel, contents), tail: Chain[TLine]) =>
+            chain
+          case (TEmptyLine, _) =>
+            chain
+        }.getOrElse(Chain.empty)
+      })
+
+      innerValueChains.initLast.map({ case (initChains, lastChain) =>
+        // append a comma to each element except the last
+        (initChains.flatMap(innerValueChain => innerValueChain :+ TInline(",\n"))) ++ lastChain
+      }).map(innerValuesChain => {
+        // add array brackets
+        TInline("toset([") +: innerValuesChain :+ TBlockLine(level, "])")
       }).getOrElse(Chain.empty)
     }
   }
@@ -265,5 +318,4 @@ object TValue {
   case object TNone extends TValue {
     override def serialize(implicit level: Int): Chain[TLine] = Chain.empty
   }
-
 }
