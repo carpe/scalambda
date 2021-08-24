@@ -1,8 +1,8 @@
 package io.carpe.scalambda.terraform.composing
 
 import java.io.File
-
 import cats.data.NonEmptyList
+import cats.implicits.catsSyntaxOptionId
 import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.conf.api.{ApiDomain, ApiGatewayEndpoint}
 import io.carpe.scalambda.terraform.ast.Definition.{Output, Variable}
@@ -50,8 +50,6 @@ object ApiGatewayComposer {
       // if there are no functions that are configured to be exposed via api, return empty resources
       (None, None, Nil, Nil, None, None, None, None, None, Nil, Nil)
     })
-
-
   }
 
 
@@ -72,14 +70,18 @@ object ApiGatewayComposer {
       description = Some(
         "If set to true, this will link the latest api deployment to the domain name. You will likely only want this value set to true while in the production environment."
       ),
-      defaultValue = Some(TBool(false))
+      defaultValue = TBool(false).some
+    )
+
+    val xrayToggle = Variable[TBool](
+      name = "enable_xray",
+      description = "If set to true, this will enable X-Ray tracing for requests sent to the deployed Api Gateway.".some,
+      defaultValue = TBool(isXrayEnabled).some
     )
 
     val zoneIdVariable = Variable[TString](
       name = "zone_id",
-      description = Some(
-        "This zone id is required in order to create the custom domain name mapping that allows for you ApiGateway deployment to have a pretty url."
-      ),
+      description = "This zone id is required in order to create the custom domain name mapping that allows for you ApiGateway deployment to have a pretty url.".some,
       defaultValue = None
     )
 
@@ -142,7 +144,7 @@ object ApiGatewayComposer {
     val apiGatewayDeployment = ApiGatewayDeployment(api, permissions)
 
     // create stage
-    val apiGatewayStage = ApiGatewayStage(api, apiGatewayDeployment, isXrayEnabled)
+    val apiGatewayStage = ApiGatewayStage(api, apiGatewayDeployment, xrayToggle)
 
     // create resources for domain mapping (if domain name was supplied)
     val maybeApiGatewayDomainName = apiDomainMapping.map(
@@ -211,7 +213,7 @@ object ApiGatewayComposer {
       maybeApiGatewayDomainName,
       maybeBasePathMapping,
       maybeRoute53Record,
-      domainName ++ certificate ++ domainNameToggle ++ hostedZoneId ++ securityVars,
+      domainName ++ certificate ++ domainNameToggle ++ hostedZoneId ++ securityVars :+ xrayToggle,
       composeOutputs(api, apiGatewayDeployment, apiGatewayStage)
     )
   }

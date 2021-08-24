@@ -2,9 +2,9 @@ package io.carpe.scalambda.terraform.ast.providers.aws.apigateway
 
 import io.carpe.scalambda.terraform.ast.Definition.Resource
 import io.carpe.scalambda.terraform.ast.props.TValue
-import io.carpe.scalambda.terraform.ast.props.TValue.{TBool, TLiteral, TResourceRef}
+import io.carpe.scalambda.terraform.ast.props.TValue.{TBool, TLiteral, TResourceRef, TVariableRef}
 
-case class ApiGatewayStage(restApi: ApiGateway, apiGatewayDeployment: ApiGatewayDeployment, isXrayEnabled: Boolean) extends Resource {
+case class ApiGatewayStage(restApi: ApiGateway, apiGatewayDeployment: ApiGatewayDeployment, xrayToggle: TVariableRef) extends Resource {
   /**
    * Examples: "aws_lambda_function" "aws_iam_role"
    */
@@ -24,7 +24,7 @@ case class ApiGatewayStage(restApi: ApiGateway, apiGatewayDeployment: ApiGateway
     "stage_name" -> TLiteral("terraform.workspace"),
     "rest_api_id" -> TResourceRef(restApi, "id"),
     "deployment_id" -> TResourceRef(apiGatewayDeployment, "id"),
-    "xray_tracing_enabled" -> TBool(isXrayEnabled)
+    "xray_tracing_enabled" -> xrayToggle
   )
 }
 

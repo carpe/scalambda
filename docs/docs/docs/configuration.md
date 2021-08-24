@@ -54,7 +54,6 @@ This is the full list of settings that are shared by all your functions.
 | billingTags                     | Seq[BillingTag] | AWS Billing Tags to apply to all terraformed resources. You can also provide billing tags via a terraform variable in the generated module. See below for details. | `Nil` |
 | scalambdaTerraformPath          | File            | Path to where terraform should be written to            | `sbt.Keys.target / "terraform"` |
 | scalambdaDependenciesMergeStrat | MergeStrategy   | `sbt-assembly` MergeStrategy for your dependencies jar  |  [Check it out](https://github.com/carpe/scalambda/blob/develop/plugin/src/main/scala/io/carpe/scalambda/assembly/AssemblySettings.scala#L39-L46) |
-| enableXray                      | Boolean         | If set to true, injects AWS Xray SDK into your Lambda and enables Passthrough mode | `false` | 
 | apiName                         | String          | Name for Api Gateway instance                            | `sbt.Keys.name`                |
 | domainName                      | ApiDomain       | Domain name for Api Gateway                              | - |
 
@@ -80,10 +79,11 @@ Note: If you use the GraalNative runtime, please make sure to read [the document
 
 When/if you run `scalambdaTerraform`, several variables will be generated in the outputted module.
 
-| Parameter                       | Type                     | Description                                             | Default Value                  |
-| ------------------------------- | ------------------------ | ------------------------------------------------------- | ------------------------------:|
-| <your_function_name>_billing_tags | map                      | Billing tags for the function. These will be merged with the billing tags provided via the plugin `billingTags` setting.  | {} |
-| s3_billing_tags                 | map                      | Billing tags for the S3 bucket. These will be merged with the billing tags provided via the plugin `billingTags` setting. | {} |
+| Parameter                         | Type                     | Description                                             | Default Value                  |
+| --------------------------------- | ------------------------ | ------------------------------------------------------- | ------------------------------:|
+| your_function_name_billing_tags   | map                      | Billing tags for the function. These will be merged with the billing tags provided via the plugin `billingTags` setting.  | {} |
+| s3_billing_tags                   | map                      | Billing tags for the S3 bucket. These will be merged with the billing tags provided via the plugin `billingTags` setting. | {} |
+| enable_xray                       | boolean                  | If enabled, your Api Gateway instance will create traces in AWS X-Ray for each request. | false |
 
 ## Tasks
 

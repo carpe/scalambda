@@ -10,7 +10,7 @@ ThisBuild / organization := "io.carpe"
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 
-version in ThisBuild := s"6.3.0"
+version in ThisBuild := "6.3.0"
 
 lazy val root = (project in file("."))
   .settings(name := "scalambda")
