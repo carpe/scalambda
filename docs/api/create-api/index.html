@@ -6,7 +6,7 @@ m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 
 ga('create', 'UA-85042842-3' , 'auto');
 ga('send', 'pageview');
-      </script></head><body class="docs"><div id="wrapper"><div id="sidebar-wrapper"><div id="sidebar-brand"><a href="/scalambda/" class="brand"><div class="brand-wrapper"></div><span>scalambda</span></a><button id="main-toggle" class="sidebar-toggle"><span class="close"></span></button></div><div class="sidebar-nav"> <div class="sidebar-nav-item  "><a href="/scalambda/docs/" title="Getting Started" class="">Getting Started</a></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/configuration" title="Configuring Functions" class="">Configuring Functions</a></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/writing-functions" title="Writing Functions" class="">Writing Functions</a></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/deploying-functions" title="Deploying Functions" class="">Deploying Functions</a></div> <div class="sidebar-nav-item  open"><button type="button" title="Api Gateway" class="button drop-nested">Api Gateway</button><i class="fa fa-angle-right"></i><div class="sub-section"> <a href="/scalambda/docs/api/create-api" title="Create an API" class="active">Create an API</a> <a href="/scalambda/docs/api/deploy-api" title="Deploy an API" class="">Deploy an API</a></div></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/thegraaaaal/" title="Using Graal Native" class="">Using Graal Native</a></div></div></div><div id="page-content-wrapper"><div class="nav"><div class="container-fluid"><div class="row"><div class="col-lg-12"><div class="action-menu pull-left clearfix"><a href="#menu-toggle" id="menu-toggle"><i class="fa fa-bars" aria-hidden="true"></i></a></div><ul class="pull-right"><li id="gh-eyes-item" class="hidden-xs"><a href="https://github.com/carpe/scalambda" target="_blank" rel="noopener noreferrer"><i class="fa fa-eye"></i><span>Watchers<span id="eyes" class="label label-default">--</span></span></a></li><li id="gh-stars-item" class="hidden-xs"><a href="https://github.com/carpe/scalambda" target="_blank" rel="noopener noreferrer"><i class="fa fa-star-o"></i><span>Stars<span id="stars" class="label label-default">--</span></span></a></li></ul></div></div></div></div><div id="content" data-github-owner="carpe" data-github-repo="scalambda"><div class="content-wrapper"><section><h2 id="defining-your-api">Defining your API</h2>
+      </script></head><body class="docs"><div id="wrapper"><div id="sidebar-wrapper"><div id="sidebar-brand"><a href="/scalambda/" class="brand"><div class="brand-wrapper"></div><span>scalambda</span></a><button id="main-toggle" class="sidebar-toggle"><span class="close"></span></button></div><div class="sidebar-nav"> <div class="sidebar-nav-item  "><a href="/scalambda/docs/" title="Getting Started" class="">Getting Started</a></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/configuration" title="Configuring Functions" class="">Configuring Functions</a></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/writing-functions" title="Writing Functions" class="">Writing Functions</a></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/deploying-functions" title="Deploying Functions" class="">Deploying Functions</a></div> <div class="sidebar-nav-item  open"><button type="button" title="Api Gateway" class="button drop-nested">Api Gateway</button><i class="fa fa-angle-right"></i><div class="sub-section"> <a href="/scalambda/docs/api/create-api" title="Create an API" class="active">Create an API</a> <a href="/scalambda/docs/api/deploy-api" title="Deploy an API" class="">Deploy an API</a></div></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/thegraaaaal/" title="Using Graal Native" class="">Using Graal Native</a></div></div></div><div id="page-content-wrapper"><div class="nav"><div class="container-fluid"><div class="row"><div class="col-lg-12"><div class="action-menu pull-left clearfix"><a href="#menu-toggle" id="menu-toggle"><i class="fa fa-bars" aria-hidden="true"></i></a></div><ul class="pull-right"><li class="search-nav"><div id="search-dropdown"><label><i class="fa fa-search"></i>Search</label><input id="search-bar" type="text" placeholder="Enter keywords here..." onclick="displayToggleSearch(event)" /><ul id="search-dropdown-content" class="dropdown dropdown-content"></ul></div></li><li id="gh-eyes-item" class="hidden-xs to-uppercase"><a href="https://github.com/carpe/scalambda" target="_blank" rel="noopener noreferrer"><i class="fa fa-eye"></i><span>Watchers<span id="eyes" class="label label-default">--</span></span></a></li><li id="gh-stars-item" class="hidden-xs to-uppercase"><a href="https://github.com/carpe/scalambda" target="_blank" rel="noopener noreferrer"><i class="fa fa-star-o"></i><span>Stars<span id="stars" class="label label-default">--</span></span></a></li></ul></div></div></div></div><div id="content" data-github-owner="carpe" data-github-repo="scalambda"><div class="content-wrapper"><section><h2 id="defining-your-api">Defining your API</h2>
 
 <p>Here is how you might define the classic Petstore API example:</p>
 
@@ -40,16 +40,16 @@ ga('send', 'pageview');
 <p>There are two ways to secure your Api Gateways. The high-level steps for adding both to your API are the same:</p>
 
 <ol>
-  <li>Define the desired <code class="highlighter-rouge">Auth</code> in SBT</li>
-  <li>Run <code class="highlighter-rouge">scalambdaTerraform</code> to generate terraform (do not deploy anything just yet)</li>
-  <li>Run <code class="highlighter-rouge">terraform validate</code> to make sure you’ve met all the requirements for your chosen <code class="highlighter-rouge">Auth</code></li>
+  <li>Define the desired <code class="language-plaintext highlighter-rouge">Auth</code> in SBT</li>
+  <li>Run <code class="language-plaintext highlighter-rouge">scalambdaTerraform</code> to generate terraform (do not deploy anything just yet)</li>
+  <li>Run <code class="language-plaintext highlighter-rouge">terraform validate</code> to make sure you’ve met all the requirements for your chosen <code class="language-plaintext highlighter-rouge">Auth</code></li>
 </ol>
 
 <h4 id="auth-via-api-key">Auth via Api-Key</h4>
 
 <p><strong>Easy, but not flexible/secure enough for most use-cases</strong></p>
 
-<p><code class="highlighter-rouge">Auth.ApiKey</code> will require your users to provide an Api Key when making requests. By default, this Api Key is passed in via the <code class="highlighter-rouge">X-Api-Key</code> header.</p>
+<p><code class="language-plaintext highlighter-rouge">Auth.ApiKey</code> will require your users to provide an Api Key when making requests. By default, this Api Key is passed in via the <code class="language-plaintext highlighter-rouge">X-Api-Key</code> header.</p>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// build.sbt</span>
 
@@ -79,7 +79,7 @@ ga('send', 'pageview');
 
 <p>If you need something more flexible than Api Keys OR you want to inject and cache data within each user’s session, you probably want to use Custom Lambda Authorizers. Before you jump in straight in though, you’ll probably want to <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-use-lambda-authorizer.html#api-gateway-lambda-authorizer-flow">read up on Custom Authorizers in the AWS Docs</a>.</p>
 
-<p>Finished reading the documentation above? Good. So, according to AWS, there are two different authorizer types (<code class="highlighter-rouge">REQUEST</code> or <code class="highlighter-rouge">TOKEN</code>). The majority of APIs will use Authorizers of type <code class="highlighter-rouge">TOKEN</code>, but here’s how to define both of them in SBT:</p>
+<p>Finished reading the documentation above? Good. So, according to AWS, there are two different authorizer types (<code class="language-plaintext highlighter-rouge">REQUEST</code> or <code class="language-plaintext highlighter-rouge">TOKEN</code>). The majority of APIs will use Authorizers of type <code class="language-plaintext highlighter-rouge">TOKEN</code>, but here’s how to define both of them in SBT:</p>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// build.sbt</span>
 
@@ -99,7 +99,7 @@ ga('send', 'pageview');
 <span class="o">)</span>
 </code></pre></div></div>
 
-<p>Once you’ve defined these authorizers in SBT, you’ll likely want to run <code class="highlighter-rouge">scalambdaTerraform</code> to generate terraform variables that you can use to connect your Api to the Authorizers.</p>
+<p>Once you’ve defined these authorizers in SBT, you’ll likely want to run <code class="language-plaintext highlighter-rouge">scalambdaTerraform</code> to generate terraform variables that you can use to connect your Api to the Authorizers.</p>
 
 <div class="language-hcl highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">module</span> <span class="s2">"my_api"</span> <span class="p">{</span>
   <span class="c1">// path to terraform generated by `scalambdaTerraform` (your actual path may differ from this one)</span>
@@ -116,7 +116,7 @@ ga('send', 'pageview');
 
 <h4 id="auth-via-both">Auth via Both</h4>
 
-<p>Want to take advantage of AWS Usage Plans and Api Keys, but also need to inject in some custom session data? You can use <code class="highlighter-rouge">Auth.Multiple</code> to combine as many different authorization methods as you’d like.</p>
+<p>Want to take advantage of AWS Usage Plans and Api Keys, but also need to inject in some custom session data? You can use <code class="language-plaintext highlighter-rouge">Auth.Multiple</code> to combine as many different authorization methods as you’d like.</p>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// this type of Auth config combines multiple different authorization methods. It will require both of the authorization</span>
 <span class="c1">// methods to "pass" before allowing the Lambda function to be invoked.</span>
@@ -133,7 +133,7 @@ ga('send', 'pageview');
 
 <h4 id="disable-scalambdas-automatic-handling-of-cors">Disable Scalambda’s automatic handling of CORS</h4>
 
-<p>Here is an example of how you can disable OPTIONS request handling for the <code class="highlighter-rouge">/pets</code> route:</p>
+<p>Here is an example of how you can disable OPTIONS request handling for the <code class="language-plaintext highlighter-rouge">/pets</code> route:</p>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">lazy</span> <span class="k">val</span> <span class="nv">petstore</span> <span class="k">=</span> <span class="n">project</span>
   <span class="o">.</span><span class="py">enablePlugins</span><span class="o">(</span><span class="nc">ScalambdaPlugin</span><span class="o">)</span>
@@ -150,7 +150,7 @@ ga('send', 'pageview');
 
 <h4 id="create-a-lambda-to-handle-options-requests">Create a Lambda to handle OPTIONS requests</h4>
 
-<p>Here is an example of how you use your own Lambda to handle OPTIONS requests for the <code class="highlighter-rouge">/pets</code> route:</p>
+<p>Here is an example of how you use your own Lambda to handle OPTIONS requests for the <code class="language-plaintext highlighter-rouge">/pets</code> route:</p>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">lazy</span> <span class="k">val</span> <span class="nv">petstore</span> <span class="k">=</span> <span class="n">project</span>
   <span class="o">.</span><span class="py">enablePlugins</span><span class="o">(</span><span class="nc">ScalambdaPlugin</span><span class="o">)</span>
@@ -228,7 +228,7 @@ ga('send', 'pageview');
 </code></pre></div></div>
 
 <p>As you can see, there really isn’t too much of a difference between a Lambda Function that serves requests from Api Gateway and one that does not. The only thing that changes is the input to your Function.</p>
-</section></div></div></div></div><script src="/scalambda/highlight/highlight.pack.js"></script><script>
+</section></div></div></div></div><script src="/scalambda/highlight/highlight.pack.js"></script><script src="/scalambda/lunr/lunr.js"></script><script>
 // For all code blocks, copy the language from the containing div
 // to the inner code tag (where hljs expects it to be)
 const langPrefix = 'language-';
@@ -245,4 +245,4 @@ document.querySelectorAll(`div[class^='${langPrefix}']`).forEach(function(div) {
 
 hljs.configure({languages:['scala','java','bash']});
 hljs.initHighlightingOnLoad();
-      </script><script>console.info('\x57\x65\x62\x73\x69\x74\x65\x20\x62\x75\x69\x6c\x74\x20\x77\x69\x74\x68\x3a\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x5f\x20\x20\x20\x20\x5f\x5f\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x20\x5f\x5f\x0a\x20\x20\x20\x5f\x5f\x5f\x5f\x5f\x2f\x20\x2f\x5f\x20\x20\x2f\x20\x2f\x5f\x20\x20\x20\x20\x20\x20\x5f\x5f\x5f\x5f\x20\x5f\x5f\x5f\x20\x20\x28\x5f\x29\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x20\x20\x5f\x5f\x5f\x5f\x5f\x28\x5f\x29\x20\x2f\x5f\x5f\x5f\x5f\x20\x20\x5f\x5f\x5f\x5f\x5f\x0a\x20\x20\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x5c\x2f\x20\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x60\x5f\x5f\x20\x5c\x2f\x20\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x5c\x2f\x20\x5f\x5f\x5f\x2f\x20\x2f\x20\x5f\x5f\x2f\x20\x5f\x20\x5c\x2f\x20\x5f\x5f\x5f\x2f\x0a\x20\x28\x5f\x5f\x20\x20\x29\x20\x2f\x5f\x2f\x20\x2f\x20\x2f\x5f\x2f\x5f\x5f\x5f\x5f\x5f\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x5f\x5f\x2f\x20\x2f\x20\x20\x2f\x20\x2f\x5f\x2f\x20\x28\x5f\x5f\x20\x20\x29\x20\x2f\x20\x2f\x5f\x2f\x20\x20\x5f\x5f\x28\x5f\x5f\x20\x20\x29\x0a\x2f\x5f\x5f\x5f\x5f\x2f\x5f\x2e\x5f\x5f\x5f\x2f\x5c\x5f\x5f\x2f\x20\x20\x20\x20\x20\x2f\x5f\x2f\x20\x2f\x5f\x2f\x20\x2f\x5f\x2f\x5f\x2f\x5c\x5f\x5f\x5f\x2f\x5f\x2f\x20\x20\x20\x5c\x5f\x5f\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x2f\x5f\x2f\x5c\x5f\x5f\x2f\x5c\x5f\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x2f\x0a\x0a\x68\x74\x74\x70\x73\x3a\x2f\x2f\x34\x37\x64\x65\x67\x2e\x67\x69\x74\x68\x75\x62\x2e\x69\x6f\x2f\x73\x62\x74\x2d\x6d\x69\x63\x72\x6f\x73\x69\x74\x65\x73')</script><script src="/scalambda/js/docs.js"></script></body></html>
+      </script><script>console.info('\x57\x65\x62\x73\x69\x74\x65\x20\x62\x75\x69\x6c\x74\x20\x77\x69\x74\x68\x3a\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x5f\x20\x20\x20\x20\x5f\x5f\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x20\x5f\x5f\x0a\x20\x20\x20\x5f\x5f\x5f\x5f\x5f\x2f\x20\x2f\x5f\x20\x20\x2f\x20\x2f\x5f\x20\x20\x20\x20\x20\x20\x5f\x5f\x5f\x5f\x20\x5f\x5f\x5f\x20\x20\x28\x5f\x29\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x20\x20\x5f\x5f\x5f\x5f\x5f\x28\x5f\x29\x20\x2f\x5f\x5f\x5f\x5f\x20\x20\x5f\x5f\x5f\x5f\x5f\x0a\x20\x20\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x5c\x2f\x20\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x60\x5f\x5f\x20\x5c\x2f\x20\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x5c\x2f\x20\x5f\x5f\x5f\x2f\x20\x2f\x20\x5f\x5f\x2f\x20\x5f\x20\x5c\x2f\x20\x5f\x5f\x5f\x2f\x0a\x20\x28\x5f\x5f\x20\x20\x29\x20\x2f\x5f\x2f\x20\x2f\x20\x2f\x5f\x2f\x5f\x5f\x5f\x5f\x5f\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x5f\x5f\x2f\x20\x2f\x20\x20\x2f\x20\x2f\x5f\x2f\x20\x28\x5f\x5f\x20\x20\x29\x20\x2f\x20\x2f\x5f\x2f\x20\x20\x5f\x5f\x28\x5f\x5f\x20\x20\x29\x0a\x2f\x5f\x5f\x5f\x5f\x2f\x5f\x2e\x5f\x5f\x5f\x2f\x5c\x5f\x5f\x2f\x20\x20\x20\x20\x20\x2f\x5f\x2f\x20\x2f\x5f\x2f\x20\x2f\x5f\x2f\x5f\x2f\x5c\x5f\x5f\x5f\x2f\x5f\x2f\x20\x20\x20\x5c\x5f\x5f\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x2f\x5f\x2f\x5c\x5f\x5f\x2f\x5c\x5f\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x2f\x0a\x0a\x68\x74\x74\x70\x73\x3a\x2f\x2f\x34\x37\x64\x65\x67\x2e\x67\x69\x74\x68\x75\x62\x2e\x69\x6f\x2f\x73\x62\x74\x2d\x6d\x69\x63\x72\x6f\x73\x69\x74\x65\x73')</script><script src="/scalambda/js/search.js"></script><script src="/scalambda/js/docs.js"></script></body></html>

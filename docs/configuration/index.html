@@ -6,9 +6,9 @@ m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 
 ga('create', 'UA-85042842-3' , 'auto');
 ga('send', 'pageview');
-      </script></head><body class="docs"><div id="wrapper"><div id="sidebar-wrapper"><div id="sidebar-brand"><a href="/scalambda/" class="brand"><div class="brand-wrapper"></div><span>scalambda</span></a><button id="main-toggle" class="sidebar-toggle"><span class="close"></span></button></div><div class="sidebar-nav"> <div class="sidebar-nav-item  "><a href="/scalambda/docs/" title="Getting Started" class="">Getting Started</a></div> <div class="sidebar-nav-item active "><a href="/scalambda/docs/configuration" title="Configuring Functions" class="active">Configuring Functions</a></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/writing-functions" title="Writing Functions" class="">Writing Functions</a></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/deploying-functions" title="Deploying Functions" class="">Deploying Functions</a></div> <div class="sidebar-nav-item  "><button type="button" title="Api Gateway" class="button drop-nested">Api Gateway</button><i class="fa fa-angle-right"></i><div class="sub-section"> <a href="/scalambda/docs/api/create-api" title="Create an API" class="">Create an API</a> <a href="/scalambda/docs/api/deploy-api" title="Deploy an API" class="">Deploy an API</a></div></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/thegraaaaal/" title="Using Graal Native" class="">Using Graal Native</a></div></div></div><div id="page-content-wrapper"><div class="nav"><div class="container-fluid"><div class="row"><div class="col-lg-12"><div class="action-menu pull-left clearfix"><a href="#menu-toggle" id="menu-toggle"><i class="fa fa-bars" aria-hidden="true"></i></a></div><ul class="pull-right"><li id="gh-eyes-item" class="hidden-xs"><a href="https://github.com/carpe/scalambda" target="_blank" rel="noopener noreferrer"><i class="fa fa-eye"></i><span>Watchers<span id="eyes" class="label label-default">--</span></span></a></li><li id="gh-stars-item" class="hidden-xs"><a href="https://github.com/carpe/scalambda" target="_blank" rel="noopener noreferrer"><i class="fa fa-star-o"></i><span>Stars<span id="stars" class="label label-default">--</span></span></a></li></ul></div></div></div></div><div id="content" data-github-owner="carpe" data-github-repo="scalambda"><div class="content-wrapper"><section><h2 id="defining-scalambdas">Defining Scalambdas</h2>
+      </script></head><body class="docs"><div id="wrapper"><div id="sidebar-wrapper"><div id="sidebar-brand"><a href="/scalambda/" class="brand"><div class="brand-wrapper"></div><span>scalambda</span></a><button id="main-toggle" class="sidebar-toggle"><span class="close"></span></button></div><div class="sidebar-nav"> <div class="sidebar-nav-item  "><a href="/scalambda/docs/" title="Getting Started" class="">Getting Started</a></div> <div class="sidebar-nav-item active "><a href="/scalambda/docs/configuration" title="Configuring Functions" class="active">Configuring Functions</a></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/writing-functions" title="Writing Functions" class="">Writing Functions</a></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/deploying-functions" title="Deploying Functions" class="">Deploying Functions</a></div> <div class="sidebar-nav-item  "><button type="button" title="Api Gateway" class="button drop-nested">Api Gateway</button><i class="fa fa-angle-right"></i><div class="sub-section"> <a href="/scalambda/docs/api/create-api" title="Create an API" class="">Create an API</a> <a href="/scalambda/docs/api/deploy-api" title="Deploy an API" class="">Deploy an API</a></div></div> <div class="sidebar-nav-item  "><a href="/scalambda/docs/thegraaaaal/" title="Using Graal Native" class="">Using Graal Native</a></div></div></div><div id="page-content-wrapper"><div class="nav"><div class="container-fluid"><div class="row"><div class="col-lg-12"><div class="action-menu pull-left clearfix"><a href="#menu-toggle" id="menu-toggle"><i class="fa fa-bars" aria-hidden="true"></i></a></div><ul class="pull-right"><li class="search-nav"><div id="search-dropdown"><label><i class="fa fa-search"></i>Search</label><input id="search-bar" type="text" placeholder="Enter keywords here..." onclick="displayToggleSearch(event)" /><ul id="search-dropdown-content" class="dropdown dropdown-content"></ul></div></li><li id="gh-eyes-item" class="hidden-xs to-uppercase"><a href="https://github.com/carpe/scalambda" target="_blank" rel="noopener noreferrer"><i class="fa fa-eye"></i><span>Watchers<span id="eyes" class="label label-default">--</span></span></a></li><li id="gh-stars-item" class="hidden-xs to-uppercase"><a href="https://github.com/carpe/scalambda" target="_blank" rel="noopener noreferrer"><i class="fa fa-star-o"></i><span>Stars<span id="stars" class="label label-default">--</span></span></a></li></ul></div></div></div></div><div id="content" data-github-owner="carpe" data-github-repo="scalambda"><div class="content-wrapper"><section><h2 id="defining-scalambdas">Defining Scalambdas</h2>
 
-<p>After importing the plugin into your project, you can then use the <code class="highlighter-rouge">scalambda</code> function to define Lambda Functions from your project’s sources.</p>
+<p>After importing the plugin into your project, you can then use the <code class="language-plaintext highlighter-rouge">scalambda</code> function to define Lambda Functions from your project’s sources.</p>
 
 <h5 id="example">Example</h5>
 
@@ -39,11 +39,11 @@ ga('send', 'pageview');
 
 </code></pre></div></div>
 
-<p>The first time the <code class="highlighter-rouge">scalambda</code> function is ran within a project, sbt will automatically inject in the <code class="highlighter-rouge">scalambda-core</code> and <code class="highlighter-rouge">scalambda-testing</code> libraries. These libraries provide you with a traits and helpers to make developing and testing lambda functions quick and easy.</p>
+<p>The first time the <code class="language-plaintext highlighter-rouge">scalambda</code> function is ran within a project, sbt will automatically inject in the <code class="language-plaintext highlighter-rouge">scalambda-core</code> and <code class="language-plaintext highlighter-rouge">scalambda-testing</code> libraries. These libraries provide you with a traits and helpers to make developing and testing lambda functions quick and easy.</p>
 
 <h2 id="settings">Settings</h2>
 
-<p>Once you have enabled the Scalambda plugin, you’ll be able to set some settings that are shared by all functions within the current project. That being said, the bulk of the configuration options are configured by modifying the parameters to each <code class="highlighter-rouge">scalambda</code> function invocation.</p>
+<p>Once you have enabled the Scalambda plugin, you’ll be able to set some settings that are shared by all functions within the current project. That being said, the bulk of the configuration options are configured by modifying the parameters to each <code class="language-plaintext highlighter-rouge">scalambda</code> function invocation.</p>
 
 <h4 id="project-settings">Project Settings</h4>
 
@@ -63,37 +63,31 @@ ga('send', 'pageview');
       <td>s3BucketName</td>
       <td>String</td>
       <td>Prefix for S3 bucket name to store binaries in</td>
-      <td style="text-align: right"><code class="highlighter-rouge">sbt.Keys.name</code></td>
+      <td style="text-align: right"><code class="language-plaintext highlighter-rouge">sbt.Keys.name</code></td>
     </tr>
     <tr>
       <td>billingTags</td>
       <td>Seq[BillingTag]</td>
       <td>AWS Billing Tags to apply to all terraformed resources. You can also provide billing tags via a terraform variable in the generated module. See below for details.</td>
-      <td style="text-align: right"><code class="highlighter-rouge">Nil</code></td>
+      <td style="text-align: right"><code class="language-plaintext highlighter-rouge">Nil</code></td>
     </tr>
     <tr>
       <td>scalambdaTerraformPath</td>
       <td>File</td>
       <td>Path to where terraform should be written to</td>
-      <td style="text-align: right"><code class="highlighter-rouge">sbt.Keys.target / "terraform"</code></td>
+      <td style="text-align: right"><code class="language-plaintext highlighter-rouge">sbt.Keys.target / "terraform"</code></td>
     </tr>
     <tr>
       <td>scalambdaDependenciesMergeStrat</td>
       <td>MergeStrategy</td>
-      <td><code class="highlighter-rouge">sbt-assembly</code> MergeStrategy for your dependencies jar</td>
+      <td><code class="language-plaintext highlighter-rouge">sbt-assembly</code> MergeStrategy for your dependencies jar</td>
       <td style="text-align: right"><a href="https://github.com/carpe/scalambda/blob/develop/plugin/src/main/scala/io/carpe/scalambda/assembly/AssemblySettings.scala#L39-L46">Check it out</a></td>
-    </tr>
-    <tr>
-      <td>enableXray</td>
-      <td>Boolean</td>
-      <td>If set to true, injects AWS Xray SDK into your Lambda and enables Passthrough mode</td>
-      <td style="text-align: right"><code class="highlighter-rouge">false</code></td>
     </tr>
     <tr>
       <td>apiName</td>
       <td>String</td>
       <td>Name for Api Gateway instance</td>
-      <td style="text-align: right"><code class="highlighter-rouge">sbt.Keys.name</code></td>
+      <td style="text-align: right"><code class="language-plaintext highlighter-rouge">sbt.Keys.name</code></td>
     </tr>
     <tr>
       <td>domainName</td>
@@ -106,7 +100,7 @@ ga('send', 'pageview');
 
 <h4 id="lambda-settings">Lambda Settings</h4>
 
-<p>Each <code class="highlighter-rouge">scalambda</code> function accepts a wide range of parameters. Although, the only required parameter is the <code class="highlighter-rouge">functionClasspath</code>.</p>
+<p>Each <code class="language-plaintext highlighter-rouge">scalambda</code> function accepts a wide range of parameters. Although, the only required parameter is the <code class="language-plaintext highlighter-rouge">functionClasspath</code>.</p>
 
 <table>
   <thead>
@@ -128,13 +122,13 @@ ga('send', 'pageview');
       <td>functionNaming</td>
       <td>FunctionNaming</td>
       <td>controls how your lambda function is named</td>
-      <td style="text-align: right"><code class="highlighter-rouge">WorkspaceBased</code></td>
+      <td style="text-align: right"><code class="language-plaintext highlighter-rouge">WorkspaceBased</code></td>
     </tr>
     <tr>
       <td>iamRoleSource</td>
       <td>FunctionRoleSource</td>
-      <td>controls how your lambda function receives it’s IAM role. Options are <code class="highlighter-rouge">RoleFromVariable</code> or <code class="highlighter-rouge">RoleFromArn</code></td>
-      <td style="text-align: right"><code class="highlighter-rouge">RoleFromVariable</code></td>
+      <td>controls how your lambda function receives it’s IAM role. Options are <code class="language-plaintext highlighter-rouge">RoleFromVariable</code> or <code class="language-plaintext highlighter-rouge">RoleFromArn</code></td>
+      <td style="text-align: right"><code class="language-plaintext highlighter-rouge">RoleFromVariable</code></td>
     </tr>
     <tr>
       <td>memory</td>
@@ -145,8 +139,8 @@ ga('send', 'pageview');
     <tr>
       <td>runtime</td>
       <td>ScalambdaRuntime</td>
-      <td>runtime for your function to use. Options are <code class="highlighter-rouge">Java8</code>, <code class="highlighter-rouge">Java11</code>, or <code class="highlighter-rouge">GraalNative</code></td>
-      <td style="text-align: right"><code class="highlighter-rouge">Java8</code></td>
+      <td>runtime for your function to use. Options are <code class="language-plaintext highlighter-rouge">Java8</code>, <code class="language-plaintext highlighter-rouge">Java11</code>, or <code class="language-plaintext highlighter-rouge">GraalNative</code></td>
+      <td style="text-align: right"><code class="language-plaintext highlighter-rouge">Java8</code></td>
     </tr>
     <tr>
       <td>concurrencyLimit</td>
@@ -158,18 +152,18 @@ ga('send', 'pageview');
       <td>warmWith</td>
       <td>WarmerConfig</td>
       <td>controls how your lambda function will be kept “warm”</td>
-      <td style="text-align: right"><code class="highlighter-rouge">WarmerConfig.Cold</code></td>
+      <td style="text-align: right"><code class="language-plaintext highlighter-rouge">WarmerConfig.Cold</code></td>
     </tr>
     <tr>
       <td>vpcConfig</td>
       <td>VpcConfig</td>
-      <td>use this setting if you need to run your Lambda Function inside a VPC. Options are <code class="highlighter-rouge">StaticVpcConfig</code> and <code class="highlighter-rouge">VpcFromTF</code></td>
-      <td style="text-align: right"><code class="highlighter-rouge">VpcConf.withoutVpc</code></td>
+      <td>use this setting if you need to run your Lambda Function inside a VPC. Options are <code class="language-plaintext highlighter-rouge">StaticVpcConfig</code> and <code class="language-plaintext highlighter-rouge">VpcFromTF</code></td>
+      <td style="text-align: right"><code class="language-plaintext highlighter-rouge">VpcConf.withoutVpc</code></td>
     </tr>
     <tr>
       <td>environmentVariables</td>
       <td>Seq[EnvironmentVariable]</td>
-      <td>use this to inject ENV variables into your Lambda Function. Options are <code class="highlighter-rouge">StaticVariable</code> and <code class="highlighter-rouge">VariableFromTF</code></td>
+      <td>use this to inject ENV variables into your Lambda Function. Options are <code class="language-plaintext highlighter-rouge">StaticVariable</code> and <code class="language-plaintext highlighter-rouge">VariableFromTF</code></td>
       <td style="text-align: right">Nil</td>
     </tr>
   </tbody>
@@ -179,7 +173,7 @@ ga('send', 'pageview');
 
 <h4 id="terraform-module-settings">Terraform Module Settings</h4>
 
-<p>When/if you run <code class="highlighter-rouge">scalambdaTerraform</code>, several variables will be generated in the outputted module.</p>
+<p>When/if you run <code class="language-plaintext highlighter-rouge">scalambdaTerraform</code>, several variables will be generated in the outputted module.</p>
 
 <table>
   <thead>
@@ -192,16 +186,34 @@ ga('send', 'pageview');
   </thead>
   <tbody>
     <tr>
-      <td><your_function_name>_billing_tags</your_function_name></td>
+      <td>your_function_name_billing_tags</td>
       <td>map</td>
-      <td>Billing tags for the function. These will be merged with the billing tags provided via the plugin <code class="highlighter-rouge">billingTags</code> setting.</td>
+      <td>Billing tags for the function. These will be merged with the billing tags provided via the plugin <code class="language-plaintext highlighter-rouge">billingTags</code> setting.</td>
       <td style="text-align: right">{}</td>
     </tr>
     <tr>
       <td>s3_billing_tags</td>
       <td>map</td>
-      <td>Billing tags for the S3 bucket. These will be merged with the billing tags provided via the plugin <code class="highlighter-rouge">billingTags</code> setting.</td>
+      <td>Billing tags for the S3 bucket. These will be merged with the billing tags provided via the plugin <code class="language-plaintext highlighter-rouge">billingTags</code> setting.</td>
       <td style="text-align: right">{}</td>
+    </tr>
+    <tr>
+      <td>enable_xray</td>
+      <td>boolean</td>
+      <td>If enabled, the Api Gateway stage in this module will create traces in AWS X-Ray for each request.</td>
+      <td style="text-align: right">false</td>
+    </tr>
+    <tr>
+      <td>access_log_cloudwatch_arn</td>
+      <td>string</td>
+      <td>The arn of a Cloudwatch Log Group that you’d like the Api Gateway stage to send access logs to. Make sure that you have <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-logging.html#set-up-access-logging-permissions">set up a proper role</a> for ApiGateway to use to log before using this setting.</td>
+      <td style="text-align: right">-</td>
+    </tr>
+    <tr>
+      <td>access_log_format</td>
+      <td>string</td>
+      <td>The format for the Api Gateway stage’s access logs. Check the <a href="https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-logging.html">docs</a> to see how to customize this.</td>
+      <td style="text-align: right">-</td>
     </tr>
   </tbody>
 </table>
@@ -232,7 +244,7 @@ ga('send', 'pageview');
     </tr>
   </tbody>
 </table>
-</section></div></div></div></div><script src="/scalambda/highlight/highlight.pack.js"></script><script>
+</section></div></div></div></div><script src="/scalambda/highlight/highlight.pack.js"></script><script src="/scalambda/lunr/lunr.js"></script><script>
 // For all code blocks, copy the language from the containing div
 // to the inner code tag (where hljs expects it to be)
 const langPrefix = 'language-';
@@ -249,4 +261,4 @@ document.querySelectorAll(`div[class^='${langPrefix}']`).forEach(function(div) {
 
 hljs.configure({languages:['scala','java','bash']});
 hljs.initHighlightingOnLoad();
-      </script><script>console.info('\x57\x65\x62\x73\x69\x74\x65\x20\x62\x75\x69\x6c\x74\x20\x77\x69\x74\x68\x3a\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x5f\x20\x20\x20\x20\x5f\x5f\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x20\x5f\x5f\x0a\x20\x20\x20\x5f\x5f\x5f\x5f\x5f\x2f\x20\x2f\x5f\x20\x20\x2f\x20\x2f\x5f\x20\x20\x20\x20\x20\x20\x5f\x5f\x5f\x5f\x20\x5f\x5f\x5f\x20\x20\x28\x5f\x29\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x20\x20\x5f\x5f\x5f\x5f\x5f\x28\x5f\x29\x20\x2f\x5f\x5f\x5f\x5f\x20\x20\x5f\x5f\x5f\x5f\x5f\x0a\x20\x20\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x5c\x2f\x20\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x60\x5f\x5f\x20\x5c\x2f\x20\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x5c\x2f\x20\x5f\x5f\x5f\x2f\x20\x2f\x20\x5f\x5f\x2f\x20\x5f\x20\x5c\x2f\x20\x5f\x5f\x5f\x2f\x0a\x20\x28\x5f\x5f\x20\x20\x29\x20\x2f\x5f\x2f\x20\x2f\x20\x2f\x5f\x2f\x5f\x5f\x5f\x5f\x5f\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x5f\x5f\x2f\x20\x2f\x20\x20\x2f\x20\x2f\x5f\x2f\x20\x28\x5f\x5f\x20\x20\x29\x20\x2f\x20\x2f\x5f\x2f\x20\x20\x5f\x5f\x28\x5f\x5f\x20\x20\x29\x0a\x2f\x5f\x5f\x5f\x5f\x2f\x5f\x2e\x5f\x5f\x5f\x2f\x5c\x5f\x5f\x2f\x20\x20\x20\x20\x20\x2f\x5f\x2f\x20\x2f\x5f\x2f\x20\x2f\x5f\x2f\x5f\x2f\x5c\x5f\x5f\x5f\x2f\x5f\x2f\x20\x20\x20\x5c\x5f\x5f\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x2f\x5f\x2f\x5c\x5f\x5f\x2f\x5c\x5f\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x2f\x0a\x0a\x68\x74\x74\x70\x73\x3a\x2f\x2f\x34\x37\x64\x65\x67\x2e\x67\x69\x74\x68\x75\x62\x2e\x69\x6f\x2f\x73\x62\x74\x2d\x6d\x69\x63\x72\x6f\x73\x69\x74\x65\x73')</script><script src="/scalambda/js/docs.js"></script></body></html>
+      </script><script>console.info('\x57\x65\x62\x73\x69\x74\x65\x20\x62\x75\x69\x6c\x74\x20\x77\x69\x74\x68\x3a\x0a\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x5f\x20\x20\x20\x20\x5f\x5f\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x5f\x20\x5f\x5f\x0a\x20\x20\x20\x5f\x5f\x5f\x5f\x5f\x2f\x20\x2f\x5f\x20\x20\x2f\x20\x2f\x5f\x20\x20\x20\x20\x20\x20\x5f\x5f\x5f\x5f\x20\x5f\x5f\x5f\x20\x20\x28\x5f\x29\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x5f\x20\x20\x5f\x5f\x5f\x5f\x5f\x28\x5f\x29\x20\x2f\x5f\x5f\x5f\x5f\x20\x20\x5f\x5f\x5f\x5f\x5f\x0a\x20\x20\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x5c\x2f\x20\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x60\x5f\x5f\x20\x5c\x2f\x20\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x5f\x2f\x20\x5f\x5f\x20\x5c\x2f\x20\x5f\x5f\x5f\x2f\x20\x2f\x20\x5f\x5f\x2f\x20\x5f\x20\x5c\x2f\x20\x5f\x5f\x5f\x2f\x0a\x20\x28\x5f\x5f\x20\x20\x29\x20\x2f\x5f\x2f\x20\x2f\x20\x2f\x5f\x2f\x5f\x5f\x5f\x5f\x5f\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x20\x2f\x5f\x5f\x2f\x20\x2f\x20\x20\x2f\x20\x2f\x5f\x2f\x20\x28\x5f\x5f\x20\x20\x29\x20\x2f\x20\x2f\x5f\x2f\x20\x20\x5f\x5f\x28\x5f\x5f\x20\x20\x29\x0a\x2f\x5f\x5f\x5f\x5f\x2f\x5f\x2e\x5f\x5f\x5f\x2f\x5c\x5f\x5f\x2f\x20\x20\x20\x20\x20\x2f\x5f\x2f\x20\x2f\x5f\x2f\x20\x2f\x5f\x2f\x5f\x2f\x5c\x5f\x5f\x5f\x2f\x5f\x2f\x20\x20\x20\x5c\x5f\x5f\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x2f\x5f\x2f\x5c\x5f\x5f\x2f\x5c\x5f\x5f\x5f\x2f\x5f\x5f\x5f\x5f\x2f\x0a\x0a\x68\x74\x74\x70\x73\x3a\x2f\x2f\x34\x37\x64\x65\x67\x2e\x67\x69\x74\x68\x75\x62\x2e\x69\x6f\x2f\x73\x62\x74\x2d\x6d\x69\x63\x72\x6f\x73\x69\x74\x65\x73')</script><script src="/scalambda/js/search.js"></script><script src="/scalambda/js/docs.js"></script></body></html>
