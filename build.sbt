@@ -10,7 +10,7 @@ ThisBuild / organization := "io.carpe"
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 
-version in ThisBuild := "6.4.0"
+version in ThisBuild := "6.6.0-SNAPSHOT"
 
 lazy val root = (project in file("."))
   .settings(name := "scalambda")
@@ -177,11 +177,6 @@ ThisBuild / organizationHomepage := Some(url("https://www.carpe.io/"))
 
 // Remove all additional repository other than Maven Central from POM
 ThisBuild / pomIncludeRepository := { _ => false }
-ThisBuild / publishTo := {
-  val nexus = "https://oss.sonatype.org/"
-  if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
-  else Some("releases" at nexus + "service/local/staging/deploy/maven2")
-}
 ThisBuild / publishMavenStyle := true
 
 /**

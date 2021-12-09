@@ -9,13 +9,18 @@ import io.carpe.scalambda.native.views.LambdaError
 import io.circe
 import io.circe.{Decoder, Encoder, Printer}
 
-import scala.concurrent.ExecutionContext
-
 abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: Encoder[O]) extends LazyLogging {
 
-  implicit val contextShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
+  implicit val contextShift: ContextShift[IO]
 
   def main(args: Array[String]): Unit = {
+    val messageString = "ScalambdaIO was changed - 6.6.0-SNAPSHOT"
+    logger.info(messageString)
+    logger.warn(messageString)
+    logger.debug(messageString)
+    logger.trace(messageString)
+    println(messageString)
+
     val runtimeApi: String = sys.env("AWS_LAMBDA_RUNTIME_API")
 
     // The url used to retrieve request events
