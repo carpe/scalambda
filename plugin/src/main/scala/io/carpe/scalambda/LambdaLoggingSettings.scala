@@ -5,7 +5,7 @@ import sbt.Keys.{excludeDependencies, libraryDependencies}
 
 object LambdaLoggingSettings {
 
-  lazy val log4jVersion = "2.8.2"
+  lazy val log4jVersion = "2.17.1"
 
   /**
    * Pre-optimized settings for fat-jars that will be used as Lambda Functions
