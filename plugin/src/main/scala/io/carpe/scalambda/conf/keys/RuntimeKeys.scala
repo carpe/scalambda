@@ -10,4 +10,6 @@ trait RuntimeKeys {
   lazy val Java11: ScalambdaRuntime = ScalambdaRuntime.Java11
 
   lazy val GraalNative: ScalambdaRuntime = ScalambdaRuntime.GraalNative
+
+  lazy val LinuxTwo: ScalambdaRuntime = ScalambdaRuntime.LinuxTwo
 }

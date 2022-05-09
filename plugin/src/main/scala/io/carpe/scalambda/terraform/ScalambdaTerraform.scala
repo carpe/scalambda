@@ -86,7 +86,7 @@ object ScalambdaTerraform {
       )
 
     // load resources into module
-    val scalambdaModule = ScalambdaModule(
+    val scalambdaModule =  ScalambdaModule(
       lambdaResources = lambdaResources.lambdaResources ++ lambdaResources.functionAliases ++ apiLambdaAliases ++ referencedFunctionAliases,
       lambdaWarmingResources = lambdaResources.warmerResources,
       s3Buckets = Seq(s3Resources.bucket),

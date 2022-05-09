@@ -15,4 +15,7 @@ object ScalambdaRuntime {
   case object GraalNative extends ScalambdaRuntime {
     override def identifier: String = "provided"
   }
+  case object LinuxTwo extends ScalambdaRuntime {
+    override def identifier: String = "provided.al2"
+  }
 }

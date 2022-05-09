@@ -21,7 +21,7 @@ object AssemblySettings {
       (Def.taskDyn[Option[java.io.File]] {
         val runtimes: Seq[ScalambdaRuntime] = scalambdaFunctions.value.flatMap(_.runtime)
 
-        if (runtimes.contains(ScalambdaRuntime.GraalNative)) {
+        if (runtimes.contains(ScalambdaRuntime.GraalNative) || runtimes.contains(ScalambdaRuntime.LinuxTwo)) {
           Def.task {
             // create the native image
             val nativeImage = ScalambdaAssemblyNative.packageNativeImage("function").value

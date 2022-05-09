@@ -78,6 +78,10 @@ object LambdaComposer {
               s3Resources.nativeImageBucketItem.getOrElse({
                 ???
               })
+            case ScalambdaRuntime.LinuxTwo =>
+              s3Resources.nativeImageBucketItem.getOrElse({
+                ???
+              })
           }
 
           val functionResource =

@@ -52,7 +52,11 @@ case class LambdaFunction( scalambdaFunction: DefinedFunction,
       dependenciesLayer.map(layer => TArray(TResourceRef(layer, "arn"))).getOrElse(TNone)
     case ScalambdaRuntime.GraalNative =>
       TNone
+    case ScalambdaRuntime.LinuxTwo =>
+      TNone
   }
+
+  private val architectures: TValue = TString("arm64")
 
   private val environment: TValue = {
     TBlock("variables" -> TObject({
@@ -95,6 +99,8 @@ case class LambdaFunction( scalambdaFunction: DefinedFunction,
       "subnet_ids" -> subnetIds,
       "security_group_ids" -> securityGroupIds
     ),
+    // architecture
+    "architecture" -> architectures,
     // sets the lambda function to publish a new version for each change
     "publish" -> TBool(true),
     // xray configuration for the lambda

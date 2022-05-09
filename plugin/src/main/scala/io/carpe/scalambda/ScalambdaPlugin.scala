@@ -100,6 +100,11 @@ object ScalambdaPlugin extends AutoPlugin {
             mainClass in assembly := Some(functionClasspath)
           )
           nativeScalambdaLibs ++ LambdaLoggingSettings.nativeLoggingSettings :+ mainClassSetting
+        case ScalambdaRuntime.LinuxTwo =>
+          val mainClassSetting = (
+            mainClass in assembly := Some(functionClasspath)
+            )
+          nativeScalambdaLibs ++ LambdaLoggingSettings.nativeLoggingSettings :+ mainClassSetting
       }
 
       // return a project
@@ -172,9 +177,10 @@ object ScalambdaPlugin extends AutoPlugin {
       )
 
       routes.flatMap(_._2.runtime) match {
-        case runtimes if (runtimes.contains(ScalambdaRuntime.Java8) || runtimes.contains(ScalambdaRuntime.Java11)) && runtimes.contains(ScalambdaRuntime.GraalNative) =>
+        case runtimes if (runtimes.contains(ScalambdaRuntime.Java8) || runtimes.contains(ScalambdaRuntime.Java11)) &&
+          (runtimes.contains(ScalambdaRuntime.GraalNative) || runtimes.contains(ScalambdaRuntime.LinuxTwo))  =>
           apiEndpointSettings ++ jvmScalambdaLibs ++ nativeScalambdaLibs ++ LambdaLoggingSettings.nativeLoggingSettings
-        case runtimes if runtimes.contains(ScalambdaRuntime.GraalNative) =>
+        case runtimes if runtimes.contains(ScalambdaRuntime.GraalNative) || runtimes.contains(ScalambdaRuntime.LinuxTwo) =>
           apiEndpointSettings ++ nativeScalambdaLibs ++ LambdaLoggingSettings.nativeLoggingSettings
         case runtimes if runtimes.contains(ScalambdaRuntime.Java8) || runtimes.contains(ScalambdaRuntime.Java11) =>
           apiEndpointSettings ++ jvmScalambdaLibs
