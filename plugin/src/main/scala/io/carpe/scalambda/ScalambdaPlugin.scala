@@ -137,6 +137,7 @@ object ScalambdaPlugin extends AutoPlugin {
                           iamRoleSource: FunctionRoleSource = RoleFromVariable,
                           memory: Int = RuntimeConfig.apiDefault.memory,
                           runtime: ScalambdaRuntime = RuntimeConfig.apiDefault.runtime,
+                          architecture: ArchitectureConfig = RuntimeConfig.apiDefault.architecture,
                           concurrencyLimit: Int = RuntimeConfig.apiDefault.reservedConcurrency,
                           environmentVariables: Seq[EnvironmentVariable] = List.empty,
                           warmWith: WarmerConfig = WarmerConfig.Cold,
@@ -149,7 +150,7 @@ object ScalambdaPlugin extends AutoPlugin {
         handlerPath = functionClasspath + "::handler",
         functionSource = IncludedInModule,
         iamRole = iamRoleSource,
-        runtimeConfig = RuntimeConfig.apiDefault.copy(memory = memory, runtime = runtime, reservedConcurrency = concurrencyLimit),
+        runtimeConfig = RuntimeConfig.apiDefault.copy(memory = memory, runtime = runtime, reservedConcurrency = concurrencyLimit, architecture = architecture),
         vpcConfig = vpcConfig,
         warmerConfig = warmWith,
         environmentVariables = environmentVariables

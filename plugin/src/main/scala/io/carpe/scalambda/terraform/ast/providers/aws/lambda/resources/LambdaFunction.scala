@@ -56,7 +56,7 @@ case class LambdaFunction( scalambdaFunction: DefinedFunction,
       TNone
   }
 
-  private val architectures: TValue = TString("arm64")
+  private val architecture: TValue = TString(scalambdaFunction.runtimeConfig.architecture.identifier)
 
   private val environment: TValue = {
     TBlock("variables" -> TObject({
@@ -100,7 +100,7 @@ case class LambdaFunction( scalambdaFunction: DefinedFunction,
       "security_group_ids" -> securityGroupIds
     ),
     // architecture
-    "architecture" -> architectures,
+    "architecture" -> architecture,
     // sets the lambda function to publish a new version for each change
     "publish" -> TBool(true),
     // xray configuration for the lambda

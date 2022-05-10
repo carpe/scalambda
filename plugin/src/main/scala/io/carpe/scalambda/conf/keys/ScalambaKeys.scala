@@ -41,6 +41,7 @@ trait ScalambaKeys extends FunctionNamingKeys
                  iamRoleSource: FunctionRoleSource = RoleFromVariable,
                  memory: Int = RuntimeConfig.default.memory,
                  runtime: ScalambdaRuntime = RuntimeConfig.default.runtime,
+                 architectureConfig: ArchitectureConfig = RuntimeConfig.default.architecture,
                  concurrencyLimit: Int = RuntimeConfig.default.reservedConcurrency,
                  warmWith: WarmerConfig = WarmerConfig.Cold,
                  vpcConfig: VpcConf = VpcConf.withoutVpc,
@@ -51,7 +52,7 @@ trait ScalambaKeys extends FunctionNamingKeys
         handlerPath = functionClasspath + "::handler",
         functionSource = IncludedInModule,
         iamRole = iamRoleSource,
-        runtimeConfig = RuntimeConfig.default.copy(memory = memory, runtime = runtime, reservedConcurrency = concurrencyLimit),
+        runtimeConfig = RuntimeConfig.default.copy(memory = memory, runtime = runtime, architecture = architectureConfig, reservedConcurrency = concurrencyLimit),
         warmerConfig = warmWith,
         vpcConfig = vpcConfig,
         environmentVariables = environmentVariables

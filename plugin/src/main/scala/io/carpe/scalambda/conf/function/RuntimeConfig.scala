@@ -1,12 +1,13 @@
 package io.carpe.scalambda.conf.function
 
-case class RuntimeConfig(memory: Int, timeout: Int, runtime: ScalambdaRuntime, reservedConcurrency: Int)
+case class RuntimeConfig(memory: Int, timeout: Int, runtime: ScalambdaRuntime, architecture: ArchitectureConfig, reservedConcurrency: Int)
 
 object RuntimeConfig {
   lazy val default: RuntimeConfig = RuntimeConfig(
     memory = 1536,
     timeout = 60 * 15,
     runtime = ScalambdaRuntime.Java11,
+    architecture = ArchitectureConfig.X8664,
     reservedConcurrency = -1
   )
 
