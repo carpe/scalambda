@@ -8,6 +8,7 @@ import io.carpe.scalambda.conf.utils.StringUtils
 sealed trait ScalambdaFunction {
   def environmentVariables: Seq[EnvironmentVariable]
   def runtime: Option[ScalambdaRuntime]
+  def architecture: Option[ArchitectureConfig]
   def terraformLambdaResourceName: String
 
   /**
@@ -63,6 +64,8 @@ object ScalambdaFunction {
     }
 
     override def runtime: Option[ScalambdaRuntime] = Some(runtimeConfig.runtime)
+
+    override def architecture: Option[ArchitectureConfig] = Some(runtimeConfig.architecture)
   }
 
 
@@ -77,6 +80,8 @@ object ScalambdaFunction {
     override def terraformLambdaResourceName: String = StringUtils.toSnakeCase(functionName)
 
     override def runtime: Option[ScalambdaRuntime] = None
+
+    override def architecture: Option[ArchitectureConfig] = None
   }
 
 }
