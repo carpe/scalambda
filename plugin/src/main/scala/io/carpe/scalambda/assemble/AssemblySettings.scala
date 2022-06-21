@@ -39,9 +39,7 @@ object AssemblySettings {
 
   // builds the lambda function jar without dependencies (so we can bake them in as a separate lambda layer)
   lazy val functionJarAssemblySettings: Seq[Setting[_]] = Seq(
-    scalambdaPackageMergeStrat := {
-      case _ => MergeStrategy.last
-    },
+    scalambdaPackageMergeStrat := sbtassembly.MergeStrategy.defaultMergeStrategy,
     scalambdaPackage := {
       // only assemble the jar if a function with a jvm-based runtime exists
       (Def.taskDyn[Option[java.io.File]] {
@@ -79,14 +77,7 @@ object AssemblySettings {
 
   // builds the dependencies of the lambda version. these will be baked into a lambda layer to improve deployment times
   lazy val dependencyAssemblySettings: Seq[Setting[_]] = Seq(
-    scalambdaDependenciesMergeStrat := {
-      case PathList(ps@_*) if ps.last == "Log4j2Plugins.dat" => Log4j2MergeStrategy.plugincache
-      case PathList("META-INF", "MANIFEST.MF") => MergeStrategy.discard
-      case "log4j2.xml" => MergeStrategy.discard
-      case "reference.conf" => MergeStrategy.concat
-      case _ =>
-        MergeStrategy.last
-    },
+    scalambdaDependenciesMergeStrat := sbtassembly.MergeStrategy.defaultMergeStrategy,
     scalambdaPackageDependencies := {
       // only assemble the jar if a function with a jvm-based runtime exists
       (Def.taskDyn[Option[java.io.File]] {
