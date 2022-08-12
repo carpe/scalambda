@@ -5,7 +5,6 @@ import sonar._
 import versions._
 
 ThisBuild / scapegoatVersion := "1.4.15"
-//ThisBuild / scalaVersion := "2.12.16"
 ThisBuild / organization := "io.carpe"
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
