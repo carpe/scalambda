@@ -4,24 +4,29 @@ import scapegoat._
 import sonar._
 import versions._
 
-scapegoatVersion in ThisBuild := "1.4.1"
-ThisBuild / scalaVersion := "2.12.10"
+ThisBuild / scapegoatVersion := "1.4.15"
+//ThisBuild / scalaVersion := "2.12.16"
 ThisBuild / organization := "io.carpe"
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 
-version in ThisBuild := "6.4.0"
+ThisBuild / version := "6.4.0"
+
+val Scala212 = "2.12.16"
+val Scala213 = "2.13.8"
 
 lazy val root = (project in file("."))
   .settings(name := "scalambda")
+  .settings(crossScalaVersions := Nil)
   .aggregate(plugin, core, testing, native)
-  .settings(skip in publish := true, skip in publishLocal := true)
-  .settings(sonarSettings, aggregate in sonarScan := false, sonarProperties ++= Map("sonar.modules" -> "core,testing,plugin"))
+  .settings(publish / skip := true, publishLocal / skip := true)
+  .settings(sonarSettings, sonarScan / aggregate := false, sonarProperties ++= Map("sonar.modules" -> "core,testing,plugin"))
 
 lazy val commonSettings = sonarSettings ++ scapegoatSettings
 
 lazy val core = project
   .settings(name := "scalambda-core")
+  .settings(crossScalaVersions := Seq(Scala212, Scala213))
   .settings(commonSettings)
   .settings(description := "Dependencies shared by both delegates and handlers. Includes things like Models and generic Lambda helpers.")
   .settings(
@@ -29,76 +34,75 @@ lazy val core = project
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-core",
       "io.circe" %% "circe-parser",
-      "io.circe" %% "circe-generic"
-    ).map(_ % circeVersion),
-    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-generic",
       "io.circe" %% "circe-generic-extras"
-    ).map(_ % circeGenericVersion),
+    ).map(_ % circeVersion),
 
     // Cats Effect, used to control side effects and make managing resources (such as database connections) easier
     libraryDependencies += "org.typelevel" %% "cats-effect" % catsVersion,
 
     // Minimal set of interfaces for AWS Lambda
-    libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
+    libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.2.1",
 
     // Logging
-    libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
+    libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingVersion,
 
     // Testing
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % Test,
+    libraryDependencies += "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
     libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test,
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")
   )
 
 lazy val native = project
   .settings(name := "scalambda-native")
+  .settings(crossScalaVersions := Seq(Scala212, Scala213))
   .settings(commonSettings)
   .settings(
     // Circe is a serialization library that we can use to serialize/deserialize requests
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-core",
       "io.circe" %% "circe-parser",
-      "io.circe" %% "circe-generic"
-    ).map(_ % circeVersion),
-    libraryDependencies ++= Seq(
+      "io.circe" %% "circe-generic",
       "io.circe" %% "circe-generic-extras"
-    ).map(_ % circeGenericVersion),
+    ).map(_ % circeVersion),
 
     // Cats Effect, used to control side effects and make managing resources (such as database connections) easier
     libraryDependencies += "org.typelevel" %% "cats-effect" % catsVersion,
 
     // Requests is a simple lib for managing http requests that can be safely run in graal native
-    libraryDependencies += "com.lihaoyi" %% "requests" % "0.6.5",
+    libraryDependencies += "com.lihaoyi" %% "requests" % "0.7.1",
 
     // Logging
-    libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
+    libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % scalaLoggingVersion,
 
     // Testing
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % Test,
+    libraryDependencies += "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
     libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test,
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")
   )
 
 lazy val testing = project
   .settings(name := "scalambda-testing")
+  .settings(crossScalaVersions := Seq(Scala212, Scala213))
   .settings(description := "Utilities for testing Lambda Functions created with Scalambda.")
   .settings(
     // Testing
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1",
-    libraryDependencies += "org.scalamock" %% "scalamock" % "4.4.0",
+    libraryDependencies += "org.scalatest" %% "scalatest" % scalaTestVersion,
+    libraryDependencies += "org.scalamock" %% "scalamock" % scalaMockVersion,
     libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10",
 
     // Logging
-    libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.29",
-    libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.8.2",
-    libraryDependencies += "org.apache.logging.log4j" % "log4j-api" % "2.8.2",
-    libraryDependencies += "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.12.1",
+    libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.25",
+    libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.18.0",
+    libraryDependencies += "org.apache.logging.log4j" % "log4j-api" % "2.18.0",
+    libraryDependencies += "org.apache.logging.log4j" % "log4j-slf4j-impl" % "2.18.0",
 
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")
   ).dependsOn(core)
 
 lazy val plugin = project
   .settings(name := "sbt-scalambda")
+  .settings(crossScalaVersions := Seq(Scala212))
   .enablePlugins(SbtPlugin, BuildInfoPlugin)
   .settings(description := "Dependencies shared by both delegates and handlers. Includes things like Models and generic Lambda helpers.")
   .settings(
@@ -108,36 +112,36 @@ lazy val plugin = project
     buildInfoPackage := "io.carpe.scalambda",
 
     // Used to generate swagger file for terraforming
-    libraryDependencies += "io.circe" %% "circe-generic" % circeGenericVersion,
-    libraryDependencies += "io.circe" %% "circe-yaml" % "0.12.0",
+    libraryDependencies += "io.circe" %% "circe-generic" % circeVersion,
+    libraryDependencies += "io.circe" %% "circe-yaml" % "0.14.1",
 
     // Used for reading configuration values
-    libraryDependencies += "com.typesafe" % "config" % "1.2.1",
+    libraryDependencies += "com.typesafe" % "config" % "1.4.2",
 
     // used to create zip file for lambda source
-    libraryDependencies += "org.apache.commons" % "commons-compress" % "1.20",
+    libraryDependencies += "org.apache.commons" % "commons-compress" % "1.21",
 
     // Pre-loaded SBT Plugins
     libraryDependencies ++= {
       // get sbt and scala version used in build to resolve plugins with
-      val sbtVersion     = (sbtBinaryVersion in pluginCrossBuild).value
-      val scalaVersion   = (scalaBinaryVersion in update).value
+      val sbtVersion     = (pluginCrossBuild / sbtBinaryVersion).value
+      val scalaVersion   = (update / scalaBinaryVersion).value
 
       // the plugins we want to include
       Seq(
         // Plugin for building fat-jars
-        "com.eed3si9n" % "sbt-assembly" % "0.14.9",
+        "com.eed3si9n" % "sbt-assembly" % "1.2.0",
 
         // Plugin for accessing git info, used to version lambda functions
-        "com.typesafe.sbt" % "sbt-git" % "1.0.0",
+        "com.github.sbt" % "sbt-git" % "2.0.0",
 
         // Used for graal-native assembly (if someone is crazy enough to use it for their lambdas)
-        "com.typesafe.sbt" % "sbt-native-packager" % "1.4.1"
+        "com.github.sbt" % "sbt-native-packager" % "1.9.10"
       ).map(Defaults.sbtPluginExtra(_, sbtVersion, scalaVersion))
     },
 
     // Testing
-    libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % Test,
+    libraryDependencies += "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
     libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test,
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")
   )

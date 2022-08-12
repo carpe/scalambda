@@ -8,8 +8,8 @@ import _root_.io.carpe.scalambda.conf.function.{ScalambdaRuntime, _}
 import _root_.io.carpe.scalambda.conf.keys.ScalambaKeys
 import _root_.io.carpe.scalambda.terraform.ScalambdaTerraform
 import cats.data.Chain
-import com.typesafe.sbt.GitVersioning
-import com.typesafe.sbt.SbtGit.GitKeys.{formattedDateVersion, gitHeadCommit}
+import com.github.sbt.git.GitVersioning
+import com.github.sbt.git.SbtGit.GitKeys.{formattedDateVersion, gitHeadCommit}
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.graalvmnativeimage.GraalVMNativeImagePlugin
 import sbt.{AutoPlugin, Def}
@@ -96,9 +96,7 @@ object ScalambdaPlugin extends AutoPlugin {
           jvmScalambdaLibs ++ LambdaLoggingSettings.jvmLoggingSettings
         case ScalambdaRuntime.GraalNative =>
           // TODO: Set this setting for each unique Lambda to allow for more than 1 native lambda to be created from each project.
-          val mainClassSetting = (
-            mainClass in assembly := Some(functionClasspath)
-          )
+          val mainClassSetting = assembly / mainClass := Some(functionClasspath)
           nativeScalambdaLibs ++ LambdaLoggingSettings.nativeLoggingSettings :+ mainClassSetting
       }
 

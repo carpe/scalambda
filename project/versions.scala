@@ -1,5 +1,7 @@
 object versions {
-  lazy val circeVersion = "0.13.0"
-  lazy val circeGenericVersion = "0.13.0"
-  lazy val catsVersion = "2.2.0"
+  lazy val circeVersion = "0.14.2"
+  lazy val catsVersion = "3.3.14"
+  lazy val scalaLoggingVersion  = "3.9.5"
+  lazy val scalaTestVersion = "3.2.13"
+  lazy val scalaMockVersion = "5.2.0"
 }

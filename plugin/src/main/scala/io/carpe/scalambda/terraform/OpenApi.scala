@@ -5,7 +5,6 @@ import cats.data.NonEmptyList
 import io.carpe.scalambda.conf.ScalambdaFunction
 import io.carpe.scalambda.conf.api.{ApiGatewayEndpoint, CORS}
 import io.carpe.scalambda.terraform.openapi.{ResourceMethod, ResourcePath, SecurityDefinition}
-import org.apache.http.client.methods.RequestBuilder.options
 
 case class OpenApi(paths: Seq[ResourcePath], securityDefinitions: Seq[SecurityDefinition])
 

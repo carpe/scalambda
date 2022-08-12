@@ -3,6 +3,7 @@ package io.carpe.scalambda.effect
 import java.io.{InputStream, OutputStream}
 
 import cats.effect.{IO, Resource}
+import cats.effect.unsafe.implicits.global
 import com.amazonaws.services.lambda.runtime.Context
 import com.typesafe.scalalogging.LazyLogging
 import io.carpe.scalambda.Scalambda

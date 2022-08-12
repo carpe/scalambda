@@ -1,7 +1,8 @@
 package io.carpe.scalambda.native
 
 import cats.data.NonEmptyList
-import cats.effect.{ContextShift, IO}
+import cats.effect.{IO, Spawn}
+import cats.effect.unsafe.implicits.global
 import com.typesafe.scalalogging.LazyLogging
 import io.carpe.scalambda.native.ScalambdaIO.RequestEvent
 import io.carpe.scalambda.native.exceptions.MissingHeaderException
@@ -9,11 +10,7 @@ import io.carpe.scalambda.native.views.LambdaError
 import io.circe
 import io.circe.{Decoder, Encoder, Printer}
 
-import scala.concurrent.ExecutionContext
-
 abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: Encoder[O]) extends LazyLogging {
-
-  implicit val contextShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
 
   def main(args: Array[String]): Unit = {
     val runtimeApi: String = sys.env("AWS_LAMBDA_RUNTIME_API")
@@ -101,7 +98,7 @@ abstract class ScalambdaIO[I, O](implicit val decoder: Decoder[I], val encoder: 
 
       // trampoline and repeat the program endlessly
       // this allows us to continue checking for additional requests to process before AWS terminates this instance
-      _ <- IO.shift
+      _ <- Spawn[IO].cede
       _ <- program
     } yield ()
 
