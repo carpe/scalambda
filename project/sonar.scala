@@ -7,7 +7,7 @@ object sonar {
   lazy val sonarSettings: Seq[Def.Setting[_]] = {
     Seq(
       // test arguments used to produce test reports for sonar to consume
-      testOptions in Test ++= Seq(
+      Test / testOptions ++= Seq(
         Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports"),
         Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/test-reports")
       ),

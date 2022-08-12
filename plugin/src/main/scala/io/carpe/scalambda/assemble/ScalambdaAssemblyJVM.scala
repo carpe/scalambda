@@ -59,7 +59,7 @@ object ScalambdaAssemblyJVM {
 
     lazy val (ms: Vector[(File, String)], stratMapping: List[(String, MergeStrategy)]) = {
       log.debug("Merging files...")
-      applyStrategies(mappings, ao.mergeStrategy, ao.assemblyDirectory, log)
+      applyStrategies(mappings, ao.mergeStrategy, ao.assemblyDirectory.get, log)
     }
 
     lazy val inputs = {
