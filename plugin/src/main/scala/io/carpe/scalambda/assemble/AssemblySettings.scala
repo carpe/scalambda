@@ -1,14 +1,13 @@
 package io.carpe.scalambda.assemble
 
 import _root_.io.carpe.scalambda.conf.function.ScalambdaRuntime
-import io.carpe.scalambda.Log4j2MergeStrategy
 import io.carpe.scalambda.ScalambdaPlugin.autoImport.*
 import sbt.Def.Initialize
 import sbt.Keys.*
 import sbt.*
 import sbtassembly.AssemblyKeys.assembledMappings
 import sbtassembly.AssemblyPlugin.autoImport.*
-import sbtassembly.{Assembly, AssemblyOption, MappingSet, MergeStrategy, PathList}
+import sbtassembly.{Assembly, MappingSet}
 
 object AssemblySettings {
 

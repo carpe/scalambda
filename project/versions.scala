@@ -4,4 +4,5 @@ object versions {
   lazy val scalaLoggingVersion  = "3.9.5"
   lazy val scalaTestVersion = "3.2.13"
   lazy val scalaMockVersion = "5.2.0"
+  lazy val flexmarkVersion = "0.62.2"
 }

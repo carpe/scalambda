@@ -9,7 +9,7 @@ ThisBuild / organization := "io.carpe"
 ThisBuild / scalacOptions ++= Seq("-unchecked", "-deprecation", "-feature")
 ThisBuild / javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 
-ThisBuild / version := "6.4.0"
+ThisBuild / version := "7.0.0-RC"
 
 val Scala212 = "2.12.16"
 val Scala213 = "2.13.8"
@@ -48,7 +48,7 @@ lazy val core = project
 
     // Testing
     libraryDependencies += "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
-    libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test,
+    libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % flexmarkVersion % Test,
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")
   )
 
@@ -76,7 +76,7 @@ lazy val native = project
 
     // Testing
     libraryDependencies += "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
-    libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test,
+    libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % flexmarkVersion % Test,
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")
   )
 
@@ -88,7 +88,7 @@ lazy val testing = project
     // Testing
     libraryDependencies += "org.scalatest" %% "scalatest" % scalaTestVersion,
     libraryDependencies += "org.scalamock" %% "scalamock" % scalaMockVersion,
-    libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10",
+    libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % flexmarkVersion,
 
     // Logging
     libraryDependencies += "org.slf4j" % "slf4j-api" % "1.7.25",
@@ -141,7 +141,7 @@ lazy val plugin = project
 
     // Testing
     libraryDependencies += "org.scalatest" %% "scalatest" % scalaTestVersion % Test,
-    libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % "0.35.10" % Test,
+    libraryDependencies += "com.vladsch.flexmark" % "flexmark-all" % flexmarkVersion % Test,
     Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-h", "target/generated/test-reports")
   )
 
@@ -170,8 +170,6 @@ ThisBuild / developers := List(
     url   = url("https://github.com/SwiftEngineer")
   )
 )
-
-ThisBuild / useGpg := true
 
 ThisBuild / description := "Toolkit for building/deploying Lambda Functions with SBT"
 ThisBuild / licenses := List("Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"))
